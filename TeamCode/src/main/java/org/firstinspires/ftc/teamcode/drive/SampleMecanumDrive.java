@@ -235,10 +235,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public Pose2d getLastError() {return trajectorySequenceRunner.getLastPoseError();}
 
-    public void updateEstimate(int numLoops){
+    public void updateEstimate(){
         getEncoders();
         localizer.updateEncoders(encoders);
-        if (numLoops%5 == 0){
+        if (loops%5 == 0){
             localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
         localizer.update();
@@ -248,7 +248,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void update() {
         loops ++;
-        updateEstimate(loops);
+        updateEstimate();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);
