@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmode;
+package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
 
 /*
  * This is an example of a more complex path to really test the tuning.
@@ -82,4 +80,5 @@ public class Auto extends LinearOpMode {
         sleep(2000);
 
     }
+
 }

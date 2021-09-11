@@ -5,8 +5,6 @@ import android.widget.Button;
 
 import androidx.annotation.NonNull;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
@@ -62,17 +60,12 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
 /*
  * Simple mecanum drive hardware implementation for REV hardware.
  */
-@Config
 public class SampleMecanumDrive extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(7, 0.075,0.5);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(100, 10, 0);
-
-    private FtcDashboard dashboard;
     private ArrayList<Pose2d> poseHistory;
 
     private PIDFController turnController;
-    //private MotionProfile turnProfile;
-    //private double turnStart;
 
     private String TAG = "SampleTankDrive";
 
@@ -93,9 +86,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     static RevBulkData bulkData;
     static ExpansionHubEx expansionHub1, expansionHub2;
-    static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intakeMotor, linearSlidesMotor;
-
-    static ExpansionHubServo dropperServo, capstoneServo;
+    static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
 
     private BNO055IMU imu;
 
@@ -106,25 +97,16 @@ public class SampleMecanumDrive extends MecanumDrive {
     static int[] encoders;
 
     int loops = 0;
-    long startTime;
 
     public Pose2d currentPose;
     public Pose2d currentVelocity;
-
-    public ButtonToggle slidesLift = new ButtonToggle();
-    public ButtonToggle controlIntake = new ButtonToggle();
-    public ButtonToggle controlServo = new ButtonToggle();
-    public ButtonToggle controlCapstoneServo = new ButtonToggle();
 
     public static int slidesEncoder;
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
 
-        encoders = new int[3];
-
-        dashboard = FtcDashboard.getInstance();
-        dashboard.setTelemetryTransmissionInterval(25);
+        encoders = new int[4];
 
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
@@ -154,17 +136,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         // add more motors here
 
         expansionHub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
-        linearSlidesMotor   = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides_motor_1");
-        intakeMotor         = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake_motor_2");
 
-        dropperServo = hardwareMap.get(ExpansionHubServo.class, "dropper_servo_0");
-        capstoneServo = hardwareMap.get(ExpansionHubServo.class, "capstone_servo_1");
-
-        linearSlidesMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        linearSlidesMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        linearSlidesMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
 //        dropperServo.setDirection(Servo.Direction.REVERSE);
 
@@ -200,7 +172,6 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
         poseHistory = new ArrayList<Pose2d>();
-        startTime = System.nanoTime();
     }
 
     public static void getEncoders(){
@@ -208,10 +179,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
         encoders[1] = bulkData.getMotorCurrentPosition(leftFront);
         encoders[2] = bulkData.getMotorCurrentPosition(rightRear);
-        //bulkData.getMotorCurrentPosition(leftFront); this is how to get the data
+        encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         // you can set the bulkData to the other expansion hub to get data from the other one
-        bulkData = expansionHub2.getBulkInputData();
-        slidesEncoder = bulkData.getMotorCurrentPosition(linearSlidesMotor);
+        //bulkData = expansionHub2.getBulkInputData();
     }
 
     public void turnAsync(double angle) {
@@ -273,8 +243,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateEstimate(int numLoops){
         getEncoders();
-        localizer.setEncoders(encoders);
-        if (numLoops%3 == 0){
+        localizer.updateEncoders(encoders);
+        if (numLoops%5 == 0){
             localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
         currentPose = getPoseEstimate();
@@ -282,92 +252,47 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void update() {
-        double totalTime = (System.nanoTime() - startTime)/1000000000.0;
         loops ++;
-
         updateEstimate(loops);
-
-        Log.e("averageLoopTime","" + totalTime/(double)loops);
 
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
 
-        //Linear Slides Motor
-        if(slidesLift.getToggleState()) {
-            linearSlidesMotor.setTargetPosition(10000);
-            linearSlidesMotor.setPower(1.0);
-        } else {
-            linearSlidesMotor.setTargetPosition(0);
-            linearSlidesMotor.setPower(1.0);
-        }
-        linearSlidesMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        //Intake Motor
-        if(controlIntake.getToggleState()) {
-            intakeMotor.setPower(1.0);
-        }
-        else {
-            intakeMotor.setPower(0.0);
-        }
-
-        //Dumpster Dropper Servo
-        if(controlServo.getToggleState()) {
-            dropperServo.setPosition(1.0);
-        }
-        else {
-            dropperServo.setPosition(0.0);
-        }
-
-        //Capstone Servo
-        if(controlCapstoneServo.getToggleState()) {
-            capstoneServo.setPosition(1.0);
-        }
-        else {
-            capstoneServo.setPosition(0.0);
-        }
-
-
         if (signal != null) {
-            Log.e("signal", signal.toString());
-            double forward = (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
-            double left = (signal.component1().component2() * kV * LATERAL_MULTIPLIER) + (signal.component2().component2() * kA * LATERAL_MULTIPLIER);
-            double turn = (signal.component1().component3() * kV) + (signal.component2().component3() * kA);
-
-            double p1 = forward-left-turn;
-            double p2 = forward+left-turn;
-            double p3 = forward-left+turn;
-            double p4 = forward+left+turn;
-
-            double max = Math.max(Math.abs(p1), Math.max(Math.abs(p2), Math.max(Math.abs(p3), Math.abs(p4))));
-
-            if(max >= 1 - kStatic) {
-                p1/=max;
-                p2/=max;
-                p3/=max;
-                p4/=max;
-            }
-
-            if (p1 != 0){
-                p1 += kStatic*Math.signum(p1);
-            }
-
-            if (p2 != 0){
-                p2 += kStatic*Math.signum(p2);
-            }
-
-            if (p3 != 0){
-                p3 += kStatic*Math.signum(p3);
-            }
-
-            if (p4 != 0){
-                p4 += kStatic*Math.signum(p4);
-            }
-            switch (loops % 6){
-                case 1: leftFront.setPower(p1); break;
-                case 2: leftRear.setPower(p2); break;
-                case 4: rightRear.setPower(p3); break;
-                case 5: rightFront.setPower(p4); break;
-            }
+            updateDriveMotors(signal,loops);
         }
+    }
+    public void updateDriveMotors(DriveSignal signal, int loops){
+        double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
+        double left =       ((signal.component1().component2() * kV) + (signal.component2().component2() * kA)) * LATERAL_MULTIPLIER;
+        double turn =       (signal.component1().component3() * kV) + (signal.component2().component3() * kA);
+        double p1 = forward-left-turn;
+        double p2 = forward+left-turn;
+        double p3 = forward-left+turn;
+        double p4 = forward+left+turn;
+        double maxPow = getMax(p1,p2,p3,p4);
+        if(maxPow >= 1.0 - kStatic) {
+            p1 /=maxPow; p1 *= 1.0 - kStatic;
+            p2 /=maxPow; p2 *= 1.0 - kStatic;
+            p3 /=maxPow; p3 *= 1.0 - kStatic;
+            p4 /=maxPow; p4 *= 1.0 - kStatic;
+        }
+        p1 += kStatic*Math.signum(p1);
+        p2 += kStatic*Math.signum(p2);
+        p3 += kStatic*Math.signum(p3);
+        p4 += kStatic*Math.signum(p4);
+        switch(loops%5){
+            case 1: leftFront.setPower(p1); break;
+            case 2: leftRear.setPower(p2); break;
+            case 3: rightRear.setPower(p3); break;
+            case 4: rightFront.setPower(p4); break;
+        }
+    }
+    public double getMax(double d1, double d2, double d3, double d4){
+        double absD1 = Math.abs(d1);
+        double absD2 = Math.abs(d2);
+        double absD3 = Math.abs(d3);
+        double absD4 = Math.abs(d4);
+        return Math.max(Math.max(absD1,absD2),Math.max(absD3,absD4));
     }
 
     public void waitForIdle() {
