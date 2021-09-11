@@ -90,7 +90,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     static int[] encoders;
 
-    int loops = 0;
+    public int loops = 0;
 
     public Pose2d currentPose;
     public Pose2d currentVelocity;
@@ -241,6 +241,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (numLoops%5 == 0){
             localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
+        localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
     }
@@ -248,14 +249,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate(loops);
-
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
-
         if (signal != null) {
-            updateDriveMotors(signal,loops);
+            updateDriveMotors(signal);
         }
     }
-    public void updateDriveMotors(DriveSignal signal, int loops){
+    public void updateDriveMotors(DriveSignal signal){
         double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
         double left =       ((signal.component1().component2() * kV) + (signal.component2().component2() * kA)) * LATERAL_MULTIPLIER;
         double turn =       (signal.component1().component3() * kV) + (signal.component2().component3() * kA);

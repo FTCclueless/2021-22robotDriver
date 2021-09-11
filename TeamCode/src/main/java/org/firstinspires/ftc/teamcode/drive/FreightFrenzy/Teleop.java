@@ -21,16 +21,6 @@ public class Teleop extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    //Controller 1
-    private ButtonToggle button_rb = new ButtonToggle();
-
-    //Controller 2
-
-    private ButtonToggle buttonA1 = new ButtonToggle();
-
-    private ButtonToggle buttonA2 = new ButtonToggle();
-    private ButtonToggle buttonY2 = new ButtonToggle();
-
     private boolean slowMode = false;
 
     SampleMecanumDrive drive;
@@ -44,30 +34,25 @@ public class Teleop extends LinearOpMode {
         waitForStart();
 
         while (!isStopRequested()) {
+
             double forward = gamepad1.left_stick_y * -0.75;
             double left = gamepad1.left_stick_x * 0.75;
             double turn = gamepad1.right_stick_x * 0.75;
 
-//            if(drive.controlMotors.update(gamepad1.right_bumper)) {
-//                slowMode = !slowMode;
-//            }
-
             if (slowMode == true) {
-                forward = gamepad1.left_stick_y * -0.45;
-                left = gamepad1.left_stick_x * 0.45;
-                turn = gamepad1.right_stick_x * 0.45;
+                forward *= -0.45;
+                left *= 0.45;
+                turn *= 0.45;
+            }
+            else{
+                forward *= -0.75;
+                left *= 0.75;
+                turn *= 0.75;
             }
 
-            drive.slidesLift.update(gamepad2.y); // Controlling Linear Slides Motor
-            drive.controlIntake.update(gamepad2.a); // Controlling Intake Motor
-            drive.controlServo.update(gamepad1.b); // Controlling Dropper Servo
-            drive.controlCapstoneServo.update(gamepad1.a);//Controlling Capstone Servo
-
             drive.setMotorPowers((forward + left + turn), (forward - left + turn), (forward + left - turn), (forward - left - turn));
-
             drive.update();
 
-            Pose2d poseEstimate = drive.getPoseEstimate();
             telemetry.addData("speedX", drive.currentVelocity.getX());
             telemetry.addData("speedY", drive.currentVelocity.getY());
             telemetry.addData("speedHeading", drive.currentVelocity.getHeading());

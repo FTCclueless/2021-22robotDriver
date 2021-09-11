@@ -38,7 +38,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
 
     public Pose2d getPoseEstimate() {
-        update();
         return currentPose;
     }
 
@@ -81,7 +80,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         lastTime = currentTime;
 
         /*
-        ___________________________                          x+
+        ___________________________                           x+
         |                         |                           ^
         |                         |                           |
         |                         |                           |
