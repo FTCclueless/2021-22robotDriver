@@ -129,7 +129,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         // add more motors here
 
-        expansionHub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
+        //expansionHub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
 
 
 //        dropperServo.setDirection(Servo.Direction.REVERSE);
@@ -143,8 +143,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftRear.setDirection(DcMotorSimple.Direction.REVERSE); //rightRear
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE); //rightFront
 
         if (RUN_USING_ENCODER) {
             setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -170,8 +170,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public static void getEncoders(){
         bulkData = expansionHub1.getBulkInputData();
-        encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
-        encoders[1] = bulkData.getMotorCurrentPosition(leftFront);
+        encoders[0] = bulkData.getMotorCurrentPosition(leftFront); // switched 0 and 1
+        encoders[1] = bulkData.getMotorCurrentPosition(rightFront);
         encoders[2] = bulkData.getMotorCurrentPosition(rightRear);
         encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         // you can set the bulkData to the other expansion hub to get data from the other one
