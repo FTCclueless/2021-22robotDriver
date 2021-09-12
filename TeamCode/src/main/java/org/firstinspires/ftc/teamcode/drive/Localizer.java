@@ -71,8 +71,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public void update() {
         double odoHeading = encoders[0].getCurrentDist()/encoders[0].y + encoders[1].getCurrentDist()/encoders[1].y;
         double sideHeading = encoders[2].getCurrentDist()/encoders[2].y + encoders[3].getCurrentDist()/encoders[3].y;
-        Log.e("odoHeading",odoHeading + "");
-        Log.e("sideHeading",sideHeading + "");
+        Log.e("odoHeading",Math.toDegrees(odoHeading) + "");
+        Log.e("sideHeading",Math.toDegrees(sideHeading) + "");
+        Log.e("Heading Difference",Math.toDegrees(odoHeading-sideHeading)+"");;
+        Log.e("Heading offest",Math.toDegrees(offsetHeading)+"");
         double heading = odoHeading + offsetHeading;
 
         long currentTime = System.nanoTime();

@@ -56,6 +56,8 @@ public class TrajectorySequenceBuilder {
     private boolean setAbsoluteTangent;
     private double absoluteTangent;
 
+    boolean reversed;
+
     private TrajectoryBuilder currentTrajectoryBuilder;
 
     private double currentDuration;
@@ -67,6 +69,7 @@ public class TrajectorySequenceBuilder {
     public TrajectorySequenceBuilder(
             Pose2d startPose,
             Double startTangent,
+            boolean reversed,
             TrajectoryVelocityConstraint baseVelConstraint,
             TrajectoryAccelerationConstraint baseAccelConstraint,
             double baseTurnConstraintMaxAngVel,
@@ -90,6 +93,8 @@ public class TrajectorySequenceBuilder {
         displacementMarkers = new ArrayList<>();
         spatialMarkers = new ArrayList<>();
 
+
+        this.reversed = reversed;
         lastPose = startPose;
 
         tangentOffset = 0.0;
@@ -114,7 +119,22 @@ public class TrajectorySequenceBuilder {
             double baseTurnConstraintMaxAngAccel
     ) {
         this(
-                startPose, null,
+                startPose, null, false,
+                baseVelConstraint, baseAccelConstraint,
+                baseTurnConstraintMaxAngVel, baseTurnConstraintMaxAngAccel
+        );
+    }
+
+    public TrajectorySequenceBuilder(
+            Pose2d startPose,
+            Double startTangent,
+            TrajectoryVelocityConstraint baseVelConstraint,
+            TrajectoryAccelerationConstraint baseAccelConstraint,
+            double baseTurnConstraintMaxAngVel,
+            double baseTurnConstraintMaxAngAccel
+    ) {
+        this(
+                startPose, startTangent, false,
                 baseVelConstraint, baseAccelConstraint,
                 baseTurnConstraintMaxAngVel, baseTurnConstraintMaxAngAccel
         );
@@ -488,8 +508,12 @@ public class TrajectorySequenceBuilder {
         lastDisplacementTraj = 0.0;
 
         double tangent = setAbsoluteTangent ? absoluteTangent : Angle.norm(lastPose.getHeading() + tangentOffset);
-
-        currentTrajectoryBuilder = new TrajectoryBuilder(lastPose, tangent, currentVelConstraint, currentAccelConstraint, resolution);
+        if (reversed) {
+            currentTrajectoryBuilder = new TrajectoryBuilder(lastPose, true, currentVelConstraint, currentAccelConstraint, resolution);
+        }
+        else{
+            currentTrajectoryBuilder = new TrajectoryBuilder(lastPose, tangent, currentVelConstraint, currentAccelConstraint, resolution);
+        }
     }
 
     public TrajectorySequence build() {
