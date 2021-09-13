@@ -143,8 +143,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftRear.setDirection(DcMotorSimple.Direction.REVERSE); //rightRear
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE); //rightFront
+        rightRear.setDirection(DcMotorSimple.Direction.REVERSE); //rightRear
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE); //rightFront
 
         if (RUN_USING_ENCODER) {
             setMode(DcMotor.RunMode.RUN_USING_ENCODER);

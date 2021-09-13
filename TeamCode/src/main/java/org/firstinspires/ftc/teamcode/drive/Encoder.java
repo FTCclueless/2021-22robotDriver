@@ -10,7 +10,7 @@ public class Encoder {
     public double x;
     public double y;
     public Encoder (Vector2d point, double scaleFactor){
-        ticksToInches = 72.0/133000.0*90.0/80.0;
+        ticksToInches = 72.0/133000.0;
         x = point.getX();
         y = point.getY();
         currentVal = 0;

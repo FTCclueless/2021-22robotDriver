@@ -21,8 +21,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     public Localizer(){
         encoders = new Encoder[4];
-        encoders[0] = new Encoder(new Vector2d(0.125,-8.375),-1.0);
-        encoders[1] = new Encoder(new Vector2d(0.125,7.875),1.0);
+        encoders[0] = new Encoder(new Vector2d(0.125,-7.125),1.0);
+        encoders[1] = new Encoder(new Vector2d(0.125,6.75),-1.0);
         encoders[2] = new Encoder(new Vector2d(-6,-1.25),-1.0);
         encoders[3] = new Encoder(new Vector2d(1.5,-1.25),1.0);
     }
@@ -69,10 +69,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     @Override
     public void update() {
-        double odoHeading = (encoders[0].getCurrentDist()/encoders[0].y + encoders[1].getCurrentDist()/encoders[1].y)/-2;
-        double sideHeading = (encoders[2].getCurrentDist()/encoders[2].x + encoders[3].getCurrentDist()/encoders[3].x)/-2;
-        Log.e("odoHeading",Math.toDegrees(odoHeading) + "");
-        //Log.e("sideHeading",Math.toDegrees(sideHeading) + "");
+        odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(encoders[1].y-encoders[0].y);
+        double sideHeading = (encoders[3].getCurrentDist() - encoders[2].getCurrentDist())/(encoders[3].x -encoders[2].x);
         double heading = odoHeading + offsetHeading;
 
         long currentTime = System.nanoTime();
@@ -96,30 +94,30 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaLeft = encoders[1].getDelta();      //E2
         double deltaBack = encoders[2].getDelta();      //E3
         double deltaFront = encoders[3].getDelta();     //E4
-        double deltaHeading = deltaRight/encoders[0].y + deltaLeft/encoders[1].y; // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
-        double deltaSideHeading = deltaFront/encoders[3].x + deltaBack/encoders[2].x;
+        double deltaFrontHeading = (deltaRight - deltaLeft)/(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
         double relDeltaX = 0;
         double relDeltaY = 0;
-        double relVelHeading = deltaHeading/loopTime;
-        if (deltaHeading == 0){
+        double relVelHeading = deltaFrontHeading/loopTime;
+
+        if (deltaRight - deltaLeft == 0){
             relDeltaX += (deltaLeft + deltaRight)/2;
         }
         else{
-            double forwardR = (deltaRight*encoders[0].y - deltaLeft*encoders[1].y)/(deltaRight - deltaLeft); // calculating the turn radius for the forward encoders
-            relDeltaX += Math.sin(deltaHeading)*forwardR;
-            relDeltaY += (1.0 - Math.cos(deltaHeading))*forwardR;
+            double forwardR = (deltaLeft*encoders[1].y - deltaRight*encoders[0].y)/(deltaRight - deltaLeft); // calculating the turn radius for the forward encoders
+            relDeltaX += Math.sin(deltaFrontHeading)*forwardR;
+            relDeltaY += (1.0 - Math.cos(deltaFrontHeading))*forwardR;
         }
-        if (deltaSideHeading == 0){
+        double deltaSideHeading = (deltaBack - deltaFront)/(encoders[3].x -encoders[2].x);
+        if (deltaBack - deltaFront == 0){
             relDeltaY += (deltaFront + deltaBack)/2;
         }
         else{
-            double sideR = (deltaBack*encoders[2].x - deltaFront*encoders[3].x)/(deltaBack - deltaFront); // calculating the turn radius for the side encoders
-            relDeltaX += (1.0 - Math.cos(deltaHeading))*sideR;
-            relDeltaY += Math.sin(deltaHeading)*sideR;
+            double sideR = (deltaBack*encoders[2].x - deltaFront*encoders[3].x)/(deltaFront - deltaBack); // calculating the turn radius for the side encoders
+            relDeltaX += (1.0 - Math.cos(deltaSideHeading))*sideR;
+            relDeltaY += Math.sin(deltaSideHeading)*sideR;
         }
-
-
-        double eHeading = odoHeading - deltaHeading/2.0; // This finds the heading midway between last heading and this heading
+        Log.e("heading diff", (odoHeading - sideHeading) + "");
+        double eHeading = heading - deltaFrontHeading/2.0; // This finds the heading midway between last heading and this heading
         x += relDeltaX*Math.cos(eHeading) - relDeltaY*Math.sin(eHeading);
         y += relDeltaY*Math.cos(eHeading) + relDeltaX*Math.sin(eHeading);
 
