@@ -239,7 +239,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         getEncoders();
         localizer.updateEncoders(encoders);
         if (loops%5 == 0){
-            localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+            //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
         localizer.update();
         currentPose = getPoseEstimate();
@@ -273,7 +273,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         p2 += kStatic*Math.signum(p2);
         p3 += kStatic*Math.signum(p3);
         p4 += kStatic*Math.signum(p4);
-        switch(loops%5){
+        switch(loops%4 + 1){
             case 1: leftFront.setPower(p1); break;
             case 2: leftRear.setPower(p2); break;
             case 3: rightRear.setPower(p3); break;
