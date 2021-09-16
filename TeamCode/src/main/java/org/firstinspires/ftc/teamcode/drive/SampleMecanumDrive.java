@@ -83,6 +83,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
 
     private BNO055IMU imu;
+    private boolean useIMU;
 
     private VoltageSensor batteryVoltageSensor;
 
@@ -101,6 +102,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
 
         encoders = new int[4];
+        useIMU = false;
 
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
@@ -237,10 +239,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateEstimate(){
         getEncoders();
-        localizer.updateEncoders(encoders);
-        if (loops%5 == 0){
-            //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+        if (loops%5 == 0 && useIMU){
+            localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
+        localizer.updateEncoders(encoders);
         localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
@@ -273,11 +275,21 @@ public class SampleMecanumDrive extends MecanumDrive {
         p2 += kStatic*Math.signum(p2);
         p3 += kStatic*Math.signum(p3);
         p4 += kStatic*Math.signum(p4);
-        switch(loops%4 + 1){
-            case 1: leftFront.setPower(p1); break;
-            case 2: leftRear.setPower(p2); break;
-            case 3: rightRear.setPower(p3); break;
-            case 4: rightFront.setPower(p4); break;
+        if (useIMU) {
+            switch (loops % 5) { //%4 + 1 or 5
+                case 1: leftFront.setPower(p1);break;
+                case 2: leftRear.setPower(p2);break;
+                case 3: rightRear.setPower(p3);break;
+                case 4: rightFront.setPower(p4);break;
+            }
+        }
+        else{
+            switch (loops % 4) {
+                case 0: leftFront.setPower(p1);break;
+                case 1: leftRear.setPower(p2);break;
+                case 2: rightRear.setPower(p3);break;
+                case 3: rightFront.setPower(p4);break;
+            }
         }
     }
     public double getMax(double d1, double d2, double d3, double d4){
@@ -357,6 +369,25 @@ public class SampleMecanumDrive extends MecanumDrive {
             wheelVelocities.add(encoderTicksToInches(motor.getVelocity()));
         }
         return wheelVelocities;
+    }
+
+    public void pinMotorPowers(double v, double v1, double v2, double v3) {
+        if (useIMU) {
+            switch (loops % 5) { //%4 + 1 or 5
+                case 1: leftFront.setPower(v);break;
+                case 2: leftRear.setPower(v1);break;
+                case 3: rightRear.setPower(v2);break;
+                case 4: rightFront.setPower(v3);break;
+            }
+        }
+        else{
+            switch (loops % 4) {
+                case 0: leftFront.setPower(v);break;
+                case 1: leftRear.setPower(v1);break;
+                case 2: rightRear.setPower(v2);break;
+                case 3: rightFront.setPower(v3);break;
+            }
+        }
     }
 
     @Override

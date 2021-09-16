@@ -27,6 +27,7 @@ public class LocalizationTest extends LinearOpMode {
         waitForStart();
 
         while (!isStopRequested()) {
+            drive.update();
             double forward = gamepad1.left_stick_y * -0.4;
             double left = gamepad1.left_stick_x * 0.6;
             double turn = gamepad1.right_stick_x * 0.35;
@@ -36,9 +37,8 @@ public class LocalizationTest extends LinearOpMode {
             double p2 = forward-left+turn;
             double p3 = forward+left-turn;
             double p4 = forward-left-turn;
-            drive.setMotorPowers(p1, p2, p3, p4);
+            drive.pinMotorPowers(p1, p2, p3, p4);
 
-            drive.update();
 
             Pose2d poseEstimate = drive.getPoseEstimate();
             telemetry.addData("X", drive.currentPose.getX());
