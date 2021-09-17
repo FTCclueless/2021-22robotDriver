@@ -58,6 +58,7 @@ public class TrajectorySequenceRunner {
 
     private final FtcDashboard dashboard;
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
+    private double IMUangle = 0.0;
 
     public TrajectorySequenceRunner(TrajectoryFollower follower, PIDCoefficients headingPIDCoefficients) {
         this.follower = follower;
@@ -78,6 +79,9 @@ public class TrajectorySequenceRunner {
         currentSegmentStartTime = clock.seconds();
         currentSegmentIndex = 0;
         lastSegmentIndex = -1;
+    }
+    public void updateIMU(double angle){
+        IMUangle = angle;
     }
 
     public @Nullable
@@ -200,6 +204,14 @@ public class TrajectorySequenceRunner {
         packet.put("xError", getLastPoseError().getX());
         packet.put("yError", getLastPoseError().getY());
         packet.put("headingError (deg)", Math.toDegrees(getLastPoseError().getHeading()));
+        double headingErrorIMU = Math.toDegrees(poseEstimate.getHeading()-IMUangle);
+        while (headingErrorIMU >= 180){
+            headingErrorIMU -= 360;
+        }
+        while (headingErrorIMU <= -180){
+            headingErrorIMU += 360;
+        }
+        packet.put("headingErrorIMU (deg)", headingErrorIMU);
 
         draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate);
 

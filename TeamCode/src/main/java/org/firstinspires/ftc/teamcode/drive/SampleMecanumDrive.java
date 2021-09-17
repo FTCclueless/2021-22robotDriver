@@ -69,6 +69,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double VY_WEIGHT = 1;
     public static double OMEGA_WEIGHT = 1;
 
+    public long lastUpdateTime;
+
     private TrajectorySequenceRunner trajectorySequenceRunner;
 
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
@@ -103,6 +105,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         encoders = new int[4];
         useIMU = false;
+        lastUpdateTime = System.currentTimeMillis();
 
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
@@ -239,8 +242,16 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateEstimate(){
         getEncoders();
-        if (loops%5 == 0 && useIMU){
+        if (useIMU && loops%5 == 0){
             localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+        }
+        if (!useIMU){
+            Pose2d velocity = localizer.getPoseVelocity();
+            long currTime = System.currentTimeMillis();
+            if ((velocity.getHeading() == 0 && (currTime - lastUpdateTime) >= 50) || (currTime - lastUpdateTime) >= 150){
+                lastUpdateTime = currTime;
+                //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+            }
         }
         localizer.updateEncoders(encoders);
         localizer.update();
@@ -251,6 +262,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate();
+        //trajectorySequenceRunner.updateIMU(imu.getAngularOrientation().firstAngle);
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);

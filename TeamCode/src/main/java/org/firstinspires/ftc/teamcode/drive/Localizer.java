@@ -50,7 +50,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         while (headingDif < Math.toRadians(-180)){
             headingDif += Math.toRadians(360);
         }
-        double w = 0.1;
+        double w = 0.05;
         offsetHeading = (offsetHeading)*w + headingDif*(1.0-w);
 
     }
@@ -70,11 +70,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     @Override
     public void update() {
-        odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
-        double sideHeading = (encoders[3].getCurrentDist() - encoders[2].getCurrentDist())/(Math.abs(encoders[3].x-encoders[2].x));
-        double heading = odoHeading + offsetHeading;
-        //Log.e("Heading Difference", (odoHeading-sideHeading) + "");
-
         long currentTime = System.nanoTime();
         double loopTime = (currentTime-lastTime)/1000000000.0;
         lastTime = currentTime;
@@ -96,49 +91,33 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaLeft = encoders[1].getDelta();      //E2
         double deltaBack = encoders[2].getDelta();      //E3
         double deltaFront = encoders[3].getDelta();     //E4
-        double deltaFrontHeading = (deltaRight - deltaLeft)/(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
-        double relVelHeading = deltaFrontHeading/loopTime;
+        double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
+        double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
+        //Log.e("deltaDif", (deltaFrontHeading-deltaSideHeading) + "");
+        double w1 = 0.9;
+        double deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
+        //odoHeading += deltaHeading;
+        odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
+        double heading = odoHeading + offsetHeading;
 
+        double relVelHeading = deltaHeading/loopTime;
         double simLoops = 100.0;
-        double simHeading = heading - deltaFrontHeading;
-        double relDeltaX = ((deltaLeft - deltaFrontHeading*encoders[1].y)+(deltaRight - deltaFrontHeading*encoders[0].y))/(2.0);
-        double relDeltaY = ((deltaFront - deltaFrontHeading*encoders[3].x)+(deltaBack - deltaFrontHeading*encoders[2].x))/(2.0);
+        double simHeading = heading - deltaHeading;
+        double relDeltaX = ((deltaLeft + deltaHeading*encoders[1].y)+(deltaRight + deltaHeading*encoders[0].y))/(2.0);
+        double relDeltaY = ((deltaFront - deltaHeading*encoders[3].x)+(deltaBack - deltaHeading*encoders[2].x))/(2.0);
         //Log.e("Front Encoder", encoders[3].getCurrentDist() + "");
         double simDeltaX = relDeltaX/simLoops;
         double simDeltaY = relDeltaY/simLoops;
         for (int i = 0; i < simLoops; i ++){
-            simHeading += deltaFrontHeading/(2.0*simLoops);
+            simHeading += deltaHeading/(2.0*simLoops);
             x += simDeltaX*Math.cos(simHeading) - simDeltaY*Math.sin(simHeading);
             y += simDeltaY*Math.cos(simHeading) + simDeltaX*Math.sin(simHeading);
-            simHeading += deltaFrontHeading/(2.0*simLoops);
+            simHeading += deltaHeading/(2.0*simLoops);
         }
 
-        /*
-        if (deltaRight - deltaLeft == 0){
-            relDeltaX += (deltaLeft + deltaRight)/2.0;
-        }
-        else{
-            double forwardR = (deltaLeft*encoders[1].y - deltaRight*encoders[0].y)/(deltaRight - deltaLeft); // calculating the turn radius for the forward encoders
-            relDeltaX += Math.sin(deltaFrontHeading)*forwardR;
-            relDeltaY += (1.0 - Math.cos(deltaFrontHeading))*forwardR;
-        }
-        //double deltaSideHeading = (deltaBack - deltaFront)/(encoders[3].x -encoders[2].x);
-        if (deltaBack - deltaFront == 0){
-            relDeltaY += (deltaFront + deltaBack)/2.0;
-        }
-        else{
-            double sideR = (deltaBack*encoders[2].x - deltaFront*encoders[3].x)/(deltaFront - deltaBack); // calculating the turn radius for the side encoders
-            relDeltaX += (1.0 - Math.cos(deltaFrontHeading))*sideR;
-            relDeltaY += Math.sin(deltaFrontHeading)*sideR;
-        }
-        double eHeading = heading;// - deltaFrontHeading/2.0; // This finds the heading midway between last heading and this heading
-        x += relDeltaX*Math.cos(eHeading) - relDeltaY*Math.sin(eHeading);
-        y += relDeltaY*Math.cos(eHeading) + relDeltaX*Math.sin(eHeading);
-         */
-
-        double w = 0.35; // This is a Kalman Filter to help make sure that the velocities stay relatively stable
-        double newVelX = ((relDeltaX)/loopTime - currentVel.getX())*w + currentVel.getX()*(1.0-w);//X-lastX
-        double newVelY = ((relDeltaY)/loopTime - currentVel.getY())*w + currentVel.getY()*(1.0-w);//y-lastY
+        double w2 = 0.35; // This is a Kalman Filter to help make sure that the velocities stay relatively stable
+        double newVelX = ((relDeltaX)/loopTime - currentVel.getX())*w2 + currentVel.getX()*(1.0-w2);//X-lastX
+        double newVelY = ((relDeltaY)/loopTime - currentVel.getY())*w2 + currentVel.getY()*(1.0-w2);//y-lastY
         if (Math.abs(newVelX) < 1){
             newVelX =0;
         }
