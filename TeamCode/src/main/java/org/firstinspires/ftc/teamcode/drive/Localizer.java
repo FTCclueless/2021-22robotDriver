@@ -43,7 +43,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     }
 
     public void updateHeading(double imuHeading){
-        double headingDif = imuHeading-odoHeading;
+        double headingDif = imuHeading-(odoHeading+offsetHeading);
         while (headingDif > Math.toRadians(180)){
             headingDif -= Math.toRadians(360);
         }
@@ -94,6 +94,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
         double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
         double w1 = 0.9;
+        Log.e("deltaHeading", Math.signum((float)deltaFrontHeading) + " " + Math.signum((float)deltaSideHeading));
         double deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading;
