@@ -50,8 +50,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         while (headingDif < Math.toRadians(-180)){
             headingDif += Math.toRadians(360);
         }
-        double w = 0.05;
-        offsetHeading = (offsetHeading)*w + headingDif*(1.0-w);
+        double w = 1.0;
+        offsetHeading += headingDif*w;
 
     }
 
@@ -93,19 +93,15 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaFront = encoders[3].getDelta();     //E4
         double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
         double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
-        //Log.e("deltaDif", (deltaFrontHeading-deltaSideHeading) + "");
         double w1 = 0.9;
         double deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
-        //odoHeading += deltaHeading;
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading;
-
         double relVelHeading = deltaHeading/loopTime;
         double simLoops = 100.0;
         double simHeading = heading - deltaHeading;
         double relDeltaX = ((deltaLeft + deltaHeading*encoders[1].y)+(deltaRight + deltaHeading*encoders[0].y))/(2.0);
         double relDeltaY = ((deltaFront - deltaHeading*encoders[3].x)+(deltaBack - deltaHeading*encoders[2].x))/(2.0);
-        //Log.e("Front Encoder", encoders[3].getCurrentDist() + "");
         double simDeltaX = relDeltaX/simLoops;
         double simDeltaY = relDeltaY/simLoops;
         for (int i = 0; i < simLoops; i ++){
@@ -115,16 +111,20 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             simHeading += deltaHeading/(2.0*simLoops);
         }
 
-        double w2 = 0.35; // This is a Kalman Filter to help make sure that the velocities stay relatively stable
-        double newVelX = ((relDeltaX)/loopTime - currentVel.getX())*w2 + currentVel.getX()*(1.0-w2);//X-lastX
-        double newVelY = ((relDeltaY)/loopTime - currentVel.getY())*w2 + currentVel.getY()*(1.0-w2);//y-lastY
-        if (Math.abs(newVelX) < 1){
+        double w2 = 0.05; // This is a Kalman Filter to help make sure that the velocities stay relatively stable
+        double newVelX = ((relDeltaX)/loopTime)*w2 + currentVel.getX()*(1.0-w2);//X-lastX
+        double newVelY = ((relDeltaY)/loopTime)*w2 + currentVel.getY()*(1.0-w2);//y-lastY
+        double newRelVelHeading = (relVelHeading)*w2 + currentVel.getHeading()*(1.0-w2);
+        if (Math.abs(newVelX) < 0.1){
             newVelX =0;
         }
-        if (Math.abs(newVelY) < 1){
+        if (Math.abs(newVelY) < 0.1){
             newVelY =0;
         }
-        currentVel = new Pose2d(newVelX,newVelY,relVelHeading);
+        if (Math.abs(newRelVelHeading) < 0.2/Math.abs(encoders[1].y-encoders[0].y)){
+            newRelVelHeading = 0;
+        }
+        currentVel = new Pose2d(newVelX,newVelY,newRelVelHeading);
         currentPose = new Pose2d(x,y,heading);
     }
 }

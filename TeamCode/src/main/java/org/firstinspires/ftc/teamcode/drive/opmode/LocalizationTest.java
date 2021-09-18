@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 /**
@@ -26,12 +27,19 @@ public class LocalizationTest extends LinearOpMode {
 
         waitForStart();
 
+        double lockHeadAngle = 0;
+
+
         while (!isStopRequested()) {
             drive.update();
-            double forward = gamepad1.left_stick_y * -0.4;
-            double left = gamepad1.left_stick_x * 0.6;
-            double turn = gamepad1.right_stick_x * 0.35;
+            double forward = gamepad1.right_stick_y * -0.4;
+            double left = gamepad1.right_stick_x * 0.6;
+            double turn = gamepad1.left_stick_x * 0.35;
 
+            boolean lockHeading = true;
+            if (Math.abs(turn) > 0.01){ lockHeading = false; }
+            if (lockHeading){turn += drive.currentPose.getHeading()-lockHeadAngle;}
+            else {lockHeadAngle = drive.currentPose.getHeading();}
 
             double p1 = forward+left+turn;
             double p2 = forward-left+turn;
