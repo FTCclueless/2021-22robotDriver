@@ -68,6 +68,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double VX_WEIGHT = 1;
     public static double VY_WEIGHT = 1;
     public static double OMEGA_WEIGHT = 1;
+    public int staticHeading;
 
     public long lastUpdateTime;
 
@@ -102,7 +103,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
-
+        staticHeading = 0;
         encoders = new int[4];
         useIMU = false;
         lastUpdateTime = System.currentTimeMillis();
@@ -248,7 +249,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (!useIMU){
             Pose2d velocity = localizer.getPoseVelocity();
             long currTime = System.currentTimeMillis();
-            if ((velocity.getHeading() == 0 && (currTime - lastUpdateTime) >= 50) || (currTime - lastUpdateTime) >= 150){
+
+            if (velocity.getHeading() == 0){ staticHeading ++; }
+            else { staticHeading = 0; }
+
+            if (staticHeading >= 10 && (currTime - lastUpdateTime) >= 250){
                 lastUpdateTime = currTime;
                 //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
             }
