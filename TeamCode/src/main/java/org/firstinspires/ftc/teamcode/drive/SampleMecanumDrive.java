@@ -12,6 +12,8 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
@@ -255,7 +257,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
             if (staticHeading >= 10 && (currTime - lastUpdateTime) >= 250){
                 lastUpdateTime = currTime;
-                //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+                localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+                Log.e("Use IMU", "here");
             }
         }
         localizer.updateEncoders(encoders);

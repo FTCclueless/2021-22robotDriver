@@ -38,7 +38,12 @@ public class LocalizationTest extends LinearOpMode {
 
             boolean lockHeading = true;
             if (Math.abs(turn) > 0.01){ lockHeading = false; }
-            if (lockHeading){turn += drive.currentPose.getHeading()-lockHeadAngle;}
+            if (lockHeading){
+                double turnVal = drive.currentPose.getHeading()-lockHeadAngle;
+                if (Math.abs(turnVal) >= 0.08){
+                    turn += turnVal;
+                }
+            }
             else {lockHeadAngle = drive.currentPose.getHeading();}
 
             double p1 = forward+left+turn;

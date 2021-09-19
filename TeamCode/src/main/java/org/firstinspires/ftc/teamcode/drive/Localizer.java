@@ -94,15 +94,16 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
         double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
         double w1 = 0.9;
-        Log.e("deltaHeading", Math.signum((float)deltaFrontHeading) + " " + Math.signum((float)deltaSideHeading));
+        //Log.e("deltaHeading", Math.signum((float)deltaFrontHeading) + " " + Math.signum((float)deltaSideHeading));
         double deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading;
         double relVelHeading = deltaHeading/loopTime;
         double simLoops = 100.0;
         double simHeading = heading - deltaHeading;
-        double relDeltaX = ((deltaLeft + deltaHeading*encoders[1].y)+(deltaRight + deltaHeading*encoders[0].y))/(2.0);
-        double relDeltaY = ((deltaFront - deltaHeading*encoders[3].x)+(deltaBack - deltaHeading*encoders[2].x))/(2.0);
+        //double relDeltaX = ((deltaLeft + deltaHeading*encoders[1].y)+(deltaRight + deltaHeading*encoders[0].y))/(2.0);
+        double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y);
+        double relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x);
         double simDeltaX = relDeltaX/simLoops;
         double simDeltaY = relDeltaY/simLoops;
         for (int i = 0; i < simLoops; i ++){
