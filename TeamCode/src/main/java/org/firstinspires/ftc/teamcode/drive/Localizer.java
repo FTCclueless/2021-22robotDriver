@@ -100,8 +100,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double relVelHeading = deltaHeading/loopTime;
         double simLoops = 100.0;
         double simHeading = heading - deltaHeading;
-        double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y);
-        double relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x);
+        double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y)/2.0;
+        double relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x)/2.0;
         double simDeltaX = relDeltaX/simLoops;
         double simDeltaY = relDeltaY/simLoops;
         for (int i = 0; i < simLoops; i ++){
