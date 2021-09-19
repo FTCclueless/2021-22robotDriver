@@ -258,7 +258,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             if (staticHeading >= 10 && (currTime - lastUpdateTime) >= 250){
                 lastUpdateTime = currTime;
                 localizer.updateHeading(imu.getAngularOrientation().firstAngle);
-                Log.e("Use IMU", "here");
+                //Log.e("Use IMU", "here");
             }
         }
         localizer.updateEncoders(encoders);

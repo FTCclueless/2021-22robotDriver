@@ -200,6 +200,8 @@ public class TrajectorySequenceRunner {
         packet.put("x", poseEstimate.getX());
         packet.put("y", poseEstimate.getY());
         packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
+
+        /*
         packet.put("heading IMU (deg)", Math.toDegrees(IMUangle));
         double headingErrorIMU = Math.toDegrees(poseEstimate.getHeading()-IMUangle);
         while (headingErrorIMU >= 180){
@@ -209,6 +211,7 @@ public class TrajectorySequenceRunner {
             headingErrorIMU += 360;
         }
         packet.put("headingErrorIMU (deg)", headingErrorIMU);
+        */
 
         //packet.put("xError", getLastPoseError().getX());
         //packet.put("yError", getLastPoseError().getY());
