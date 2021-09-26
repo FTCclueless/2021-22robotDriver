@@ -94,7 +94,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     Localizer localizer;
 
-    static int[] encoders;
+    public static int[] encoders;
 
     public int loops = 0;
 
@@ -257,8 +257,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
             if (staticHeading >= 10 && (currTime - lastUpdateTime) >= 250){
                 lastUpdateTime = currTime;
-                localizer.updateHeading(imu.getAngularOrientation().firstAngle);
-                //Log.e("Use IMU", "here");
+                //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
             }
         }
         localizer.updateEncoders(encoders);
@@ -323,6 +322,13 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void waitForIdle() {
         while (!Thread.currentThread().isInterrupted() && isBusy())
             update();
+    }
+
+    public void updateWait(long time){
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < time){
+            update();
+        }
     }
 
     public boolean isBusy() {

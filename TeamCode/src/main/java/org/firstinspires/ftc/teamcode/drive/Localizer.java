@@ -22,10 +22,21 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public Localizer(){
         offsetHeading = 0.0;
         encoders = new Encoder[4];
+        //TrackWidth Class Data:
+        //13.8547 & 13.8702 => 13.86245
+        //7.45559 & 7.45706 => 7.456325
+        //(-6.9420448,6.9204052)
+        //(-5.946265,1.51006)
+        encoders[0] = new Encoder(new Vector2d(0.125,-6.9420448),1.0);
+        encoders[1] = new Encoder(new Vector2d(0.125,6.9204052),-1.0);
+        encoders[2] = new Encoder(new Vector2d(-5.946265,-1.25), 1.0);
+        encoders[3] = new Encoder(new Vector2d(1.51006,-1.25),  -1.0);
+        /*
         encoders[0] = new Encoder(new Vector2d(0.125,-7.18),1.0); // the difference between the two encoders is 13.7614173 in the old value was 13.875
         encoders[1] = new Encoder(new Vector2d(0.125,6.58),-1.0); // the width of the encoder is 0.6023622 in that is why the right encoder is that much further from center
         encoders[2] = new Encoder(new Vector2d(-6,-1.25),1.0);
         encoders[3] = new Encoder(new Vector2d(1.5,-1.25),-1.0);
+        */
     }
 
     public void updateEncoders(int[] encoders){

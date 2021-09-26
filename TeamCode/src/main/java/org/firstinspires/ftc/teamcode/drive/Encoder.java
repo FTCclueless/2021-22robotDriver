@@ -12,7 +12,7 @@ public class Encoder {
     public Encoder (Vector2d point, double scaleFactor){
         double ticksPerRotation = 8192.0;
         double wheelRadius = 0.6889764;
-        ticksToInches = (wheelRadius * Math.PI * 2.0)/ticksPerRotation;//72.0/133000.0 this origional calculation was off by 2%
+        ticksToInches = (wheelRadius * Math.PI * 2.0)/ticksPerRotation; //72.0/133000.0 this origional calculation was off by 2%
         x = point.getX();
         y = point.getY();
         currentVal = 0;
