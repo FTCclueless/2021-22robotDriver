@@ -32,7 +32,7 @@ public class LocalizationTest extends LinearOpMode {
 
         while (!isStopRequested()) {
             drive.update();
-            double forward = gamepad1.right_stick_y * -0.4;
+            double forward = gamepad1.right_stick_y * -1; //-0.4;
             double left = gamepad1.right_stick_x * 0.6;
             double turn = gamepad1.left_stick_x * 0.35;
 
