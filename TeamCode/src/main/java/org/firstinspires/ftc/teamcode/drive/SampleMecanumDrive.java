@@ -33,6 +33,7 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAcceleration
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -87,6 +88,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     static ExpansionHubEx expansionHub1, expansionHub2;
     static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
 
+    public static ColorSensor color;
+
     private BNO055IMU imu;
     private boolean useIMU;
 
@@ -128,6 +131,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
+
+        color = hardwareMap.colorSensor.get("cs");
+        color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftFront =     (ExpansionHubMotor) hardwareMap.dcMotor.get("lf");
