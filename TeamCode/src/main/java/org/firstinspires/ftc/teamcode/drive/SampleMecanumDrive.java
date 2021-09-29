@@ -106,6 +106,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public static int slidesEncoder;
 
+    boolean isKnownY = true;
+    boolean isKnownX = true;
+
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
         staticHeading = 0;
@@ -274,11 +277,61 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void update() {
         loops ++;
+
         updateEstimate();
-        //trajectorySequenceRunner.updateIMU(imu.getAngularOrientation().firstAngle);
+        updateColorSensor();
+
+        if (Math.abs(currentPose.getX()-24) <= 7 && Math.abs(currentPose.getY()) <= 65 && currentPose.getX() > 0){
+            //checks that we are going over the barrier (we are within 7 in of the barrier) && are further to the left/right than the wall
+            if (Math.abs(imu.getAngularOrientation().secondAngle) >= Math.toRadians(10)){
+                //we know we are going of the ground
+                //lift up odo pods
+                isKnownY = false;
+                isKnownX = false;
+            }
+            else {
+                //drop odo pods
+            }
+        }
+
+
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);
+        }
+    }
+    public void updateColorSensor(){
+        boolean readLightSensor = false;
+        int lightValue = 0;
+
+        if (Math.abs(currentPose.getX()-24) <= 3){ // going over the tape ^^^vvv
+            //look at the light sensor
+            if (!readLightSensor) {
+                readLightSensor = true;
+                lightValue = color.alpha();
+            }
+        }
+
+        if (Math.abs(Math.abs(currentPose.getY())-24) <= 3 && currentPose.getX() > 24){ // going over the tape <<<>>>
+            //look at the light sensor
+            if (!readLightSensor) {
+                readLightSensor = true;
+                lightValue = color.alpha();
+            }
+        }
+
+        if (!(isKnownY && isKnownX)){
+            if (!readLightSensor) {
+                readLightSensor = true;
+                lightValue = color.alpha();
+            }
+        }
+
+        if (readLightSensor) {
+            //make sure this works when we don't know X or Y
+            if (lightValue > 100) {
+                //updateLocalization
+            }
         }
     }
     public void updateDriveMotors(DriveSignal signal){
