@@ -8,6 +8,7 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MOTOR_VELO_PID
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.encoderTicksToInches;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.getMotorVelocityF;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
@@ -108,6 +109,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     boolean isKnownY = true;
     boolean isKnownX = true;
+    boolean lastLightReading = false;
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
@@ -304,23 +306,15 @@ public class SampleMecanumDrive extends MecanumDrive {
         boolean readLightSensor = false;
         int lightValue = 0;
 
-        if (Math.abs(currentPose.getX()-24) <= 3){ // going over the tape ^^^vvv
-            //look at the light sensor
-            if (!readLightSensor) {
-                readLightSensor = true;
-                lightValue = color.alpha();
-            }
+        boolean sideEntrance = Math.abs(currentPose.getX()-24) <= 3;
+        boolean frontEntrance = Math.abs(Math.abs(currentPose.getY())-24) <= 3 && currentPose.getX() > 24;
+
+        if (sideEntrance || frontEntrance){
+            readLightSensor = true;
+            lightValue = color.alpha();
         }
 
-        if (Math.abs(Math.abs(currentPose.getY())-24) <= 3 && currentPose.getX() > 24){ // going over the tape <<<>>>
-            //look at the light sensor
-            if (!readLightSensor) {
-                readLightSensor = true;
-                lightValue = color.alpha();
-            }
-        }
-
-        if (!(isKnownY && isKnownX)){
+        if (!isKnownY || !isKnownX){
             if (!readLightSensor) {
                 readLightSensor = true;
                 lightValue = color.alpha();
@@ -330,9 +324,62 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (readLightSensor) {
             //make sure this works when we don't know X or Y
             if (lightValue > 100) {
-                //updateLocalization
+                double normHeading = currentPose.getHeading();
+                while (Math.toDegrees(normHeading) > 180){normHeading -= Math.toRadians(360);}
+                while (Math.toDegrees(normHeading) <-180){normHeading += Math.toRadians(360);}
+                if (!isKnownX){
+                    if (Math.abs(normHeading) < Math.toRadians(15) || Math.abs(normHeading) > Math.toRadians(180-15)){
+                        localizer.x = 28.5;
+                        isKnownX = true;
+                    }
+                }
+                if (!isKnownY){
+                    //facing 90 to left
+                    if (Math.abs(normHeading-Math.toRadians(90)) < Math.toRadians(15)){
+                        localizer.y = -28.5;
+                        isKnownY = true;
+                    }
+                    //facing 90 to right
+                    if (Math.abs(normHeading+Math.toRadians(90)) < Math.toRadians(15)){
+                        localizer.y = 28.5;
+                        isKnownY = true;
+                    }
+                }
+                if (!lastLightReading){
+                    if (sideEntrance){
+                        isKnownX = true;
+                        localizer.x = 29.5 + Math.signum(currentVelocity.getX())*-1;
+                    }
+                    if (frontEntrance){
+                        isKnownY = true;
+                        if (currentPose.getY()>0){
+                            localizer.y = 29.5 + Math.signum(currentVelocity.getX())*-1;
+                        }
+                        else{
+                            localizer.y = -29.5 + Math.signum(currentVelocity.getX())*-1;
+                        }
+                    }
+                }
+            }
+            else {
+                if (lastLightReading){
+                    if (sideEntrance){
+                        isKnownX = true;
+                        localizer.x = 29.5 + Math.signum(currentVelocity.getX());
+                    }
+                    if (frontEntrance){
+                        isKnownY = true;
+                        if (currentPose.getY()>0){
+                            localizer.y = 29.5 + Math.signum(currentVelocity.getX());
+                        }
+                        else{
+                            localizer.y = -29.5 + Math.signum(currentVelocity.getX());
+                        }
+                    }
+                }
             }
         }
+        lastLightReading = lightValue > 100;
     }
     public void updateDriveMotors(DriveSignal signal){
         double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
