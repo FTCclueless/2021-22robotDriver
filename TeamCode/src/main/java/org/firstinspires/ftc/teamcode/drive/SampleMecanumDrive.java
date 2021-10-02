@@ -311,12 +311,15 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
                 if (forward){
                     localizer.y = (72-12.0/2.0)*multiplier;
+                    isKnownY = true;
                 }
                 else if (backward){
                     localizer.y = (-72+12.0/2.0)*multiplier;
+                    isKnownY = true;
                 }
                 else if (leftRight){
                     localizer.x = 72-12.0/2.0;
+                    isKnownX = true;
                 }
             }
             lastTouchPull = System.currentTimeMillis();
