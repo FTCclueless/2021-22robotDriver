@@ -256,20 +256,23 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateEstimate(){
         getEncoders();
-        if (useIMU && loops%5 == 0){
+        if (!isKnownX || !isKnownY){
             localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
-        if (!useIMU){
+        else if (useIMU && loops%5 == 0){
+            localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+        }
+        else if (!useIMU){
+            /*
             Pose2d velocity = localizer.getPoseVelocity();
             long currTime = System.currentTimeMillis();
 
             if (velocity.getHeading() == 0){ staticHeading ++; }
             else { staticHeading = 0; }
-
             if (staticHeading >= 10 && (currTime - lastUpdateTime) >= 250){
                 lastUpdateTime = currTime;
-                //localizer.updateHeading(imu.getAngularOrientation().firstAngle);
             }
+            */
         }
         localizer.updateEncoders(encoders);
         localizer.update();
@@ -282,104 +285,86 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         updateEstimate();
         updateColorSensor();
-
-        if (Math.abs(currentPose.getX()-24) <= 7 && Math.abs(currentPose.getY()) <= 65 && currentPose.getX() > 0){
-            //checks that we are going over the barrier (we are within 7 in of the barrier) && are further to the left/right than the wall
-            if (Math.abs(imu.getAngularOrientation().secondAngle) >= Math.toRadians(10)){
-                //we know we are going of the ground
-                //lift up odo pods
-                isKnownY = false;
-                isKnownX = false;
-            }
-            else {
-                //drop odo pods
-            }
-        }
-
-
+        //need to make it auto check when it is going over the
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);
         }
     }
     public void updateColorSensor(){
-        boolean readLightSensor = false;
-        int lightValue = 0;
-
-        boolean sideEntrance = Math.abs(currentPose.getX()-24) <= 3;
-        boolean frontEntrance = Math.abs(Math.abs(currentPose.getY())-24) <= 3 && currentPose.getX() > 24;
-
-        if (sideEntrance || frontEntrance){
-            readLightSensor = true;
-            lightValue = color.alpha();
-        }
-
-        if (!isKnownY || !isKnownX){
-            if (!readLightSensor) {
-                readLightSensor = true;
-                lightValue = color.alpha();
-            }
-        }
-
-        if (readLightSensor) {
-            //make sure this works when we don't know X or Y
-            if (lightValue > 100) {
-                double normHeading = currentPose.getHeading();
-                while (Math.toDegrees(normHeading) > 180){normHeading -= Math.toRadians(360);}
-                while (Math.toDegrees(normHeading) <-180){normHeading += Math.toRadians(360);}
-                if (!isKnownX){
-                    if (Math.abs(normHeading) < Math.toRadians(15) || Math.abs(normHeading) > Math.toRadians(180-15)){
-                        localizer.x = 28.5;
-                        isKnownX = true;
-                    }
+        double robotWidth = 12;
+        int alpha = 0;
+        int threshold = 100;
+        int sensorThreshold = 3;
+        boolean leftRightEntrance = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
+        boolean topLeftEntrance = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
+        boolean topRightEntrance = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
+        if (!isKnownX || !isKnownY){
+            alpha = color.alpha();
+            if ((alpha > threshold && !lastLightReading) || (alpha <= threshold && lastLightReading)){
+                double multiplier = -1;
+                if (alpha > threshold){
+                    multiplier = 1; // this means we are first seeing the line
                 }
-                if (!isKnownY){
-                    //facing 90 to left
-                    if (Math.abs(normHeading-Math.toRadians(90)) < Math.toRadians(15)){
-                        localizer.y = -28.5;
-                        isKnownY = true;
-                    }
-                    //facing 90 to right
-                    if (Math.abs(normHeading+Math.toRadians(90)) < Math.toRadians(15)){
-                        localizer.y = 28.5;
-                        isKnownY = true;
-                    }
+                double heading = currentPose.getHeading();
+                //clip the heading to +-180
+                while (heading >  Math.PI){heading -= Math.PI*2.0;}
+                while (heading < -Math.PI){heading += Math.PI*2.0;}
+                if (Math.abs(heading) < Math.toRadians(15) || Math.abs(heading) > Math.toRadians(180-15)) { // facing forward or backward (going over the left right line)
+                    double speed = Math.signum(currentVelocity.getX())*multiplier;
+                    localizer.x = 72-43.5+1-speed;
+                    isKnownX = true;
                 }
-                if (!lastLightReading){
-                    if (sideEntrance){
-                        isKnownX = true;
-                        localizer.x = 29.5 + Math.signum(currentVelocity.getX())*-1;
-                    }
-                    if (frontEntrance){
-                        isKnownY = true;
-                        if (currentPose.getY()>0){
-                            localizer.y = 29.5 + Math.signum(currentVelocity.getX())*-1;
-                        }
-                        else{
-                            localizer.y = -29.5 + Math.signum(currentVelocity.getX())*-1;
-                        }
-                    }
+                else if (Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15)) { // 90 heading   <----
+                    double speed = Math.signum(currentVelocity.getY())*multiplier;
+                    localizer.y = (72-43.5+1)*-1-speed;
+                    isKnownY = true;
                 }
-            }
-            else {
-                if (lastLightReading){
-                    if (sideEntrance){
-                        isKnownX = true;
-                        localizer.x = 29.5 + Math.signum(currentVelocity.getX());
-                    }
-                    if (frontEntrance){
-                        isKnownY = true;
-                        if (currentPose.getY()>0){
-                            localizer.y = 29.5 + Math.signum(currentVelocity.getX());
-                        }
-                        else{
-                            localizer.y = -29.5 + Math.signum(currentVelocity.getX());
-                        }
-                    }
+                else if (Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15)) { // - 90 heading ---->
+                    double speed = Math.signum(currentVelocity.getY())*multiplier;
+                    localizer.y = (72-43.5+1)-speed;
+                    isKnownY = true;
                 }
             }
         }
-        lastLightReading = lightValue > 100;
+        else if (leftRightEntrance){
+            alpha = color.alpha();
+            if ((alpha > threshold && !lastLightReading) || (alpha <= threshold && lastLightReading)){
+                double multiplier = -1;
+                if (alpha > threshold){
+                    multiplier = 1; // this means we are first seeing the line
+                }
+                double speed = Math.signum(currentVelocity.getX())*multiplier;
+                localizer.x = 72-43.5+1-speed;
+                isKnownX = true;
+            }
+        }
+        else if (topLeftEntrance){
+            alpha = color.alpha();
+            if ((alpha > threshold && !lastLightReading) || (alpha <= threshold && lastLightReading)){
+                double multiplier = -1;
+                if (alpha > threshold){
+                    multiplier = 1; // this means we are first seeing the line
+                }
+                double speed = Math.signum(currentVelocity.getY())*multiplier;
+                localizer.y = (72-43.5+1)-speed;
+                isKnownY = true;
+            }
+        }
+        else if (topRightEntrance){
+            alpha = color.alpha();
+            if ((alpha > threshold && !lastLightReading) || (alpha <= threshold && lastLightReading)){
+                double multiplier = -1;
+                if (alpha > threshold){
+                    multiplier = 1; // this means we are first seeing the line
+                }
+                double speed = Math.signum(currentVelocity.getY())*multiplier;
+                localizer.y = (72-43.5+1)*-1-speed;
+                isKnownY = true;
+            }
+
+        }
+        lastLightReading = alpha > threshold;
     }
     public void updateDriveMotors(DriveSignal signal){
         double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
