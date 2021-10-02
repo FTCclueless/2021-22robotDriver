@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
@@ -88,6 +89,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     static RevBulkData bulkData;
     static ExpansionHubEx expansionHub1, expansionHub2;
     static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
+    static TouchSensor lf, lr, rr, rf;
+    long lastTouchPull;
 
     public static ColorSensor color;
 
@@ -105,14 +108,13 @@ public class SampleMecanumDrive extends MecanumDrive {
     public Pose2d currentPose;
     public Pose2d currentVelocity;
 
-    public static int slidesEncoder;
-
     boolean isKnownY = true;
     boolean isKnownX = true;
     boolean lastLightReading = false;
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
+        lastTouchPull = System.currentTimeMillis();
         staticHeading = 0;
         encoders = new int[4];
         useIMU = false;
@@ -289,6 +291,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);
+        }
+    }
+    public void updateTouchSensor(){
+        if (!isKnownX || !isKnownY){
+            boolean lFVal = lf.isPressed();
+            boolean rFVal = rf.isPressed();
+            lastTouchPull = System.currentTimeMillis();
+        }
+        else if (System.currentTimeMillis() - lastTouchPull > 250){
+            boolean lFVal = lf.isPressed();
+            boolean rFVal = rf.isPressed();
+            lastTouchPull = System.currentTimeMillis();
         }
     }
     public void updateColorSensor(){
