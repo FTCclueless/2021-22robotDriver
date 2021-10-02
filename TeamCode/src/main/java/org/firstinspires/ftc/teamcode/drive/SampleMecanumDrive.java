@@ -89,7 +89,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     static RevBulkData bulkData;
     static ExpansionHubEx expansionHub1, expansionHub2;
     static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
-    static TouchSensor lf, lr, rr, rf;
+    static TouchSensor lf, lb, rb, rf;
     long lastTouchPull;
 
     public static ColorSensor color;
@@ -287,21 +287,38 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         updateEstimate();
         updateColorSensor();
-        //need to make it auto check when it is going over the
+        updateTouchSensor();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);
         }
     }
     public void updateTouchSensor(){
-        if (!isKnownX || !isKnownY){
-            boolean lFVal = lf.isPressed();
-            boolean rFVal = rf.isPressed();
-            lastTouchPull = System.currentTimeMillis();
-        }
-        else if (System.currentTimeMillis() - lastTouchPull > 250){
-            boolean lFVal = lf.isPressed();
-            boolean rFVal = rf.isPressed();
+        if ((!isKnownX || !isKnownY) || System.currentTimeMillis() - lastTouchPull > 250){
+            boolean left = lf.isPressed() && lb.isPressed();
+            boolean right = rf.isPressed() && rb.isPressed();
+            double heading = currentPose.getHeading();
+            //clip the heading to +-180
+            while (heading >  Math.PI){heading -= Math.PI*2.0;}
+            while (heading < -Math.PI){heading += Math.PI*2.0;}
+            if (right ^ left){ // this is XOR it means that this or this but not both this and this
+                boolean forward = Math.abs(heading) < Math.toRadians(15);
+                boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
+                boolean leftRight = Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15);
+                double multiplier = 1.0;
+                if (right){
+                    multiplier = -1.0;
+                }
+                if (forward){
+                    localizer.y = (72-12.0/2.0)*multiplier;
+                }
+                else if (backward){
+                    localizer.y = (-72+12.0/2.0)*multiplier;
+                }
+                else if (leftRight){
+                    localizer.x = 72-12.0/2.0;
+                }
+            }
             lastTouchPull = System.currentTimeMillis();
         }
     }
