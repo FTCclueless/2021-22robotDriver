@@ -376,12 +376,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                 if (right){
                     multiplier = -1.0;
                 }
-                if (forward){
+                if (forward || backward){
                     localizer.y = (72-12.0/2.0)*multiplier;
-                    isKnownY = true;
-                }
-                else if (backward){
-                    localizer.y = (-72+12.0/2.0)*multiplier;
+                    if (backward){
+                        localizer.y *= -1;
+                    }
                     isKnownY = true;
                 }
                 else if (leftRight){
