@@ -44,6 +44,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.vuforia.Vec3F;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
@@ -111,12 +112,18 @@ public class SampleMecanumDrive extends MecanumDrive {
     boolean tiltForward = false;
     boolean tiltBackward = false;
 
+    long tiltTime;
+
     boolean isKnownY = true;
     boolean isKnownX = true;
     boolean lastLightReading = false;
 
     Orientation imuAngle;
     boolean updateIMU = false;
+
+    boolean firstOffBarrier = false;
+
+    Vec3F finalTiltHeading;
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
@@ -134,6 +141,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
+        tiltTime = System.currentTimeMillis();
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
@@ -275,6 +283,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             localizer.updateHeading(imuAngle.firstAngle);
         }
         localizer.updateEncoders(encoders);
+        localizer.updatPose = !tiltBackward && !tiltForward;
         localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
@@ -302,14 +311,53 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateOdoOverBarrier(){
         boolean overTrackForward = Math.abs(currentPose.getY()) < 72-48-(12.0/2.0) && Math.abs(currentPose.getX()-24) < 16 + 2;
         boolean overTrackLR = Math.abs(Math.abs(currentPose.getY())-24) < 16 + 2 && Math.abs(currentPose.getX()-(72-43.5/2.0)) < 43.5/2.0 - 12.0/2.0;
-        if ((!isKnownX || !isKnownY)){
+        if ((!isKnownX || !isKnownY) || ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100)){
             updateImuAngle();
             lastTiltPoll = System.currentTimeMillis();
-            //tiltBackward and tiltForward
-        }
-        else if ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100){
-            updateImuAngle();
-            lastTiltPoll = System.currentTimeMillis();
+            if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>15){
+                tiltTime = System.currentTimeMillis();
+                isKnownY = false;
+                isKnownX = false;
+                finalTiltHeading = new Vec3F(imuAngle.firstAngle,imuAngle.secondAngle,imuAngle.thirdAngle);
+                tiltForward = imuAngle.secondAngle > 0;
+                tiltBackward = !tiltForward;
+                firstOffBarrier = true;
+                //Todo: lift up the odo pods
+            }
+            else{
+                if (System.currentTimeMillis()-tiltTime > 50){
+                    //when this is first true then we update the pose
+                    if (firstOffBarrier){
+                        firstOffBarrier = false;
+                        double heading = finalTiltHeading.getData()[0];
+                        double m1 = 1.0;
+                        if (finalTiltHeading.getData()[2] < 0){
+                            m1 = -1.0; // facing upward ==> when you face upward at the end it means you went over backward
+                        }
+                        boolean forward = Math.abs(heading) < Math.toRadians(15);
+                        boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
+                        boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
+                        boolean right =  Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
+                        if (forward || backward){
+                            double m2 = 1.0;
+                            if (backward){
+                                m2 = -1.0;
+                            }
+                            localizer.x = 24 + (10)*m1*m2;
+                        }
+                        if (left || right){
+                            double m2 = 1.0;
+                            if (right){
+                                m2 = -1.0;
+                            }
+                            localizer.y = (24 + (10)*m1*m2) * Math.signum(currentPose.getY());
+                        }
+                    }
+                    tiltForward = false;
+                    tiltBackward = false;
+                    //Todo: drop odo pds
+                }
+            }
         }
     }
     public void updateTouchSensor(){

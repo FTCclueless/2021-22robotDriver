@@ -12,6 +12,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     Encoder[] encoders;
     double odoHeading;
     double offsetHeading;
+    public boolean updatPose;
     Pose2d currentPose = new Pose2d(0,0,0);
     Pose2d currentVel = new Pose2d(0,0,0);
     double x = 0;
@@ -20,6 +21,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     double startHeadingOffset = 0;
 
     public Localizer(){
+        updatPose = true;
         offsetHeading = 0.0;
         encoders = new Encoder[4];
         //TrackWidth Class Data:
@@ -31,12 +33,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         encoders[1] = new Encoder(new Vector2d(0.125,6.9204052),-1.0);
         encoders[2] = new Encoder(new Vector2d(-5.946265,-1.25), 1.0);
         encoders[3] = new Encoder(new Vector2d(1.51006,-1.25),  -1.0);
-        /*
-        encoders[0] = new Encoder(new Vector2d(0.125,-7.18),1.0); // the difference between the two encoders is 13.7614173 in the old value was 13.875
-        encoders[1] = new Encoder(new Vector2d(0.125,6.58),-1.0); // the width of the encoder is 0.6023622 in that is why the right encoder is that much further from center
-        encoders[2] = new Encoder(new Vector2d(-6,-1.25),1.0);
-        encoders[3] = new Encoder(new Vector2d(1.5,-1.25),-1.0);
-        */
     }
 
     public void updateEncoders(int[] encoders){
@@ -117,8 +113,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double simDeltaY = relDeltaY/simLoops;
         for (int i = 0; i < simLoops; i ++){
             simHeading += deltaHeading/(2.0*simLoops);
-            x += simDeltaX*Math.cos(simHeading) - simDeltaY*Math.sin(simHeading);
-            y += simDeltaY*Math.cos(simHeading) + simDeltaX*Math.sin(simHeading);
+            if (updatPose) {
+                x += simDeltaX * Math.cos(simHeading) - simDeltaY * Math.sin(simHeading);
+                y += simDeltaY * Math.cos(simHeading) + simDeltaX * Math.sin(simHeading);
+            }
             simHeading += deltaHeading/(2.0*simLoops);
         }
 
