@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_ACCEL;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_VEL;
@@ -75,8 +76,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double OMEGA_WEIGHT = 1;
     public int staticHeading;
 
-    public long lastUpdateTime;
-
     private TrajectorySequenceRunner trajectorySequenceRunner;
 
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
@@ -95,7 +94,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static ColorSensor color;
 
     private BNO055IMU imu;
-    private boolean useIMU;
 
     private VoltageSensor batteryVoltageSensor;
 
@@ -117,8 +115,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastTouchPull = System.currentTimeMillis();
         staticHeading = 0;
         encoders = new int[4];
-        useIMU = false;
-        lastUpdateTime = System.currentTimeMillis();
 
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
@@ -231,6 +227,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                 MAX_ANG_VEL, MAX_ANG_ACCEL
         );
     }
+    public TrajectorySequenceBuilder trajectorySequenceBuilder(Pose2d startPose, boolean reversed) {
+        return new TrajectorySequenceBuilder(
+                startPose, null, reversed,
+                VEL_CONSTRAINT, ACCEL_CONSTRAINT,
+                MAX_ANG_VEL, MAX_ANG_ACCEL
+        );
+    }
 
     public void followTrajectoryAsync(Trajectory trajectory) {
         trajectorySequenceRunner.followTrajectorySequenceAsync(
@@ -261,21 +264,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (!isKnownX || !isKnownY){
             localizer.updateHeading(imu.getAngularOrientation().firstAngle);
         }
-        else if (useIMU && loops%5 == 0){
-            localizer.updateHeading(imu.getAngularOrientation().firstAngle);
-        }
-        else if (!useIMU){
-            /*
-            Pose2d velocity = localizer.getPoseVelocity();
-            long currTime = System.currentTimeMillis();
-
-            if (velocity.getHeading() == 0){ staticHeading ++; }
-            else { staticHeading = 0; }
-            if (staticHeading >= 10 && (currTime - lastUpdateTime) >= 250){
-                lastUpdateTime = currTime;
-            }
-            */
-        }
         localizer.updateEncoders(encoders);
         localizer.update();
         currentPose = getPoseEstimate();
@@ -284,7 +272,6 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void update() {
         loops ++;
-
         updateEstimate();
         updateColorSensor();
         updateTouchSensor();
@@ -419,21 +406,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         p2 += kStatic*Math.signum(p2);
         p3 += kStatic*Math.signum(p3);
         p4 += kStatic*Math.signum(p4);
-        if (useIMU) {
-            switch (loops % 5) { //%4 + 1 or 5
-                case 1: leftFront.setPower(p1);break;
-                case 2: leftRear.setPower(p2);break;
-                case 3: rightRear.setPower(p3);break;
-                case 4: rightFront.setPower(p4);break;
-            }
-        }
-        else{
-            switch (loops % 4) {
-                case 0: leftFront.setPower(p1);break;
-                case 1: leftRear.setPower(p2);break;
-                case 2: rightRear.setPower(p3);break;
-                case 3: rightFront.setPower(p4);break;
-            }
+        switch (loops % 4) {
+            case 0: leftFront.setPower(p1);break;
+            case 1: leftRear.setPower(p2);break;
+            case 2: rightRear.setPower(p3);break;
+            case 3: rightFront.setPower(p4);break;
         }
     }
     public double getMax(double d1, double d2, double d3, double d4){
@@ -523,21 +500,11 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void pinMotorPowers(double v, double v1, double v2, double v3) {
-        if (useIMU) {
-            switch (loops % 5) { //%4 + 1 or 5
-                case 1: leftFront.setPower(v);break;
-                case 2: leftRear.setPower(v1);break;
-                case 3: rightRear.setPower(v2);break;
-                case 4: rightFront.setPower(v3);break;
-            }
-        }
-        else{
-            switch (loops % 4) {
-                case 0: leftFront.setPower(v);break;
-                case 1: leftRear.setPower(v1);break;
-                case 2: rightRear.setPower(v2);break;
-                case 3: rightFront.setPower(v3);break;
-            }
+        switch (loops % 4) {
+            case 0: leftFront.setPower(v);break;
+            case 1: leftRear.setPower(v1);break;
+            case 2: rightRear.setPower(v2);break;
+            case 3: rightFront.setPower(v3);break;
         }
     }
 
@@ -586,5 +553,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public static TrajectoryAccelerationConstraint getAccelerationConstraint(double maxAccel) {
         return new ProfileAccelerationConstraint(maxAccel);
+    }
+
+    double getBatteryVoltage() {
+        return batteryVoltageSensor.getVoltage();
     }
 }
