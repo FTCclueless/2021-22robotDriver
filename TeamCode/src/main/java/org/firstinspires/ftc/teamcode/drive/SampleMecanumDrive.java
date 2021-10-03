@@ -45,6 +45,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceRunner;
@@ -89,7 +90,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     static ExpansionHubEx expansionHub1, expansionHub2;
     static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
     static TouchSensor lf, lb, rb, rf;
-    long lastTouchPull;
+    long lastTouchPoll;
+    long lastTiltPoll;
 
     public static ColorSensor color;
 
@@ -106,13 +108,20 @@ public class SampleMecanumDrive extends MecanumDrive {
     public Pose2d currentPose;
     public Pose2d currentVelocity;
 
+    boolean tiltForward = false;
+    boolean tiltBackward = false;
+
     boolean isKnownY = true;
     boolean isKnownX = true;
     boolean lastLightReading = false;
 
+    Orientation imuAngle;
+    boolean updateIMU = false;
+
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
-        lastTouchPull = System.currentTimeMillis();
+        lastTouchPoll = System.currentTimeMillis();
+        lastTiltPoll = System.currentTimeMillis();
         staticHeading = 0;
         encoders = new int[4];
 
@@ -262,26 +271,49 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateEstimate(){
         getEncoders();
         if (!isKnownX || !isKnownY){
-            localizer.updateHeading(imu.getAngularOrientation().firstAngle);
+            updateImuAngle();
+            localizer.updateHeading(imuAngle.firstAngle);
         }
         localizer.updateEncoders(encoders);
         localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
     }
-
+    public void updateImuAngle(){
+        if (!updateIMU) {
+            updateIMU = true;
+            imuAngle = imu.getAngularOrientation();
+        }
+    }
     public void update() {
         loops ++;
         updateEstimate();
         updateColorSensor();
         updateTouchSensor();
+        updateOdoOverBarrier();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
         if (signal != null) {
             updateDriveMotors(signal);
         }
+
+
+        updateIMU = false;
+    }
+    public void updateOdoOverBarrier(){
+        boolean overTrackForward = Math.abs(currentPose.getY()) < 72-48-(12.0/2.0) && Math.abs(currentPose.getX()-24) < 16 + 2;
+        boolean overTrackLR = Math.abs(Math.abs(currentPose.getY())-24) < 16 + 2 && Math.abs(currentPose.getX()-(72-43.5/2.0)) < 43.5/2.0 - 12.0/2.0;
+        if ((!isKnownX || !isKnownY)){
+            updateImuAngle();
+            lastTiltPoll = System.currentTimeMillis();
+            //tiltBackward and tiltForward
+        }
+        else if ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100){
+            updateImuAngle();
+            lastTiltPoll = System.currentTimeMillis();
+        }
     }
     public void updateTouchSensor(){
-        if ((!isKnownX || !isKnownY) || System.currentTimeMillis() - lastTouchPull > 250){
+        if ((!isKnownX || !isKnownY) || System.currentTimeMillis() - lastTouchPoll > 250){
             boolean left = lf.isPressed() && lb.isPressed();
             boolean right = rf.isPressed() && rb.isPressed();
             double heading = currentPose.getHeading();
@@ -309,7 +341,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     isKnownX = true;
                 }
             }
-            lastTouchPull = System.currentTimeMillis();
+            lastTouchPoll = System.currentTimeMillis();
         }
     }
     public void updateColorSensor(){
