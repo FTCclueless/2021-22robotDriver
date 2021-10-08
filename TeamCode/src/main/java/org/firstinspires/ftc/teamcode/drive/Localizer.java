@@ -86,11 +86,11 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         |                         |                           ^
         |                         |                           |
         |                         |                           |
-        | ^        <[E4]        ^ |                           |
-        |[E2]                 [E1]|                           |
+        | ^          <[E4]      ^ |                           |
+        |[E2]      (0,0)      [E1]|                           |
         |                         |                           |
         |                         |                           |
-        |          <[E3]          |                           |
+        |            <[E3]        |                           |
         |_________________________|+y<------------------------|
          */
 

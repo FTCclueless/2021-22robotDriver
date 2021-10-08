@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.TurnSeg
 import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.WaitSegment;
 import org.firstinspires.ftc.teamcode.util.DashboardUtil;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -84,8 +85,12 @@ public class TrajectorySequenceRunner {
         IMUangle = angle;
     }
 
+    public @Nullable DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity){
+        return update(poseEstimate,poseVelocity, null);
+    }
+
     public @Nullable
-    DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity) {
+    DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity, ArrayList<Integer> draw) {
         long currentTime = System.nanoTime();
         double loopTime = (currentTime-lastLoopTime)/1000000000.0;
         lastLoopTime = currentTime;
@@ -201,23 +206,7 @@ public class TrajectorySequenceRunner {
         packet.put("y", poseEstimate.getY());
         packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
 
-        /*
-        packet.put("heading IMU (deg)", Math.toDegrees(IMUangle));
-        double headingErrorIMU = Math.toDegrees(poseEstimate.getHeading()-IMUangle);
-        while (headingErrorIMU >= 180){
-            headingErrorIMU -= 360;
-        }
-        while (headingErrorIMU <= -180){
-            headingErrorIMU += 360;
-        }
-        packet.put("headingErrorIMU (deg)", headingErrorIMU);
-        */
-
-        //packet.put("xError", getLastPoseError().getX());
-        //packet.put("yError", getLastPoseError().getY());
-        //packet.put("headingError (deg)", Math.toDegrees(getLastPoseError().getHeading()));
-
-        draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate);
+        draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate, draw);
 
         dashboard.sendTelemetryPacket(packet);
 
@@ -227,7 +216,8 @@ public class TrajectorySequenceRunner {
     private void draw(
             Canvas fieldOverlay,
             TrajectorySequence sequence, SequenceSegment currentSegment,
-            Pose2d targetPose, Pose2d poseEstimate
+            Pose2d targetPose, Pose2d poseEstimate,
+            ArrayList<Integer> draw
     ) {
         if (sequence != null) {
             for (int i = 0; i < sequence.size(); i++) {
@@ -284,8 +274,10 @@ public class TrajectorySequenceRunner {
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
 
-        fieldOverlay.setStroke("#3F51B5");
-        DashboardUtil.drawRobot(fieldOverlay, poseEstimate);
+        if (draw != null) {
+            fieldOverlay.setStroke("#3F51B5");
+            DashboardUtil.drawRobot(fieldOverlay, poseEstimate);
+        }
     }
 
     public Pose2d getLastPoseError() {
