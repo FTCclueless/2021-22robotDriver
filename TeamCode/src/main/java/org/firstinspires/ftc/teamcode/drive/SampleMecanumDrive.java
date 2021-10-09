@@ -297,12 +297,16 @@ public class SampleMecanumDrive extends MecanumDrive {
             imuAngle = imu.getAngularOrientation();
         }
     }
+    public void updateVisualizer(){
+        r.setOdoColor(isKnownX && isKnownY);
+    }
     public void update() {
         loops ++;
         updateEstimate();
         updateColorSensor();
         updateTouchSensor();
         updateOdoOverBarrier();
+        updateVisualizer();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);

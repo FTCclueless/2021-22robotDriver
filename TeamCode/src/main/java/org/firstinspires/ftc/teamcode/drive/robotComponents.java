@@ -28,16 +28,21 @@ public class robotComponents {
     public void robotOdo(){
         for (int i = 0; i < encoderPos.length; i ++){
             Component odoPod = new Component();
-            odoPod.color = "#fc0362";
-            double n = 1.0;
-            double b = 1.0;
-            if (i%2 == 0) { n = -1.0; }
-            if (i < 2) { b = -1.0; }
-            odoPod.p.add(new Point((encoderPos[i].x - 1) * n,(encoderPos[i].y + 1) * b));
-            odoPod.p.add(new Point((encoderPos[i].x - 1) * n,(encoderPos[i].y - 1) * b));
-            odoPod.p.add(new Point((encoderPos[i].x + 1) * n,(encoderPos[i].y - 1) * b));
-            odoPod.p.add(new Point((encoderPos[i].x + 1) * n,(encoderPos[i].y - 1) * b));
+            odoPod.color = "#f542f2";
+            odoPod.p.add(new Point((encoderPos[i].x - 1),(encoderPos[i].y + 1)));
+            odoPod.p.add(new Point((encoderPos[i].x - 1),(encoderPos[i].y - 1)));
+            odoPod.p.add(new Point((encoderPos[i].x + 1),(encoderPos[i].y - 1)));
+            odoPod.p.add(new Point((encoderPos[i].x + 1),(encoderPos[i].y - 1)));
             components.add(odoPod); // 7 -> 7 + encoderPos.length-1
+        }
+    }
+    public void setOdoColor(boolean isKnownPos){
+        String color = "#f542f2";
+        if (!isKnownPos){
+            color = "#f542f2";
+        }
+        for (int i = 0; i < encoderPos.length; i ++) {
+            components.get(i+7).color = color;
         }
     }
     public void robotDirectionIndicator() {
