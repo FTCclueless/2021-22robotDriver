@@ -16,6 +16,9 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryMarker;
 import com.acmerobotics.roadrunner.util.NanoClock;
 
+import org.firstinspires.ftc.teamcode.drive.Component;
+import org.firstinspires.ftc.teamcode.drive.Point;
+import org.firstinspires.ftc.teamcode.drive.robotComponents;
 import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.SequenceSegment;
 import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.TrajectorySegment;
 import org.firstinspires.ftc.teamcode.trajectorysequence.sequencesegment.TurnSegment;
@@ -90,7 +93,7 @@ public class TrajectorySequenceRunner {
     }
 
     public @Nullable
-    DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity, ArrayList<Integer> draw) {
+    DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity, robotComponents r) {
         long currentTime = System.nanoTime();
         double loopTime = (currentTime-lastLoopTime)/1000000000.0;
         lastLoopTime = currentTime;
@@ -206,7 +209,7 @@ public class TrajectorySequenceRunner {
         packet.put("y", poseEstimate.getY());
         packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
 
-        draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate, draw);
+        draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate, r);
 
         dashboard.sendTelemetryPacket(packet);
 
@@ -217,7 +220,7 @@ public class TrajectorySequenceRunner {
             Canvas fieldOverlay,
             TrajectorySequence sequence, SequenceSegment currentSegment,
             Pose2d targetPose, Pose2d poseEstimate,
-            ArrayList<Integer> draw
+            robotComponents r
     ) {
         if (sequence != null) {
             for (int i = 0; i < sequence.size(); i++) {
@@ -274,9 +277,36 @@ public class TrajectorySequenceRunner {
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
 
-        if (draw != null) {
+        if (r != null) {
+            for (Component c : r.components){
+                fieldOverlay.setStrokeWidth(c.lineRadius);
+                fieldOverlay.setStroke(c.color);
+                if (c.p.size() >= 1){
+                    drawPoint(fieldOverlay,c.p.get(0),c.radius,poseEstimate);
+                }
+                for (int i = 1; i < c.p.size(); i ++){
+                    drawPoint(fieldOverlay,c.p.get(i),c.radius,poseEstimate);
+                    drawLine(fieldOverlay,c.p.get(i),c.p.get(i-1),poseEstimate);
+                }
+            }
+        }
+        else {
             fieldOverlay.setStroke("#3F51B5");
             DashboardUtil.drawRobot(fieldOverlay, poseEstimate);
+        }
+    }
+    public void drawLine(Canvas c, Point p, Point p2, Pose2d pose){
+        double x1 = Math.cos(pose.getHeading())*p.x - Math.sin(pose.getHeading())*p.y + pose.getX();
+        double y1 = Math.cos(pose.getHeading())*p.y + Math.sin(pose.getHeading())*p.x + pose.getY();
+        double x2 = Math.cos(pose.getHeading())*p2.x - Math.sin(pose.getHeading())*p2.y + pose.getX();
+        double y2 = Math.cos(pose.getHeading())*p2.y + Math.sin(pose.getHeading())*p2.x + pose.getY();
+        c.strokeLine(x1,y1,x2,y2);
+    }
+    public void drawPoint(Canvas c, Point p, double radius, Pose2d pose){
+        if (radius != 0){
+            double x = Math.cos(pose.getHeading())*p.x - Math.sin(pose.getHeading())*p.y + pose.getX();
+            double y = Math.cos(pose.getHeading())*p.y + Math.sin(pose.getHeading())*p.x + pose.getY();
+            c.strokeCircle(x,y,radius);
         }
     }
 

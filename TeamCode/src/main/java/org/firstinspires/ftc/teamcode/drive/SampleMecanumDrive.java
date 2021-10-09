@@ -125,11 +125,14 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     Vec3F finalTiltHeading;
 
+    robotComponents r;
+
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
         lastTouchPoll = System.currentTimeMillis();
         lastTiltPoll = System.currentTimeMillis();
         staticHeading = 0;
+        r = new robotComponents();
         encoders = new int[4];
 
         turnController = new PIDFController(HEADING_PID);
@@ -300,7 +303,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateColorSensor();
         updateTouchSensor();
         updateOdoOverBarrier();
-        DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity);
+        DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);
         }
