@@ -281,12 +281,14 @@ public class TrajectorySequenceRunner {
             for (Component c : r.components){
                 fieldOverlay.setStrokeWidth(c.lineRadius);
                 fieldOverlay.setStroke(c.color);
-                if (c.p.size() >= 1){
+                if (c.p.size() == 1){
                     drawPoint(fieldOverlay,c.p.get(0),c.radius,poseEstimate);
                 }
-                for (int i = 1; i < c.p.size(); i ++){
-                    drawPoint(fieldOverlay,c.p.get(i),c.radius,poseEstimate);
-                    drawLine(fieldOverlay,c.p.get(i),c.p.get(i-1),poseEstimate);
+                else {
+                    for (int i = 1; i < c.p.size() + 1; i++) {
+                        drawPoint(fieldOverlay, c.p.get(i % c.p.size()), c.radius, poseEstimate);
+                        drawLine(fieldOverlay, c.p.get(i % c.p.size()), c.p.get((i - 1)%c.p.size()), poseEstimate);
+                    }
                 }
             }
         }

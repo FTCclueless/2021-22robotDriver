@@ -8,15 +8,37 @@ public class robotComponents {
     double wheelDiameter;
     double robotLength;
     double robotWidth;
+    Point[] encoderPos;
     public robotComponents(){
         wheelWidth = 1.5;
         wheelDiameter = 4;
         robotLength = 16;
         robotWidth = 12;
         components = new ArrayList<Component>();
-        RobotBody();
-        RobotWheels();
+        Localizer l = new Localizer();
+        encoderPos = new Point[l.encoders.length];
+        for (int i = 0; i < encoderPos.length; i ++){
+            encoderPos[i] = new Point(l.encoders[i].x,l.encoders[i].y);
+        }
+        robotBody();
+        robotWheels();
         robotDirectionIndicator();
+        robotOdo();
+    }
+    public void robotOdo(){
+        for (int i = 0; i < encoderPos.length; i ++){
+            Component odoPod = new Component();
+            odoPod.color = "#fc0362";
+            double n = 1.0;
+            double b = 1.0;
+            if (i%2 == 0) { n = -1.0; }
+            if (i < 2) { b = -1.0; }
+            odoPod.p.add(new Point((encoderPos[i].x - 1) * n,(encoderPos[i].y + 1) * b));
+            odoPod.p.add(new Point((encoderPos[i].x - 1) * n,(encoderPos[i].y - 1) * b));
+            odoPod.p.add(new Point((encoderPos[i].x + 1) * n,(encoderPos[i].y - 1) * b));
+            odoPod.p.add(new Point((encoderPos[i].x + 1) * n,(encoderPos[i].y - 1) * b));
+            components.add(odoPod); // 7 -> 7 + encoderPos.length-1
+        }
     }
     public void robotDirectionIndicator() {
         Component direction = new Component();
@@ -29,7 +51,7 @@ public class robotComponents {
         circle.p.add(new Point(0,0));
         components.add(circle); // 6
     }
-    public void RobotBody() {
+    public void robotBody() {
         Component robotBody = new Component();
         robotBody.color = "#03bafc";
         robotBody.p.add(new Point(robotLength/ 2.0,robotWidth/2.0));
@@ -38,19 +60,15 @@ public class robotComponents {
         robotBody.p.add(new Point(robotLength/-2.0,robotWidth/2.0));
         components.add(robotBody); // 0
     }
-    public void RobotWheels(){
+    public void robotWheels(){
         for (int i = 0; i < 4; i ++) {
             Component wheel = new Component();
             wheel.color = "#03fcd7";
             wheel.lineRadius=1;
             double n = 1.0;
             double b = 1.0;
-            if (i%2 == 0) {
-                n = -1.0;
-            }
-            if (i < 2) {
-                b = -1.0;
-            }
+            if (i%2 == 0) { n = -1.0; }
+            if (i < 2) { b = -1.0; }
             double x = robotLength/2.0 - 0.5;
             double y = robotWidth/2.0 - 0.5;
             wheel.p.add(new Point((x)*b,(y)*n));
