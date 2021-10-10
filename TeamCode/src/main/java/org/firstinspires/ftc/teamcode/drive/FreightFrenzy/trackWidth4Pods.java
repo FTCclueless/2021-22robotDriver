@@ -13,15 +13,13 @@ import org.firstinspires.ftc.teamcode.drive.Encoder;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @TeleOp(group = "drive")
-public class trackWidth extends LinearOpMode {
+public class trackWidth4Pods extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         telemetry.addData("instructions1", "rotate the robot 8 rotations to the left");
         telemetry.addData("instructions2", "then clock the a-button");
-        telemetry.addData("instructions3", "then rotate the robot 8 rotations to the right");
-        telemetry.addData("instructions4", "then clock the b-button");
         telemetry.update();
         waitForStart();
         Encoder[] encoders = new Encoder[4];
@@ -40,6 +38,9 @@ public class trackWidth extends LinearOpMode {
             drive.setMotorPowers(p1, p2, p3, p4);
             drive.getEncoders();
         }
+        telemetry.addData("instructions3", "rotate the robot 8 rotations to the right");
+        telemetry.addData("instructions4", "then clock the b-button");
+        telemetry.update();
         for (int i = 0; i < drive.encoders.length; i ++){
             encoders[i].update(drive.encoders[i]);
         }

@@ -39,7 +39,7 @@ public class robotComponents {
     public void setOdoColor(boolean isKnownPos){
         String color = "#f542f2";
         if (!isKnownPos){
-            color = "#f542f2";
+            color = "#ff0000";
         }
         for (int i = 0; i < encoderPos.length; i ++) {
             components.get(i+7).color = color;
