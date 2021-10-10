@@ -77,8 +77,14 @@ public class trackWidth4Pods extends LinearOpMode {
         double deltaFront = encoders[3].getDelta();
         double y = (-1.0*(frontHeadingRight/rotationRight)*deltaRight)/(deltaLeft-deltaRight);
         double x = (-1.0*(sideHeadingRight/rotationRight)*deltaBack)/(deltaFront-deltaBack);
-        telemetry.addData("y",y);
-        telemetry.addData("x",x);
+        double averageTrackWidth = (frontHeadingLeft/rotationLeft + frontHeadingRight/rotationRight)/2.0;
+        double averageTrackHeight = (sideHeadingRight/rotationRight + sideHeadingLeft/rotationLeft)/2.0;
+        telemetry.addData("averageTrackWidth", averageTrackWidth);
+        telemetry.addData("averageTrackHeight", averageTrackHeight);
+        telemetry.addData("left y",y);
+        telemetry.addData("right y",y-averageTrackWidth);
+        telemetry.addData("front x",x);
+        telemetry.addData("back x",x-averageTrackHeight);
         telemetry.update();
         while (!isStopRequested() && !gamepad1.b) {}
 
