@@ -10,10 +10,10 @@ public class robotComponents {
     double robotWidth;
     Point[] encoderPos;
     public robotComponents(){
-        wheelWidth = 1.5;
-        wheelDiameter = 4;
-        robotLength = 16;
-        robotWidth = 12;
+        wheelWidth = 1.5+1;
+        wheelDiameter = 4+1;
+        robotLength = 15.5+1;
+        robotWidth = 12.5+1;
         components = new ArrayList<Component>();
         Localizer l = new Localizer();
         encoderPos = new Point[l.encoders.length];
@@ -27,13 +27,10 @@ public class robotComponents {
     }
     public void robotOdo(){
         for (int i = 0; i < encoderPos.length; i ++){
-            Component odoPod = new Component();
+            Component odoPod = new Component(0.5);
             odoPod.color = "#f542f2";
-            odoPod.p.add(new Point((encoderPos[i].x - 1),(encoderPos[i].y + 1)));
-            odoPod.p.add(new Point((encoderPos[i].x - 1),(encoderPos[i].y - 1)));
-            odoPod.p.add(new Point((encoderPos[i].x + 1),(encoderPos[i].y - 1)));
-            odoPod.p.add(new Point((encoderPos[i].x + 1),(encoderPos[i].y - 1)));
-            components.add(odoPod); // 7 -> 7 + encoderPos.length-1
+            odoPod.p.add(new Point(encoderPos[i].x,encoderPos[i].y));
+            components.add(odoPod); // 6 -> 6 + encoderPos.length-1
         }
     }
     public void setOdoColor(boolean isKnownPos){
@@ -42,23 +39,25 @@ public class robotComponents {
             color = "#ff0000";
         }
         for (int i = 0; i < encoderPos.length; i ++) {
-            components.get(i+7).color = color;
+            components.get(i+6).color = color;
         }
     }
     public void robotDirectionIndicator() {
         Component direction = new Component();
-        direction.color = "#fcba03";
+        direction.color = "#03bafc";
         direction.p.add(new Point(0,0));
-        direction.p.add(new Point(0,2.5));
+        direction.p.add(new Point(robotLength/2.0,0));
         components.add(direction); // 5
-        Component circle = new Component(3);
-        circle.color = "#fcba03";
+        /*
+        Component circle = new Component(5);
+        circle.color = "#03bafc";
         circle.p.add(new Point(0,0));
         components.add(circle); // 6
+         */
     }
     public void robotBody() {
         Component robotBody = new Component();
-        robotBody.color = "#03bafc";
+        robotBody.color = "#000000";
         robotBody.p.add(new Point(robotLength/ 2.0,robotWidth/2.0));
         robotBody.p.add(new Point(robotLength/ 2.0,robotWidth/-2.0));
         robotBody.p.add(new Point(robotLength/-2.0,robotWidth/-2.0));
@@ -68,7 +67,7 @@ public class robotComponents {
     public void robotWheels(){
         for (int i = 0; i < 4; i ++) {
             Component wheel = new Component();
-            wheel.color = "#03fcd7";
+            wheel.color = "#000000";
             wheel.lineRadius=1;
             double n = 1.0;
             double b = 1.0;

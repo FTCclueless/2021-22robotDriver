@@ -32,17 +32,17 @@ public class LocalizationTest extends LinearOpMode {
 
         while (!isStopRequested()) {
             drive.update();
-            double forward = gamepad1.right_stick_y * -0.4;
-            double left = gamepad1.right_stick_x * 0.6;
-            double turn = gamepad1.left_stick_x * 0.35;
+            double forward = gamepad1.left_stick_y * -0.4;
+            double left = gamepad1.left_stick_x * 0.6;
+            double turn = gamepad1.right_stick_x * 0.35;
 
             boolean lockHeading = true;
             if (Math.abs(turn) > 0.01){ lockHeading = false; }
             if (lockHeading){
-                double turnVal = drive.currentPose.getHeading()-lockHeadAngle;
-                if (Math.abs(turnVal) >= 0.08){
-                    turn += turnVal;
-                }
+                //double turnVal = drive.currentPose.getHeading()-lockHeadAngle;
+                //if (Math.abs(turnVal) >= 0.08){
+                    //turn += turnVal;
+                //}
             }
             else {lockHeadAngle = drive.currentPose.getHeading();}
 

@@ -133,7 +133,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastTiltPoll = System.currentTimeMillis();
         staticHeading = 0;
         r = new robotComponents();
-        encoders = new int[4];
 
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
@@ -155,8 +154,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
-        color = hardwareMap.colorSensor.get("cs");
-        color.enableLed(true);
+        //color = hardwareMap.colorSensor.get("cs");
+        //color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftFront =     (ExpansionHubMotor) hardwareMap.dcMotor.get("lf");
@@ -180,8 +179,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        rightRear.setDirection(DcMotorSimple.Direction.REVERSE); //rightRear
-        rightFront.setDirection(DcMotorSimple.Direction.REVERSE); //rightFront
+        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
         if (RUN_USING_ENCODER) {
             setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -199,6 +198,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         // TODO: if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
         localizer = new Localizer();
+        encoders = new int[3];
         setLocalizer(localizer);
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
@@ -207,10 +207,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public static void getEncoders(){
         bulkData = expansionHub1.getBulkInputData();
-        encoders[0] = bulkData.getMotorCurrentPosition(leftFront); // switched 0 and 1
-        encoders[1] = bulkData.getMotorCurrentPosition(rightFront);
+        encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
+        encoders[1] = bulkData.getMotorCurrentPosition(leftFront);
         encoders[2] = bulkData.getMotorCurrentPosition(rightRear);
-        encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
+        //encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         // you can set the bulkData to the other expansion hub to get data from the other one
         //bulkData = expansionHub2.getBulkInputData();
     }
@@ -303,9 +303,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate();
-        updateColorSensor();
-        updateTouchSensor();
-        updateOdoOverBarrier();
+        //updateColorSensor();
+        //updateTouchSensor();
+        //updateOdoOverBarrier();
         updateVisualizer();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity, r);
         if (signal != null) {

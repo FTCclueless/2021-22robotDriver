@@ -23,16 +23,11 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public Localizer(){
         updatPose = true;
         offsetHeading = 0.0;
-        encoders = new Encoder[4];
-        //TrackWidth Class Data:
-        //13.8547 & 13.8702 => 13.86245
-        //7.45559 & 7.45706 => 7.456325
-        //(-6.9420448,6.9204052)
-        //(-5.946265,1.51006)
-        encoders[0] = new Encoder(new Vector2d(0.125,-6.9420448),1.0);
-        encoders[1] = new Encoder(new Vector2d(0.125,6.9204052),-1.0);
-        encoders[2] = new Encoder(new Vector2d(-5.946265,-1.25), 1.0);
-        encoders[3] = new Encoder(new Vector2d(1.51006,-1.25),  -1.0);
+        encoders = new Encoder[3];
+        encoders[0] = new Encoder(new Vector2d(0.125,-4.9781),1.0);
+        encoders[1] = new Encoder(new Vector2d(0.125,4.55088),  -1.0);
+        encoders[2] = new Encoder(new Vector2d(-6.50377,-1.25), -1.0);
+        //encoders[3] = new Encoder(new Vector2d(1.51006,-1.25),  -1.0);
     }
 
     public void updateEncoders(int[] encoders){
@@ -77,6 +72,9 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     @Override
     public void update() {
+        Log.e("rightEncoder",""+encoders[0].getCurrentDist());
+        Log.e("leftEncoder",""+encoders[1].getCurrentDist());
+        Log.e("backEncoder",""+encoders[2].getCurrentDist());
         long currentTime = System.nanoTime();
         double loopTime = (currentTime-lastTime)/1000000000.0;
         lastTime = currentTime;

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
+import android.util.Log;
+
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -18,10 +20,14 @@ public class trackWidth3Pods extends LinearOpMode {
         telemetry.addData("instructions2", "then clock the a-button");
         telemetry.update();
         waitForStart();
-        Encoder[] encoders = new Encoder[4];
-        encoders[0] = new Encoder(new Vector2d(0,0),1.0);
-        encoders[1] = new Encoder(new Vector2d(0,0),-1.0);
-        encoders[2] = new Encoder(new Vector2d(0,0),1.0);
+        Encoder[] encoders = new Encoder[3];
+        encoders[0] = new Encoder(new Vector2d(0,0), -1.0);
+        encoders[1] = new Encoder(new Vector2d(0,0), 1.0);
+        encoders[2] = new Encoder(new Vector2d(0,0), -1.0);
+        for (int i = 0; i < drive.encoders.length; i ++){
+            Log.e("Encoder",""+drive.encoders[i]);
+            encoders[i].update(drive.encoders[i]);
+        }
         while (!isStopRequested() && !gamepad1.a) {
             double forward = gamepad1.right_stick_y * -0.4;
             double left = gamepad1.right_stick_x * 0.6;
@@ -37,6 +43,7 @@ public class trackWidth3Pods extends LinearOpMode {
         telemetry.addData("instructions4", "then clock the b-button");
         telemetry.update();
         for (int i = 0; i < drive.encoders.length; i ++){
+            Log.e("Encoder",""+drive.encoders[i]);
             encoders[i].update(drive.encoders[i]);
         }
         double frontHeadingLeft = encoders[0].getDelta() - encoders[1].getDelta();
@@ -53,6 +60,7 @@ public class trackWidth3Pods extends LinearOpMode {
             drive.getEncoders();
         }
         for (int i = 0; i < drive.encoders.length; i ++){
+            Log.e("Encoder2",""+drive.encoders[i]);
             encoders[i].update(drive.encoders[i]);
         }
         double frontHeadingRight = encoders[0].getDelta() - encoders[1].getDelta();
