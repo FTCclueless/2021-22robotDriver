@@ -298,10 +298,10 @@ public class TrajectorySequenceRunner {
         }
     }
     public void drawLine(Canvas c, Point p, Point p2, Pose2d pose){
-        double x1 = Math.cos(pose.getHeading())*p.x - Math.sin(pose.getHeading())*p.y + pose.getX();
-        double y1 = Math.cos(pose.getHeading())*p.y + Math.sin(pose.getHeading())*p.x + pose.getY();
-        double x2 = Math.cos(pose.getHeading())*p2.x - Math.sin(pose.getHeading())*p2.y + pose.getX();
-        double y2 = Math.cos(pose.getHeading())*p2.y + Math.sin(pose.getHeading())*p2.x + pose.getY();
+        double x1 = Math.cos(pose.getHeading())*(p.x+Math.signum(p.x-p2.x)*0.5) - Math.sin(pose.getHeading())*(p.y+Math.signum(p.y-p2.y)*0.5) + pose.getX();
+        double y1 = Math.cos(pose.getHeading())*(p.y+Math.signum(p.y-p2.y)*0.5) + Math.sin(pose.getHeading())*(p.x+Math.signum(p.x-p2.x)*0.5) + pose.getY();
+        double x2 = Math.cos(pose.getHeading())*(p2.x+Math.signum(p2.x-p.x)*0.5) - Math.sin(pose.getHeading())*(p2.y+Math.signum(p2.y-p.y)*0.5) + pose.getX();
+        double y2 = Math.cos(pose.getHeading())*(p2.y+Math.signum(p2.y-p.y)*0.5) + Math.sin(pose.getHeading())*(p2.x+Math.signum(p2.x-p.x)*0.5) + pose.getY();
         c.strokeLine(x1,y1,x2,y2);
     }
     public void drawPoint(Canvas c, Point p, double radius, Pose2d pose){

@@ -303,10 +303,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate();
-        //updateColorSensor();
-        //updateTouchSensor();
-        //updateOdoOverBarrier();
-        updateVisualizer();
+        //updateSensor();
+        //updateVisualizer();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);
@@ -314,6 +312,11 @@ public class SampleMecanumDrive extends MecanumDrive {
 
 
         updateIMU = false;
+    }
+    public void updateSensor(){
+        updateColorSensor();
+        updateTouchSensor();
+        updateOdoOverBarrier();
     }
     public void updateOdoOverBarrier(){
         boolean overTrackForward = Math.abs(currentPose.getY()) < 72-48-(12.0/2.0) && Math.abs(currentPose.getX()-24) < 16 + 2;
