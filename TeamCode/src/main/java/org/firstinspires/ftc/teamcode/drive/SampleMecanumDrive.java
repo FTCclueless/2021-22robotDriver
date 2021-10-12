@@ -374,10 +374,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if ((!isKnownX || !isKnownY) || System.currentTimeMillis() - lastTouchPoll > 250){
             boolean left = lf.isPressed() && lb.isPressed();
             boolean right = rf.isPressed() && rb.isPressed();
-            double heading = currentPose.getHeading();
-            //clip the heading to +-180
-            while (heading >  Math.PI){heading -= Math.PI*2.0;}
-            while (heading < -Math.PI){heading += Math.PI*2.0;}
+            double heading = clipHeading(currentPose.getHeading());
             if (right ^ left){ // this is XOR it means that this or this but not both this and this
                 boolean forward = Math.abs(heading) < Math.toRadians(15);
                 boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
@@ -419,14 +416,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         if (updatePose) {
             if (!isKnownX || !isKnownY) {
-                double heading = currentPose.getHeading();
-                //clip the heading to +-180
-                while (heading > Math.PI) {
-                    heading -= Math.PI * 2.0;
-                }
-                while (heading < -Math.PI) {
-                    heading += Math.PI * 2.0;
-                }
+                double heading = clipHeading(currentPose.getHeading());
                 if (Math.abs(heading) < Math.toRadians(15) || Math.abs(heading) > Math.toRadians(180 - 15)) { // facing forward or backward (going over the left right line)
                     double speed = Math.signum(currentVelocity.getX()) * multiplier;
                     localizer.x = 72 - 43.5 + 1 - speed;
@@ -455,6 +445,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
         lastLightReading = detectLine;
+    }
+    public double clipHeading (double heading){
+        while (heading > Math.PI) {
+            heading -= Math.PI * 2.0;
+        }
+        while (heading < -Math.PI) {
+            heading += Math.PI * 2.0;
+        }
+        return heading;
     }
     public void updateDriveMotors(DriveSignal signal){
         double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
