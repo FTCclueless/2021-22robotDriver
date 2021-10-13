@@ -1,24 +1,12 @@
-package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
-
-import android.util.Log;
+package org.firstinspires.ftc.teamcode.drive.SetUp;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
-/**
- * This is a simple teleop routine for testing localization. Drive the robot around like a normal
- * teleop routine and make sure the robot's estimated pose matches the robot's actual pose (slight
- * errors are not out of the ordinary, especially with sudden drive motions). The goal of this
- * exercise is to ascertain whether the localizer has been configured properly (note: the pure
- * encoder localizer heading may be significantly off if the track width has not been tuned).
- */
-@TeleOp(group = "drive")
-public class LocalizationTest extends LinearOpMode {
+public class SensorTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -28,13 +16,14 @@ public class LocalizationTest extends LinearOpMode {
         waitForStart();
 
         double lockHeadAngle = 0;
-
+        double totalElapsedRLITime = 0;
+        int loops = 0;
 
         while (!isStopRequested()) {
             drive.update();
-            double forward = gamepad1.left_stick_y * -0.4;
-            double left = gamepad1.left_stick_x * 0.6;
-            double turn = gamepad1.right_stick_x * 0.35;
+            double forward = gamepad1.right_stick_y * -0.4;
+            double left = gamepad1.right_stick_x * 0.6;
+            double turn = gamepad1.left_stick_x * 0.35;
 
             boolean lockHeading = true;
             if (Math.abs(turn) > 0.01){ lockHeading = false; }
@@ -52,12 +41,15 @@ public class LocalizationTest extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
+            long startTime = System.nanoTime();
+            int rli = drive.color.alpha();
+            double elapsedTimeRLI = (System.nanoTime() - startTime)/1000000.0;
+            totalElapsedRLITime += elapsedTimeRLI;
+            loops ++;
 
-            Pose2d poseEstimate = drive.getPoseEstimate();
-            telemetry.addData("X", drive.currentPose.getX());
-            telemetry.addData("Y", drive.currentPose.getY());
-            telemetry.addData("Heading", drive.currentPose.getHeading());
-
+            telemetry.addData("Reflected Light Intensity", rli);
+            telemetry.addData("ReadTime", elapsedTimeRLI);
+            telemetry.addData("Average ReadTime", elapsedTimeRLI/(double)loops);
             telemetry.update();
 
         }
