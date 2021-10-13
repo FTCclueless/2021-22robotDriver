@@ -102,7 +102,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private VoltageSensor batteryVoltageSensor;
 
-    Localizer localizer;
+    public Localizer localizer;
 
     public static int[] encoders;
 
@@ -184,6 +184,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         if (RUN_USING_ENCODER) {
             setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }

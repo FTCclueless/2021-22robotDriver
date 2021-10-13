@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Localizer implements com.acmerobotics.roadrunner.localization.Localizer {
-    Encoder[] encoders;
+    public Encoder[] encoders;
     double odoHeading;
     double offsetHeading;
     public boolean updatPose;
@@ -72,9 +72,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     @Override
     public void update() {
-        Log.e("rightEncoder",""+encoders[0].getCurrentDist());
-        Log.e("leftEncoder",""+encoders[1].getCurrentDist());
-        Log.e("backEncoder",""+encoders[2].getCurrentDist());
         long currentTime = System.nanoTime();
         double loopTime = (currentTime-lastTime)/1000000000.0;
         lastTime = currentTime;

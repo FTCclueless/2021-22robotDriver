@@ -84,7 +84,7 @@ public class trackWidth3Pods extends LinearOpMode {
         telemetry.addData("left y",y-averageTrackWidth);
         telemetry.addData("horizontal x",averageTrackHeight);
         telemetry.update();
-        while (!isStopRequested() && !gamepad1.b) {}
+        while (!isStopRequested()) {}
 
     }
 }
