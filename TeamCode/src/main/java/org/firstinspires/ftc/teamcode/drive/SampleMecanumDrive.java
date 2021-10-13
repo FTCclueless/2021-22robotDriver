@@ -200,7 +200,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         // TODO: if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
         localizer = new Localizer();
-        encoders = new int[3];
+        encoders = new int[localizer.encoders.length]; // 3
         setLocalizer(localizer);
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
@@ -212,7 +212,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
         encoders[1] = bulkData.getMotorCurrentPosition(leftFront);
         encoders[2] = bulkData.getMotorCurrentPosition(rightRear);
-        //encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
+        if (encoders.length == 4) {
+            encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
+        }
         // you can set the bulkData to the other expansion hub to get data from the other one
         //bulkData = expansionHub2.getBulkInputData();
     }

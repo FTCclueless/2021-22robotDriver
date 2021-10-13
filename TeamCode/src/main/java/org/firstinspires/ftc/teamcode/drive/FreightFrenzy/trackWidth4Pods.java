@@ -81,8 +81,8 @@ public class trackWidth4Pods extends LinearOpMode {
         double averageTrackHeight = (sideHeadingRight/rotationRight + sideHeadingLeft/rotationLeft)/2.0;
         telemetry.addData("averageTrackWidth", averageTrackWidth);
         telemetry.addData("averageTrackHeight", averageTrackHeight);
-        telemetry.addData("left y",y);
-        telemetry.addData("right y",y-averageTrackWidth);
+        telemetry.addData("right y",y);
+        telemetry.addData("left y",y-averageTrackWidth);
         telemetry.addData("front x",x);
         telemetry.addData("back x",x-averageTrackHeight);
         telemetry.update();
