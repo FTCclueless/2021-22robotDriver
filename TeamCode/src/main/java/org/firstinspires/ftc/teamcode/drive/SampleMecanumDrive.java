@@ -417,17 +417,14 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (updatePose) {
             if (!isKnownX || !isKnownY) {
                 double heading = clipHeading(currentPose.getHeading());
-                if (Math.abs(heading) < Math.toRadians(15) || Math.abs(heading) > Math.toRadians(180 - 15)) { // facing forward or backward (going over the left right line)
+                if (Math.abs(heading) % Math.toRadians(180) < Math.toRadians(15)) { // facing forward or backward (going over the left right line)
                     double speed = Math.signum(currentVelocity.getX()) * multiplier;
                     localizer.x = 72 - 43.5 + 1 - speed;
                     isKnownX = true;
-                } else if (Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15)) { // 90 heading   <----
+                } else if (Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15)) {
+                    double m1 = Math.signum(heading)*-1;
                     double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                    localizer.y = (72 - 43.5 + 1) * -1 - speed;
-                    isKnownY = true;
-                } else if (Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15)) { // - 90 heading ---->
-                    double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                    localizer.y = (72 - 43.5 + 1) - speed;
+                    localizer.y = (72 - 43.5 + 1) * m1 - speed;
                     isKnownY = true;
                 }
             } else if (leftRightEntrance) {
