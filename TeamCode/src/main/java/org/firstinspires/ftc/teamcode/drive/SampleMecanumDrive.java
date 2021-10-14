@@ -91,14 +91,14 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     static RevBulkData bulkData;
     static ExpansionHubEx expansionHub1, expansionHub2;
-    static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
+    public static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
     static TouchSensor lf, lb, rb, rf;
     long lastTouchPoll;
     long lastTiltPoll;
 
     public static ColorSensor color;
 
-    private BNO055IMU imu;
+    public BNO055IMU imu;
 
     private VoltageSensor batteryVoltageSensor;
 
@@ -156,8 +156,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
-        //color = hardwareMap.colorSensor.get("cs");
-        //color.enableLed(true);
+        color = hardwareMap.colorSensor.get("cs");
+        color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftFront =     (ExpansionHubMotor) hardwareMap.dcMotor.get("lf");
@@ -329,7 +329,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if ((!isKnownX || !isKnownY) || ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100)){
             updateImuAngle();
             lastTiltPoll = System.currentTimeMillis();
-            if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>15){
+            if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>1){
                 tiltTime = System.currentTimeMillis();
                 isKnownY = false;
                 isKnownX = false;
@@ -406,7 +406,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateColorSensor(){
         double robotWidth = 12.5;
         boolean detectLine = false;
-        int threshold = 100;
+        int threshold = 200;
         int sensorThreshold = 3;
         boolean leftRightEntrance = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
         boolean topLeftEntrance = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
@@ -625,7 +625,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         return new ProfileAccelerationConstraint(maxAccel);
     }
 
-    double getBatteryVoltage() {
+    public double getBatteryVoltage() {
         return batteryVoltageSensor.getVoltage();
     }
 }

@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.openftc.revextensions2.ExpansionHubEx;
 
 @TeleOp(group = "SetUp")
 public class SensorTest extends LinearOpMode {
@@ -44,12 +46,20 @@ public class SensorTest extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             long startTime = System.nanoTime();
-            int rli = drive.color.alpha();
+            //int rli = drive.color.alpha();
+            //Orientation orientation = drive.imu.getAngularOrientation();
+            //double angle = drive.imu.getAngularOrientation().secondAngle;
+            //double current = drive.rightRear.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
+            double voltage = drive.getBatteryVoltage();
             double elapsedTimeRLI = (System.nanoTime() - startTime)/1000000.0;
             totalElapsedRLITime += elapsedTimeRLI;
             loops ++;
 
-            telemetry.addData("Reflected Light Intensity", rli);
+            //telemetry.addData("Reflected Light Intensity", rli);
+            //telemetry.addData("Imu heading", orientation.secondAngle);
+            //telemetry.addData("Imu heading", angle);
+            //telemetry.addData("currentMotor", current);
+            telemetry.addData("volatage", drive.getBatteryVoltage());
             telemetry.addData("ReadTime", elapsedTimeRLI);
             telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
             telemetry.update();

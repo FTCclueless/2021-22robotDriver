@@ -70,7 +70,7 @@ public class robotComponents {
     public void robotWheels(){
         for (int i = 0; i < 4; i ++) {
             Component wheel = new Component();
-            wheel.color = "#000000";
+            wheel.color = "#707070";
             wheel.lineRadius=1;
             double n = 1.0;
             double b = 1.0;

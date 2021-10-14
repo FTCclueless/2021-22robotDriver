@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
  */
 
 @Config
-@Autonomous(group = "drive")
+@Autonomous(group = "rr")
 public class StraightTest extends LinearOpMode {
     public static double DISTANCE = 60; // in
 
