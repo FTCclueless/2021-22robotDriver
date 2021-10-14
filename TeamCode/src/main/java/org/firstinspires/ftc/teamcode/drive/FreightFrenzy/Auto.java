@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "drive")
+@Autonomous(group = "Auto")
 public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

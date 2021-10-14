@@ -2,10 +2,12 @@ package org.firstinspires.ftc.teamcode.drive.SetUp;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
+@TeleOp(group = "SetUp")
 public class SensorTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -49,7 +51,7 @@ public class SensorTest extends LinearOpMode {
 
             telemetry.addData("Reflected Light Intensity", rli);
             telemetry.addData("ReadTime", elapsedTimeRLI);
-            telemetry.addData("Average ReadTime", elapsedTimeRLI/(double)loops);
+            telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
             telemetry.update();
 
         }

@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.drive.Encoder;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
-@TeleOp(group = "drive")
+@TeleOp(group = "SetUp")
 public class trackWidth3Pods extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -29,13 +29,11 @@ public class trackWidth3Pods extends LinearOpMode {
             encoders[i].update(drive.encoders[i]);
         }
         while (!isStopRequested() && !gamepad1.a) {
-            double forward = gamepad1.right_stick_y * -0.4;
-            double left = gamepad1.right_stick_x * 0.6;
             double turn = gamepad1.left_stick_x * 0.35;
-            double p1 = forward+left+turn;
-            double p2 = forward-left+turn;
-            double p3 = forward+left-turn;
-            double p4 = forward-left-turn;
+            double p1 = turn;
+            double p2 = turn;
+            double p3 = turn * -1;
+            double p4 = turn * -1;
             drive.setMotorPowers(p1, p2, p3, p4);
             drive.getEncoders();
         }
@@ -49,13 +47,11 @@ public class trackWidth3Pods extends LinearOpMode {
         double frontHeadingLeft = encoders[0].getDelta() - encoders[1].getDelta();
         double sideHeadingLeft = encoders[2].getDelta();
         while (!isStopRequested() && !gamepad1.b) {
-            double forward = gamepad1.right_stick_y * -0.4;
-            double left = gamepad1.right_stick_x * 0.6;
             double turn = gamepad1.left_stick_x * 0.35;
-            double p1 = forward+left+turn;
-            double p2 = forward-left+turn;
-            double p3 = forward+left-turn;
-            double p4 = forward-left-turn;
+            double p1 = turn;
+            double p2 = turn;
+            double p3 = turn * -1;
+            double p4 = turn * -1;
             drive.setMotorPowers(p1, p2, p3, p4);
             drive.getEncoders();
         }

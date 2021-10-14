@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.Encoder;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
-@TeleOp(group = "drive")
+@TeleOp(group = "SetUp")
 public class trackWidth4Pods extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
@@ -28,13 +28,11 @@ public class trackWidth4Pods extends LinearOpMode {
         encoders[2] = new Encoder(new Vector2d(0,0),1.0);
         encoders[3] = new Encoder(new Vector2d(0,0),-1.0);
         while (!isStopRequested() && !gamepad1.a) {
-            double forward = gamepad1.right_stick_y * -0.4;
-            double left = gamepad1.right_stick_x * 0.6;
             double turn = gamepad1.left_stick_x * 0.35;
-            double p1 = forward+left+turn;
-            double p2 = forward-left+turn;
-            double p3 = forward+left-turn;
-            double p4 = forward-left-turn;
+            double p1 = turn;
+            double p2 = turn;
+            double p3 = turn * -1;
+            double p4 = turn * -1;
             drive.setMotorPowers(p1, p2, p3, p4);
             drive.getEncoders();
         }
@@ -47,13 +45,11 @@ public class trackWidth4Pods extends LinearOpMode {
         double frontHeadingLeft = encoders[0].getDelta() - encoders[1].getDelta();
         double sideHeadingLeft = encoders[2].getDelta() - encoders[3].getDelta();
         while (!isStopRequested() && !gamepad1.b) {
-            double forward = gamepad1.right_stick_y * -0.4;
-            double left = gamepad1.right_stick_x * 0.6;
             double turn = gamepad1.left_stick_x * 0.35;
-            double p1 = forward+left+turn;
-            double p2 = forward-left+turn;
-            double p3 = forward+left-turn;
-            double p4 = forward-left-turn;
+            double p1 = turn;
+            double p2 = turn;
+            double p3 = turn * -1;
+            double p4 = turn * -1;
             drive.setMotorPowers(p1, p2, p3, p4);
             drive.getEncoders();
         }
