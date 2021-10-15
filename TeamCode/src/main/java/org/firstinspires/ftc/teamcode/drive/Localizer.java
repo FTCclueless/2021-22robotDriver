@@ -107,7 +107,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             //relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x)/2.0;
         }
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
-        double heading = odoHeading + offsetHeading;
+        double heading = odoHeading + offsetHeading + startHeadingOffset;
 
 
         //double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y)/2.0;
