@@ -92,22 +92,29 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaRight = encoders[0].getDelta();     //E1
         double deltaLeft = encoders[1].getDelta();      //E2
         double deltaBack = encoders[2].getDelta();      //E3
+
         double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
+
         double deltaHeading = deltaFrontHeading;
         double relDeltaY = deltaBack - deltaHeading*encoders[2].x;
         if (encoders.length == 4){
             double deltaFront = encoders[3].getDelta();     //E4
-            double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
-            double w1 = 0.9;
-            deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
-            relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x)/2.0;
+            relDeltaY = (deltaBack*encoders[3].x - deltaFront*encoders[2].x)/(encoders[3].x-encoders[2].x);
+
+            //double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
+            //double w1 = 0.9;
+            //deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
+            //relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x)/2.0;
         }
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading;
-        double relVelHeading = deltaHeading/loopTime;
+
+
+        //double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y)/2.0;
+        double relDeltaX = (deltaLeft*encoders[0].y - deltaRight*encoders[1].y)/(encoders[0].y-encoders[1].y);
+
         double simLoops = 100.0;
         double simHeading = heading - deltaHeading;
-        double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y)/2.0;
         double simDeltaX = relDeltaX/simLoops;
         double simDeltaY = relDeltaY/simLoops;
         for (int i = 0; i < simLoops; i ++){
@@ -122,6 +129,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double w2 = 0.05; // This is a Kalman Filter to help make sure that the velocities stay relatively stable
         double newVelX = ((relDeltaX)/loopTime)*w2 + currentVel.getX()*(1.0-w2);//X-lastX
         double newVelY = ((relDeltaY)/loopTime)*w2 + currentVel.getY()*(1.0-w2);//y-lastY
+        double relVelHeading = deltaHeading/loopTime;
         double newRelVelHeading = (relVelHeading)*w2 + currentVel.getHeading()*(1.0-w2);
         if (Math.abs(newVelX) < 0.1){
             newVelX =0;

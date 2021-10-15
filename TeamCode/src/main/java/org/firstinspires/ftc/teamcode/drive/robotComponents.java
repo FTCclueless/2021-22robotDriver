@@ -13,8 +13,8 @@ public class robotComponents {
     int componentNum = 0;
     int odoStart = 0;
     public robotComponents(){
-        wheelWidth = 1.5+1;
-        wheelDiameter = 4+1;
+        wheelWidth = 1.49606;
+        wheelDiameter = 3.77953;
         robotLength = 15.5+1;
         robotWidth = 12.5+1;
         components = new ArrayList<Component>();
