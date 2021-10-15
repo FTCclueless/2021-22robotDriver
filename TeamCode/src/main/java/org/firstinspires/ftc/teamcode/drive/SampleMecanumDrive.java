@@ -406,6 +406,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateColorSensor(){
         double robotWidth = 12.5;
         boolean detectLine = false;
+        double colorX = 0.6047;
         int threshold = 200;
         int sensorThreshold = 3;
         boolean leftRightEntrance = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
@@ -420,29 +421,33 @@ public class SampleMecanumDrive extends MecanumDrive {
             multiplier = 1;
         }
         if (updatePose) {
+            double heading = clipHeading(currentPose.getHeading());
+            double var = Math.abs(heading)-Math.toRadians(90);
             if (!isKnownX || !isKnownY) {
-                double heading = clipHeading(currentPose.getHeading());
-                if (Math.abs(heading) % Math.toRadians(180) < Math.toRadians(15)) { // facing forward or backward (going over the left right line)
+                if (Math.abs(var) > Math.toRadians(90-15)) { // facing forward or backward (going over the left right line)
                     double speed = Math.signum(currentVelocity.getX()) * multiplier;
-                    localizer.x = 72 - 43.5 + 1 - speed;
+                    double m1 = Math.signum(var);
+                    localizer.x = 72 - 43.5 + 1 - speed + m1*colorX;
                     isKnownX = true;
-                } else if (Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15)) {
+                } else if (Math.abs(var) < Math.toRadians(15)) {
                     double m1 = Math.signum(heading)*-1;
                     double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                    localizer.y = (72 - 43.5 + 1) * m1 - speed;
+                    localizer.y = (72 - 43.5 + 1) * m1 - speed + colorX*m1;
                     isKnownY = true;
                 }
             } else if (leftRightEntrance) {
                 double speed = Math.signum(currentVelocity.getX()) * multiplier;
-                localizer.x = 72 - 43.5 + 1 - speed;
+                double m1 = Math.signum(heading)*-1.0;
+                localizer.x = 72 - 43.5 + 1 - speed + m1*colorX;
                 isKnownX = true;
             } else if (topLeftEntrance || topRightEntrance) {
                 double m1 = 1;
                 if (topRightEntrance){
                     m1 = -1;
                 }
+                double m2 = Math.signum(heading);
                 double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                localizer.y = (72 - 43.5 + 1) * m1 - speed;
+                localizer.y = (72 - 43.5 + 1) * m1 - speed - colorX*m2;
                 isKnownY = true;
             }
         }
