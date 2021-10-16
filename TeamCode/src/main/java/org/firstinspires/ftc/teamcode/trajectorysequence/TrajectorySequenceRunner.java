@@ -208,6 +208,9 @@ public class TrajectorySequenceRunner {
         packet.put("x", poseEstimate.getX());
         packet.put("y", poseEstimate.getY());
         packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
+        packet.put("velX", poseVelocity.getX());
+        packet.put("velY", poseVelocity.getY());
+        packet.put("velHeading (deg)", Math.toDegrees(poseVelocity.getHeading()));
 
         draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate, r);
 

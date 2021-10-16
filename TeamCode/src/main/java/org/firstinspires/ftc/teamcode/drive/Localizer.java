@@ -8,6 +8,8 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+
 public class Localizer implements com.acmerobotics.roadrunner.localization.Localizer {
     public Encoder[] encoders;
     double odoHeading;
@@ -15,12 +17,21 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public boolean updatPose;
     Pose2d currentPose = new Pose2d(0,0,0);
     Pose2d currentVel = new Pose2d(0,0,0);
+    Pose2d relCurrentVel = new Pose2d(0,0,0);
     double x = 0;
     double y = 0;
     long lastTime = System.nanoTime();
     double startHeadingOffset = 0;
+    ArrayList<Pose2d> poseHistory = new ArrayList<Pose2d>();
+    ArrayList<Pose2d> relHistory = new ArrayList<Pose2d>();
+    ArrayList<Double> loopTimes = new ArrayList<Double>();
 
     public Localizer(){
+        for (int i = 0; i < 10; i ++){
+            poseHistory.add(new Pose2d(0,0,0));
+            relHistory.add(new Pose2d(0,0,0));
+            loopTimes.add(0.001);
+        }
         updatPose = true;
         offsetHeading = 0.0;
         encoders = new Encoder[3];
@@ -69,6 +80,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public Pose2d getPoseVelocity() {
         return currentVel;
     }
+    @Nullable
+    public Pose2d getRelPoseVelocity(){return relCurrentVel;}
 
     @Override
     public void update() {
@@ -126,21 +139,26 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             simHeading += deltaHeading/(2.0*simLoops);
         }
 
-        double w2 = 0.05; // This is a Kalman Filter to help make sure that the velocities stay relatively stable
-        double newVelX = ((relDeltaX)/loopTime)*w2 + currentVel.getX()*(1.0-w2);//X-lastX
-        double newVelY = ((relDeltaY)/loopTime)*w2 + currentVel.getY()*(1.0-w2);//y-lastY
-        double relVelHeading = deltaHeading/loopTime;
-        double newRelVelHeading = (relVelHeading)*w2 + currentVel.getHeading()*(1.0-w2);
-        if (Math.abs(newVelX) < 0.1){
-            newVelX =0;
+        relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
+        poseHistory.add(0,new Pose2d(x,y,heading));
+        loopTimes.add(0,loopTime);
+        double totalTime = 0;
+        Pose2d total = new Pose2d(0,0,0);
+        for (int i = 0; i < loopTimes.size(); i ++){
+            totalTime += loopTimes.get(i);
+            total = new Pose2d(total.getX()+relHistory.get(i).getX(),total.getY()+relHistory.get(i).getY(),total.getHeading()+relHistory.get(i).getHeading());
         }
-        if (Math.abs(newVelY) < 0.1){
-            newVelY =0;
-        }
-        if (Math.abs(newRelVelHeading) < 0.2/Math.abs(encoders[1].y-encoders[0].y)){
-            newRelVelHeading = 0;
-        }
-        currentVel = new Pose2d(newVelX,newVelY,newRelVelHeading);
+
+        Pose2d currentVelP = new Pose2d((poseHistory.get(0).getX()-poseHistory.get(6).getX())/totalTime,(poseHistory.get(0).getY()-poseHistory.get(6).getY())/totalTime,(poseHistory.get(0).getHeading()-poseHistory.get(6).getHeading())/totalTime);
+        Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
+
+        double w = 0.1;
+        currentVel = new Pose2d(currentVelP.getX()*w + currentVel.getX()*(1.0-w),currentVelP.getY()*w + currentVel.getY()*(1.0-w),currentVelP.getHeading()*w + currentVel.getHeading()*(1.0-w));
+        relCurrentVel = new Pose2d(relCurrentVelP.getX()*w + relCurrentVel.getX()*(1.0-w),relCurrentVelP.getY()*w + relCurrentVel.getY()*(1.0-w),relCurrentVelP.getHeading()*w + relCurrentVel.getHeading()*(1.0-w));
         currentPose = new Pose2d(x,y,heading);
+
+        relHistory.remove(relHistory.size()-1);
+        poseHistory.remove(poseHistory.size()-1);
+        loopTimes.remove(loopTimes.size()-1);
     }
 }

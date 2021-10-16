@@ -110,6 +110,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public Pose2d currentPose;
     public Pose2d currentVelocity;
+    public Pose2d relCurrentVelocity;
 
     boolean tiltForward = false;
     boolean tiltBackward = false;
@@ -295,6 +296,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
+        relCurrentVelocity = localizer.getRelPoseVelocity();
     }
     public void updateImuAngle(){
         if (!updateIMU) {
@@ -310,7 +312,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateEstimate();
         //updateSensor();
         //updateVisualizer();
-        DriveSignal signal = trajectorySequenceRunner.update(currentPose, currentVelocity, r);
+        DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);
         }
@@ -406,7 +408,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateColorSensor(){
         double robotWidth = 12.5;
         boolean detectLine = false;
-        double colorX = 0.6047;
+        double colorX = 0.996;
         int threshold = 200;
         int sensorThreshold = 3;
         boolean leftRightEntrance = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
