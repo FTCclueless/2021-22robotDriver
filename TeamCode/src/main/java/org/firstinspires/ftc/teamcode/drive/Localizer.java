@@ -131,21 +131,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             y += relDeltaY * Math.cos(simHeading) + relDeltaX * Math.sin(simHeading);
         }
 
-        /*
-        double simLoops = 100.0;
-        double simHeading = heading - deltaHeading;
-        double simDeltaX = relDeltaX/simLoops;
-        double simDeltaY = relDeltaY/simLoops;
-        for (int i = 0; i < simLoops; i ++){
-            simHeading += deltaHeading/(2.0*simLoops);
-            if (updatPose) {
-                x += simDeltaX * Math.cos(simHeading) - simDeltaY * Math.sin(simHeading);
-                y += simDeltaY * Math.cos(simHeading) + simDeltaX * Math.sin(simHeading);
-            }
-            simHeading += deltaHeading/(2.0*simLoops);
-        }
-        */
-
         relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
         poseHistory.add(0,new Pose2d(x,y,heading));
         loopTimes.add(0,loopTime);

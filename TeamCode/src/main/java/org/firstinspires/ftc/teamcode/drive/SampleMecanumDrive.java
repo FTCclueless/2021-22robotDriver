@@ -310,8 +310,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate();
-        //updateSensor();
-        //updateVisualizer();
+        updateSensor();
+        updateVisualizer();
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);
@@ -322,7 +322,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
     public void updateSensor(){
         updateColorSensor();
-        updateTouchSensor();
+        //updateTouchSensor();
         updateOdoOverBarrier();
     }
     public void updateOdoOverBarrier(){

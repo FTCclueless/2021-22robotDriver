@@ -12,6 +12,7 @@ public class robotComponents {
     boolean drawnOdo = false;
     int componentNum = 0;
     int odoStart = 0;
+    String bodyColor = "#707070";
     public robotComponents(){
         wheelWidth = 1.49606;
         wheelDiameter = 3.77953;
@@ -32,15 +33,15 @@ public class robotComponents {
         drawnOdo = true;
         odoStart = componentNum;
         for (int i = 0; i < encoderPos.length; i ++){
-            Component odoPod = new Component(0.5);
-            odoPod.color = "#f542f2";
+            Component odoPod = new Component(0.1);
+            odoPod.color = bodyColor;
             odoPod.p.add(new Point(encoderPos[i].x,encoderPos[i].y));
-            components.add(odoPod); // 6 -> 6 + encoderPos.length-1
+            components.add(odoPod);
         }
     }
     public void setOdoColor(boolean isKnownPos){
         if (drawnOdo) {
-            String color = "#f542f2";
+            String color = bodyColor;
             if (!isKnownPos) {
                 color = "#ff0000";
             }
@@ -51,7 +52,7 @@ public class robotComponents {
     }
     public void robotDirectionIndicator() {
         Component direction = new Component();
-        direction.color = "#707070";
+        direction.color = bodyColor;
         direction.p.add(new Point(0,0));
         direction.p.add(new Point(robotLength/2.0,0));
         components.add(direction); // 5
@@ -59,7 +60,7 @@ public class robotComponents {
     }
     public void robotBody() {
         Component robotBody = new Component();
-        robotBody.color = "#707070";
+        robotBody.color = bodyColor;
         robotBody.p.add(new Point(robotLength/ 2.0,robotWidth/2.0));
         robotBody.p.add(new Point(robotLength/ 2.0,robotWidth/-2.0));
         robotBody.p.add(new Point(robotLength/-2.0,robotWidth/-2.0));
@@ -70,7 +71,7 @@ public class robotComponents {
     public void robotWheels(){
         for (int i = 0; i < 4; i ++) {
             Component wheel = new Component();
-            wheel.color = "#707070";
+            wheel.color = bodyColor;
             wheel.lineRadius=1;
             double n = 1.0;
             double b = 1.0;
