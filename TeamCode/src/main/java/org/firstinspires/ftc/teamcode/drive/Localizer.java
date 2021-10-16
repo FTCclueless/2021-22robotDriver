@@ -106,7 +106,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaLeft = encoders[1].getDelta();      //E2
         double deltaBack = encoders[2].getDelta();      //E3
 
-        double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y); // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
+        double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y);
+        // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
 
         double deltaHeading = deltaFrontHeading;
         double relDeltaY = deltaBack - deltaHeading*encoders[2].x;
@@ -144,21 +145,34 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         loopTimes.add(0,loopTime);
         double totalTime = 0;
         Pose2d total = new Pose2d(0,0,0);
-        for (int i = 0; i < loopTimes.size(); i ++){
+        int n = loopTimes.size()-1;
+        for (int i = 0; i < n+1; i ++){
             totalTime += loopTimes.get(i);
             total = new Pose2d(total.getX()+relHistory.get(i).getX(),total.getY()+relHistory.get(i).getY(),total.getHeading()+relHistory.get(i).getHeading());
         }
-
-        Pose2d currentVelP = new Pose2d((poseHistory.get(0).getX()-poseHistory.get(6).getX())/totalTime,(poseHistory.get(0).getY()-poseHistory.get(6).getY())/totalTime,(poseHistory.get(0).getHeading()-poseHistory.get(6).getHeading())/totalTime);
+        Pose2d delta = new Pose2d(
+                poseHistory.get(0).getX()-poseHistory.get(n).getX(),
+                poseHistory.get(0).getY()-poseHistory.get(n).getY(),
+                poseHistory.get(0).getHeading()-poseHistory.get(n).getHeading()
+        );
+        Pose2d currentVelP = new Pose2d(delta.getX()/totalTime, delta.getY()/totalTime, delta.getHeading()/totalTime);
         Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
 
         double w = 0.1;
-        currentVel = new Pose2d(currentVelP.getX()*w + currentVel.getX()*(1.0-w),currentVelP.getY()*w + currentVel.getY()*(1.0-w),currentVelP.getHeading()*w + currentVel.getHeading()*(1.0-w));
-        relCurrentVel = new Pose2d(relCurrentVelP.getX()*w + relCurrentVel.getX()*(1.0-w),relCurrentVelP.getY()*w + relCurrentVel.getY()*(1.0-w),relCurrentVelP.getHeading()*w + relCurrentVel.getHeading()*(1.0-w));
+        currentVel = new Pose2d(
+                currentVelP.getX()*w + currentVel.getX()*(1.0-w),
+                currentVelP.getY()*w + currentVel.getY()*(1.0-w),
+                currentVelP.getHeading()*w + currentVel.getHeading()*(1.0-w)
+        );
+        relCurrentVel = new Pose2d(
+                relCurrentVelP.getX()*w + relCurrentVel.getX()*(1.0-w),
+                relCurrentVelP.getY()*w + relCurrentVel.getY()*(1.0-w),
+                relCurrentVelP.getHeading()*w + relCurrentVel.getHeading()*(1.0-w)
+        );
         currentPose = new Pose2d(x,y,heading);
 
-        relHistory.remove(relHistory.size()-1);
-        poseHistory.remove(poseHistory.size()-1);
-        loopTimes.remove(loopTimes.size()-1);
+        relHistory.remove(n);
+        poseHistory.remove(n);
+        loopTimes.remove(n);
     }
 }
