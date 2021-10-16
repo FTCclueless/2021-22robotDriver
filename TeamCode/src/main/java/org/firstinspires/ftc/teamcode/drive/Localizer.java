@@ -106,27 +106,32 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaLeft = encoders[1].getDelta();      //E2
         double deltaBack = encoders[2].getDelta();      //E3
 
-        double deltaFrontHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y);
+        double deltaHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y);
         // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
-
-        double deltaHeading = deltaFrontHeading;
         double relDeltaY = deltaBack - deltaHeading*encoders[2].x;
         if (encoders.length == 4){
             double deltaFront = encoders[3].getDelta();     //E4
             relDeltaY = (deltaBack*encoders[3].x - deltaFront*encoders[2].x)/(encoders[3].x-encoders[2].x);
-
-            //double deltaSideHeading = (deltaBack - deltaFront)/Math.abs(encoders[3].x-encoders[2].x);
-            //double w1 = 0.9;
-            //deltaHeading = deltaFrontHeading*(w1) + deltaSideHeading*(1.0-w1);
-            //relDeltaY = (deltaFront + deltaBack)/2.0 - deltaHeading*(encoders[2].x+encoders[3].x)/2.0;
         }
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading + startHeadingOffset;
-
-
-        //double relDeltaX = (deltaLeft + deltaRight)/2.0 + deltaHeading*(encoders[1].y+encoders[0].y)/2.0;
         double relDeltaX = (deltaLeft*encoders[0].y - deltaRight*encoders[1].y)/(encoders[0].y-encoders[1].y);
 
+        if (deltaHeading != 0) {
+            double r1 = relDeltaX / deltaHeading;
+            x += Math.sin(deltaHeading) * r1;
+            y += (1.0 - Math.cos(deltaHeading)) * r1;
+            double r2 = relDeltaY / deltaHeading;
+            y += Math.sin(deltaHeading) * r2;
+            x += (1.0 - Math.cos(deltaHeading)) * r2;
+        }
+        else { //l'hopitals rule. This basically takes into account the fact that the robot might not be turning and therefore has infinite turning radius
+            double simHeading = heading - deltaHeading/(2.0);
+            x += relDeltaX * Math.cos(simHeading) - relDeltaY * Math.sin(simHeading);
+            y += relDeltaY * Math.cos(simHeading) + relDeltaX * Math.sin(simHeading);
+        }
+
+        /*
         double simLoops = 100.0;
         double simHeading = heading - deltaHeading;
         double simDeltaX = relDeltaX/simLoops;
@@ -139,6 +144,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             }
             simHeading += deltaHeading/(2.0*simLoops);
         }
+        */
 
         relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
         poseHistory.add(0,new Pose2d(x,y,heading));
@@ -155,10 +161,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 poseHistory.get(0).getY()-poseHistory.get(n).getY(),
                 poseHistory.get(0).getHeading()-poseHistory.get(n).getHeading()
         );
-        Pose2d currentVelP = new Pose2d(delta.getX()/totalTime, delta.getY()/totalTime, delta.getHeading()/totalTime);
+        Pose2d currentVelP    = new Pose2d(delta.getX()/totalTime,delta.getY()/totalTime, delta.getHeading()/totalTime);
         Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
 
-        double w = 0.1;
+        double w = 0.3;
         currentVel = new Pose2d(
                 currentVelP.getX()*w + currentVel.getX()*(1.0-w),
                 currentVelP.getY()*w + currentVel.getY()*(1.0-w),
