@@ -116,21 +116,25 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading + startHeadingOffset;
         double relDeltaX = (deltaLeft*encoders[0].y - deltaRight*encoders[1].y)/(encoders[0].y-encoders[1].y);
-
-        if (deltaHeading != 0) {
-            double r1 = relDeltaX / deltaHeading;
-            x += Math.sin(deltaHeading) * r1;
-            y += (1.0 - Math.cos(deltaHeading)) * r1;
-            double r2 = relDeltaY / deltaHeading;
-            y += Math.sin(deltaHeading) * r2;
-            x += (1.0 - Math.cos(deltaHeading)) * r2;
+        if (updatPose) {
+            if (deltaHeading != 0) {
+                double r1 = relDeltaX / deltaHeading;
+                x += Math.sin(deltaHeading) * r1;
+                y += (1.0 - Math.cos(deltaHeading)) * r1;
+                double r2 = relDeltaY / deltaHeading;
+                y += Math.sin(deltaHeading) * r2;
+                x += (1.0 - Math.cos(deltaHeading)) * r2;
+            } else { //l'hopitals rule. This basically takes into account the fact that the robot might not be turning and therefore has infinite turning radius
+                double simHeading = heading - deltaHeading / (2.0);
+                x += relDeltaX * Math.cos(simHeading) - relDeltaY * Math.sin(simHeading);
+                y += relDeltaY * Math.cos(simHeading) + relDeltaX * Math.sin(simHeading);
+            }
         }
-        else { //l'hopitals rule. This basically takes into account the fact that the robot might not be turning and therefore has infinite turning radius
-            double simHeading = heading - deltaHeading/(2.0);
-            x += relDeltaX * Math.cos(simHeading) - relDeltaY * Math.sin(simHeading);
-            y += relDeltaY * Math.cos(simHeading) + relDeltaX * Math.sin(simHeading);
+        else{
+            relDeltaX = 0;
+            relDeltaY = 0;
+            deltaHeading = 0;
         }
-
         relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
         poseHistory.add(0,new Pose2d(x,y,heading));
         loopTimes.add(0,loopTime);
