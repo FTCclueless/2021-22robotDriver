@@ -130,10 +130,16 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     robotComponents r;
 
+    long firstTiltTime;
+
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
-        lastTouchPoll = System.currentTimeMillis();
-        lastTiltPoll = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
+        lastTouchPoll = currentTime;
+        firstTiltTime = currentTime;
+        lastTiltPoll = currentTime;
+        tiltTime = currentTime;
+
         staticHeading = 0;
         r = new robotComponents();
 
@@ -146,7 +152,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
         batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
-        tiltTime = System.currentTimeMillis();
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
@@ -332,16 +337,22 @@ public class SampleMecanumDrive extends MecanumDrive {
             updateImuAngle();
             lastTiltPoll = System.currentTimeMillis();
             if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>1){
-                tiltTime = System.currentTimeMillis();
-                isKnownY = false;
-                isKnownX = false;
-                finalTiltHeading = new Vec3F(imuAngle.firstAngle,imuAngle.secondAngle,imuAngle.thirdAngle);
-                tiltForward = imuAngle.secondAngle > 0;
-                tiltBackward = !tiltForward;
-                firstOffBarrier = true;
-                //Todo: lift up the odo pods
+                if (!firstOffBarrier) {
+                    firstTiltTime = System.currentTimeMillis();
+                }
+                if (System.currentTimeMillis() - firstTiltTime > 50) {
+                    tiltTime = System.currentTimeMillis();
+                    isKnownY = false;
+                    isKnownX = false;
+                    finalTiltHeading = new Vec3F(imuAngle.firstAngle, imuAngle.secondAngle, imuAngle.thirdAngle);
+                    tiltForward = imuAngle.secondAngle > 0;
+                    tiltBackward = !tiltForward;
+                    firstOffBarrier = true;
+                    //Todo: lift up the odo pods
+                }
             }
             else{
+                firstTiltTime = System.currentTimeMillis();
                 if (System.currentTimeMillis()-tiltTime > 50){
                     //when this is first true then we update the pose
                     if (firstOffBarrier){
