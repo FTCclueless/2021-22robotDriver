@@ -13,7 +13,7 @@ public class robotComponents {
     int componentNum = 0;
     int odoStart = 0;
     String bodyColor = "#707070";
-    public robotComponents(){
+    public robotComponents(boolean useOdometry){
         wheelWidth = 1.49606;
         wheelDiameter = 3.77953;
         robotLength = 15.5+1;
@@ -27,7 +27,9 @@ public class robotComponents {
         robotBody();
         robotWheels();
         robotDirectionIndicator();
-        //robotOdo();
+        if (useOdometry) {
+            robotOdo();
+        }
     }
     public void robotOdo(){
         drawnOdo = true;

@@ -141,7 +141,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         tiltTime = currentTime;
 
         staticHeading = 0;
-        r = new robotComponents();
+        r = new robotComponents(true);
 
         turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
