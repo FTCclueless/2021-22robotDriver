@@ -150,7 +150,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         Pose2d currentVelP    = new Pose2d(delta.getX()/totalTime,delta.getY()/totalTime, delta.getHeading()/totalTime);
         Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
 
-        double w = 0.3;
+        double w = 1.0;
         currentVel = new Pose2d(
                 currentVelP.getX()*w + currentVel.getX()*(1.0-w),
                 currentVelP.getY()*w + currentVel.getY()*(1.0-w),
