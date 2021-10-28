@@ -48,7 +48,7 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
         drive.setMotorPowers(0,0,0,0);
         double average = sum/vel.size();
         double minSDev = -1;
-        double bestW = 0;
+        double bestGain = 0;
         for (int i = 0; i < 100; i ++){
             double w = ((double)i+1.0)/100.0;
             ArrayList<Double> v = new ArrayList<Double>();
@@ -64,11 +64,11 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
             Log.e(w + " ", SDev + " ");
             if (minSDev == -1 || SDev < minSDev){
                 minSDev = SDev;
-                bestW = w;
+                bestGain = w;
             }
         }
         telemetry.addData("Best SDev ", minSDev);
-        telemetry.addData("best W ", bestW);
+        telemetry.addData("best Gain ", bestGain);
         telemetry.update();
         while (opModeIsActive()){ }
     }
