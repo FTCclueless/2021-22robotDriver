@@ -15,6 +15,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     double odoHeading;
     double offsetHeading;
     public boolean updatPose;
+    double gain = 1.0;
     Pose2d currentPose = new Pose2d(0,0,0);
     Pose2d currentVel = new Pose2d(0,0,0);
     Pose2d relCurrentVel = new Pose2d(0,0,0);
@@ -151,7 +152,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         Pose2d currentVelP    = new Pose2d(delta.getX()/totalTime,delta.getY()/totalTime, delta.getHeading()/totalTime);
         Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
 
-        double gain = 1.0;
         currentVel = new Pose2d(
                 currentVelP.getX()*gain + currentVel.getX()*(1.0-gain),
                 currentVelP.getY()*gain + currentVel.getY()*(1.0-gain),

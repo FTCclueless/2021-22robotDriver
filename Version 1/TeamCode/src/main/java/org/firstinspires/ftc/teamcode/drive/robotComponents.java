@@ -15,9 +15,9 @@ public class robotComponents {
     String bodyColor = "#707070";
     public robotComponents(boolean useOdometry){
         wheelWidth = 1.49606;
-        wheelDiameter = 3.77953;
-        robotLength = 15.5+1;
-        robotWidth = 12.5+1;
+        wheelDiameter = DriveConstants.WHEEL_RADIUS*2.0;
+        robotLength = 15.5; robotLength ++;
+        robotWidth = 12.5; robotWidth ++;
         components = new ArrayList<Component>();
         Localizer l = new Localizer();
         encoderPos = new Point[l.encoders.length];
