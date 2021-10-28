@@ -25,9 +25,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     ArrayList<Pose2d> poseHistory = new ArrayList<Pose2d>();
     ArrayList<Pose2d> relHistory = new ArrayList<Pose2d>();
     ArrayList<Double> loopTimes = new ArrayList<Double>();
+    double velLoop = 10;
 
     public Localizer(){
-        for (int i = 0; i < 10; i ++){
+        for (int i = 0; i < velLoop; i ++){
             poseHistory.add(new Pose2d(0,0,0));
             relHistory.add(new Pose2d(0,0,0));
             loopTimes.add(0.001);
