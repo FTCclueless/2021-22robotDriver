@@ -28,19 +28,14 @@ public class T265Test extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         waitForStart();
-        T265 a = new T265(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
-        a.start();
-        //T265Camera slmra = new T265Camera(new Transform2d(new Translation2d(-8.3*0.0254,-1.5*0.0254),new Rotation2d()),0.8,hardwareMap.appContext);
-        //slmra.start();
+        T265.startUp(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
+        T265.start();
         double lockHeadAngle = 0;
         while (!isStopRequested()) {
-            //T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
-            //slmra.sendOdometry(drive.relCurrentVelocity.getX()*-0.0254,drive.relCurrentVelocity.getY()*-0.0254);
-
             drive.update();
 
-            Pose2d t265Estimate = a.getPoseEstimate();
-            a.sendOdometry(drive.relCurrentVelocity);
+            Pose2d t265Estimate = T265.getPoseEstimate();
+            T265.sendOdometry(drive.relCurrentVelocity);
 
             double forward = gamepad1.left_stick_y * -0.4;
             double left = gamepad1.left_stick_x * 0.6;
@@ -72,7 +67,5 @@ public class T265Test extends LinearOpMode {
             telemetry.update();
 
         }
-        a.end();
-        //slmra.stop();
     }
 }
