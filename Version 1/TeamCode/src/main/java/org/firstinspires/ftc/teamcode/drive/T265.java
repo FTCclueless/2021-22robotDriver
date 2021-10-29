@@ -11,21 +11,25 @@ import com.spartronics4915.lib.T265Camera;
 
 public class T265 {
     public static T265Camera slmra;
-    static boolean startup = false;
-    public static void startUp(Pose2d p, double odometryCovariance, Context appContext){
-        if (!startup) {
+    static boolean startUp = false;
+    static Transform2d transform2d = new Transform2d();
+    public T265(Pose2d p, double odometryCovariance, Context appContext){
+        startUp = true;
+        transform2d = new Transform2d(new Translation2d(p.getX() * 0.0254, p.getY() * 0.0254), new Rotation2d());
+        slmra = new T265Camera(new Transform2d(new Translation2d(p.getX()*0.0254,p.getY()*0.0254),new Rotation2d()),odometryCovariance,appContext);
+    }
+    public static void T265Init(Pose2d p, double odometryCovariance, Context appContext){
+        transform2d = new Transform2d(new Translation2d(p.getX() * 0.0254, p.getY() * 0.0254), new Rotation2d());
+        if (!startUp) {
             slmra = new T265Camera(new Transform2d(new Translation2d(p.getX() * 0.0254, p.getY() * 0.0254), new Rotation2d()), odometryCovariance, appContext);
         }
-        startup = true;
+        startUp = true;
     }
-    public T265(Pose2d p, double odometryCovariance, Context appContext){
-        slmra = new T265Camera(new Transform2d(new Translation2d(p.getX()*0.0254,p.getY()*0.0254),new Rotation2d()),odometryCovariance,appContext);
+    public static void updateCovariance(double odometryCovariance, Context appContext){
+        slmra = new T265Camera(transform2d,odometryCovariance,appContext);
     }
     public static void start(){
         slmra.start();
-    }
-    public T265(Context appContext){
-        this(new Pose2d(0,0),0.8,appContext);
     }
     public static Pose2d getPoseEstimate(){
         T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();

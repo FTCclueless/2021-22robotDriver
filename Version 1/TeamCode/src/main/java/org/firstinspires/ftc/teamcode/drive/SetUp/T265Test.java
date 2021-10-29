@@ -27,9 +27,10 @@ public class T265Test extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        waitForStart();
-        T265.startUp(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
+        drive.trajectorySequenceRunner.initT265Robot();
+        T265.T265Init(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
         T265.start();
+        waitForStart();
         double lockHeadAngle = 0;
         while (!isStopRequested()) {
             drive.update();
@@ -57,14 +58,17 @@ public class T265Test extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
+            drive.trajectorySequenceRunner.updateT265(t265Estimate);
+
+            /*
             telemetry.addData("X", drive.currentPose.getX());
             telemetry.addData("Y", drive.currentPose.getY());
             telemetry.addData("Heading", drive.currentPose.getHeading());
             telemetry.addData("T265X", t265Estimate.getX());
             telemetry.addData("T265Y", t265Estimate.getY());
             telemetry.addData("T265Heading", t265Estimate.getHeading());
-
             telemetry.update();
+             */
 
         }
     }

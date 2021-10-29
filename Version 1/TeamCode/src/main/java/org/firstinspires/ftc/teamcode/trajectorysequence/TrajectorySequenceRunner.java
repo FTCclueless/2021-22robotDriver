@@ -58,14 +58,23 @@ public class TrajectorySequenceRunner {
 
     Long lastLoopTime;
 
+    private robotComponents t265Robot;
+    private Pose2d t265Pose;
+    private robotComponents threeWheelRobot;
+    private Pose2d threeWheelPose;
+
     List<TrajectoryMarker> remainingMarkers = new ArrayList<>();
 
     private final FtcDashboard dashboard;
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
-    private double IMUangle = 0.0;
 
     public TrajectorySequenceRunner(TrajectoryFollower follower, PIDCoefficients headingPIDCoefficients) {
         this.follower = follower;
+
+        t265Robot = null;
+        t265Pose = null;
+        threeWheelRobot = null;
+        threeWheelPose = null;
 
         turnController = new PIDFController(headingPIDCoefficients);
         turnController.setInputBounds(0, 2 * Math.PI);
@@ -83,9 +92,6 @@ public class TrajectorySequenceRunner {
         currentSegmentStartTime = clock.seconds();
         currentSegmentIndex = 0;
         lastSegmentIndex = -1;
-    }
-    public void updateIMU(double angle){
-        IMUangle = angle;
     }
 
     public @Nullable DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity){
@@ -284,23 +290,48 @@ public class TrajectorySequenceRunner {
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
 
         if (r != null) {
-            for (Component c : r.components){
-                fieldOverlay.setStrokeWidth(c.lineRadius);
-                fieldOverlay.setStroke(c.color);
-                if (c.p.size() == 1){
-                    drawPoint(fieldOverlay,c.p.get(0),c.radius,poseEstimate);
-                }
-                else {
-                    for (int i = 1; i < c.p.size() + 1; i++) {
-                        drawPoint(fieldOverlay, c.p.get(i % c.p.size()), c.radius, poseEstimate);
-                        drawLine(fieldOverlay, c.p.get(i % c.p.size()), c.p.get((i - 1)%c.p.size()), poseEstimate);
-                    }
-                }
-            }
+            drawRobot(fieldOverlay,r,poseEstimate);
         }
         else {
             fieldOverlay.setStroke("#3F51B5");
             DashboardUtil.drawRobot(fieldOverlay, poseEstimate);
+        }
+
+        if (t265Pose != null) {
+            drawRobot(fieldOverlay, t265Robot, t265Pose);
+        }
+
+        if (threeWheelPose != null) {
+            drawRobot(fieldOverlay, threeWheelRobot, threeWheelPose);
+        }
+    }
+    public void updateT265(Pose2d p){
+        t265Pose = p;
+    }
+    public void updateThreeWheelPose(Pose2d p){
+        threeWheelPose = p;
+    }
+    public void initT265Robot(){
+        t265Pose = new Pose2d(0,0,0);
+        t265Robot = new robotComponents(false,"#00e5ff");
+    }
+    public void initThreeWheelRobot(){
+        threeWheelPose = new Pose2d(0,0,0);
+        threeWheelRobot = new robotComponents(false,"#55ff66");
+    }
+    public void drawRobot(Canvas fieldOverlay, robotComponents r, Pose2d poseEstimate){
+        for (Component c : r.components){
+            fieldOverlay.setStrokeWidth(c.lineRadius);
+            fieldOverlay.setStroke(c.color);
+            if (c.p.size() == 1){
+                drawPoint(fieldOverlay,c.p.get(0),c.radius,poseEstimate);
+            }
+            else {
+                for (int i = 1; i < c.p.size() + 1; i++) {
+                    drawPoint(fieldOverlay, c.p.get(i % c.p.size()), c.radius, poseEstimate);
+                    drawLine(fieldOverlay, c.p.get(i % c.p.size()), c.p.get((i - 1)%c.p.size()), poseEstimate);
+                }
+            }
         }
     }
     public void drawLine(Canvas c, Point p, Point p2, Pose2d pose){

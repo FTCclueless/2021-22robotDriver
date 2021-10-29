@@ -82,7 +82,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double OMEGA_WEIGHT = 1;
     public int staticHeading;
 
-    private TrajectorySequenceRunner trajectorySequenceRunner;
+    public TrajectorySequenceRunner trajectorySequenceRunner;
 
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
