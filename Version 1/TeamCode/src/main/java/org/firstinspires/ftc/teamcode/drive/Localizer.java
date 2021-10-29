@@ -114,7 +114,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y);
         // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
         double relDeltaY = deltaBack - deltaHeading*encoders[2].x;
-        double threeWheelDeltaY = deltaBack - deltaHeading*encoders[2].x;
         double relDeltaX = (deltaLeft*encoders[0].y - deltaRight*encoders[1].y)/(encoders[0].y-encoders[1].y);
 
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
@@ -123,18 +122,20 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         if (encoders.length == 4){
             double deltaFront = encoders[3].getDelta();     //E4
             relDeltaY = (deltaBack + deltaFront)/2 - deltaHeading*Math.abs(encoders[3].x-encoders[2].x);
+            
+            if (updatPose) {
+                double threeWheelDeltaY = deltaBack - deltaHeading * encoders[2].x;
+                double[] deltaThreeWheel = localizer(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
+                threeWheelX += deltaThreeWheel[0];
+                threeWheelY += deltaThreeWheel[1];
+                currentThreeWheelPose = new Pose2d(threeWheelX, threeWheelY, heading);
+            }
         }
         if (updatPose) {
             double[] delta = localizer(relDeltaX,relDeltaY,deltaHeading, heading);
             x += delta[0];
             y += delta[1];
             currentPose = new Pose2d(x,y,heading);
-            if (encoders.length != 4) {
-                double[] deltaThreeWheel = localizer(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
-                threeWheelX += deltaThreeWheel[0];
-                threeWheelY += deltaThreeWheel[1];
-                currentThreeWheelPose = new Pose2d(threeWheelX,threeWheelY,heading);
-            }
         }
         else{
             relDeltaX = 0;
