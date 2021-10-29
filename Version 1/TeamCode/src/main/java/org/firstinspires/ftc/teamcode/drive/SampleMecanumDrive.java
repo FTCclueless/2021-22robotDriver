@@ -134,6 +134,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     long firstTiltTime;
 
+    private boolean display3WheelOdo = true;
+
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
         long currentTime = System.currentTimeMillis();
@@ -214,6 +216,12 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
         poseHistory = new ArrayList<Pose2d>();
+
+
+        display3WheelOdo = display3WheelOdo && localizer.encoders.length == 4;
+        if (display3WheelOdo){
+            trajectorySequenceRunner.initThreeWheelRobot();
+        }
     }
 
     public static void getEncoders(){
@@ -304,6 +312,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
         relCurrentVelocity = localizer.getRelPoseVelocity();
+        if (display3WheelOdo){
+            trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
+        }
     }
     public void updateImuAngle(){
         if (!updateIMU) {

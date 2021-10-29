@@ -21,6 +21,9 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     Pose2d relCurrentVel = new Pose2d(0,0,0);
     double x = 0;
     double y = 0;
+    double threeWheelX = 0;
+    double threeWheelY = 0;
+    Pose2d currentThreeWheelPose = new Pose2d(0,0,0);
     long lastTime = System.nanoTime();
     double startHeadingOffset = 0;
     ArrayList<Pose2d> poseHistory = new ArrayList<Pose2d>();
@@ -111,23 +114,27 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         double deltaHeading = (deltaRight - deltaLeft)/Math.abs(encoders[1].y-encoders[0].y);
         // this works because S = theta*r. The y is the r and is negative for the left, therefore no need for a minus sign
         double relDeltaY = deltaBack - deltaHeading*encoders[2].x;
+        double threeWheelDeltaY = deltaBack - deltaHeading*encoders[2].x;
+        double relDeltaX = (deltaLeft*encoders[0].y - deltaRight*encoders[1].y)/(encoders[0].y-encoders[1].y);
+
+        odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
+        double heading = odoHeading + offsetHeading + startHeadingOffset;
+
         if (encoders.length == 4){
             double deltaFront = encoders[3].getDelta();     //E4
             relDeltaY = (deltaBack + deltaFront)/2 - deltaHeading*Math.abs(encoders[3].x-encoders[2].x);
         }
-        odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
-        double heading = odoHeading + offsetHeading + startHeadingOffset;
-        double relDeltaX = (deltaLeft*encoders[0].y - deltaRight*encoders[1].y)/(encoders[0].y-encoders[1].y);
         if (updatPose) {
-            if (deltaHeading != 0) { // this avoids the issue where deltaHeading = 0 and then it goes to undefined. This effectively does L'Hopital's
-                double r1 = relDeltaX / deltaHeading;
-                double r2 = relDeltaY / deltaHeading;
-                relDeltaX = Math.sin(deltaHeading) * r1 + (1.0-Math.cos(deltaHeading)) * r2;
-                relDeltaY = (1.0 - Math.cos(deltaHeading)) * r1 + Math.sin(deltaHeading) * r2;
+            double[] delta = localizer(relDeltaX,relDeltaY,deltaHeading, heading);
+            x += delta[0];
+            y += delta[1];
+            currentPose = new Pose2d(x,y,heading);
+            if (encoders.length != 4) {
+                double[] deltaThreeWheel = localizer(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
+                threeWheelX += deltaThreeWheel[0];
+                threeWheelY += deltaThreeWheel[1];
+                currentThreeWheelPose = new Pose2d(threeWheelX,threeWheelY,heading);
             }
-            double lastHeading = heading-deltaHeading;
-            x += relDeltaX * Math.cos(lastHeading) - relDeltaY * Math.sin(lastHeading);
-            y += relDeltaY * Math.cos(lastHeading) + relDeltaX * Math.sin(lastHeading);
         }
         else{
             relDeltaX = 0;
@@ -162,10 +169,23 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 relCurrentVelP.getY()*gain + relCurrentVel.getY()*(1.0-gain),
                 relCurrentVelP.getHeading()*gain + relCurrentVel.getHeading()*(1.0-gain)
         );
-        currentPose = new Pose2d(x,y,heading);
 
         relHistory.remove(n);
         poseHistory.remove(n);
         loopTimes.remove(n);
+    }
+
+    public double[] localizer(double relDeltaX, double relDeltaY, double deltaHeading, double heading){
+        if (deltaHeading != 0) { // this avoids the issue where deltaHeading = 0 and then it goes to undefined. This effectively does L'Hopital's
+            double r1 = relDeltaX / deltaHeading;
+            double r2 = relDeltaY / deltaHeading;
+            relDeltaX = Math.sin(deltaHeading) * r1 + (1.0-Math.cos(deltaHeading)) * r2;
+            relDeltaY = (1.0 - Math.cos(deltaHeading)) * r1 + Math.sin(deltaHeading) * r2;
+        }
+        double lastHeading = heading-deltaHeading;
+        double[] delta = new double[2];
+        delta[0] = relDeltaX * Math.cos(lastHeading) - relDeltaY * Math.sin(lastHeading);
+        delta[1] = relDeltaY * Math.cos(lastHeading) + relDeltaX * Math.sin(lastHeading);
+        return delta;
     }
 }
