@@ -124,7 +124,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             relDeltaY = (deltaBack + deltaFront)/2 - deltaHeading*Math.abs(encoders[3].x-encoders[2].x);
             if (updatPose) {
                 double threeWheelDeltaY = deltaBack - deltaHeading * encoders[2].x;
-                if (encoders[3].x > encoders[2].x){
+                if (Math.abs(encoders[3].x) - Math.abs(encoders[2].x) > 0){
                     threeWheelDeltaY = deltaFront - deltaHeading * encoders[3].x;
                 }
                 double[] deltaThreeWheel = localizer(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
