@@ -5,6 +5,7 @@ import android.content.Context;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.geometry.Transform2d;
+import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.spartronics4915.lib.T265Camera;
@@ -35,6 +36,12 @@ public class T265 {
         T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
         Pose2d poseInches = new Pose2d(t265Data.pose.getX()*-39.3701,t265Data.pose.getY()*-39.3701,t265Data.pose.getHeading());
         return poseInches;
+    }
+    public static Pose2d getRelVelocity(){
+        T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
+        ChassisSpeeds a = t265Data.velocity;
+        Pose2d relVelocity = new Pose2d(a.vxMetersPerSecond*-39.3701,a.vyMetersPerSecond*-39.3701,a.omegaRadiansPerSecond);
+        return relVelocity;
     }
     public static void sendOdometry(Pose2d relVel){
         slmra.sendOdometry(relVel.getX()*-0.0254,relVel.getY()*-0.0254);

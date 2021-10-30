@@ -45,9 +45,11 @@ public class T265OdoVelocityVarianceTuner extends LinearOpMode {
         ArrayList<Double> pose = new ArrayList<Double>();
         ArrayList<Double> vel = new ArrayList<Double>();
         ArrayList<Double> times = new ArrayList<Double>();
-        double sum = 0;
+        double sumPose = 0;
         double timeSum = 0;
         long start = System.nanoTime();
+
+
         while (!isStopRequested() && drive.currentPose.getX() <= DISTANCE) {
             drive.pinMotorPowers(POWER,POWER,POWER,POWER);
 
@@ -56,28 +58,27 @@ public class T265OdoVelocityVarianceTuner extends LinearOpMode {
             Pose2d t265Estimate = T265.getPoseEstimate();
             T265.sendOdometry(drive.relCurrentVelocity);
             drive.trajectorySequenceRunner.updateT265(t265Estimate);
-
-            ChassisSpeeds a = slmra.getLastReceivedCameraUpdate().velocity;
+            Pose2d a = T265.getRelVelocity();
 
             if (drive.currentPose.getX() >= FULL_SPEED_DIST){
                 double speed = drive.relCurrentVelocity.getX();
                 double time = (System.nanoTime()-start)/1000000000.0;
 
-                sum += drive.currentPose.getX();
+                sumPose += drive.currentPose.getX();
                 timeSum += time;
 
                 pose.add(drive.currentPose.getX());
                 times.add(time);
                 vel.add(speed);
             }
-            telemetry.addData("Speed X",a.vxMetersPerSecond*-39.3701);
-            telemetry.addData("Speed Y",a.vyMetersPerSecond*-39.3701);
+            telemetry.addData("Speed X",a.getX());
+            telemetry.addData("Speed Y",a.getY());
             telemetry.update();
         }
         drive.setMotorPowers(0,0,0,0);
 
         double averageTime = timeSum/times.size();
-        double averagePose = sum/pose.size();
+        double averagePose = sumPose/pose.size();
         double SPose = 0;
         double STime = 0;
         for (int i = 0; i < pose.size(); i ++){
@@ -88,7 +89,9 @@ public class T265OdoVelocityVarianceTuner extends LinearOpMode {
         STime = Math.sqrt(STime/((double)times.size()-1.0));
         double r = 0;
         for (int i = 0; i < pose.size(); i ++){
-            r += (pose.get(i)-averagePose)/SPose * (times.get(i)-averageTime)/STime;
+            double ZPose = (pose.get(i)-averagePose)/SPose;
+            double ZTime = (times.get(i)-averageTime)/STime;
+            r += ZPose * ZTime;
         }
         r = Math.sqrt(r/((double)pose.size()-1.0));
         double averageSpeed = SPose/STime * r;
