@@ -49,8 +49,9 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
         double average = sum/vel.size();
         double minSDev = -1;
         double bestGain = 0;
-        for (int i = 0; i < 100; i ++){
-            double w = ((double)i+1.0)/100.0;
+        double fidelity = 1000.0;
+        for (int i = 0; i < fidelity; i ++){
+            double w = ((double)i+1.0)/fidelity;
             ArrayList<Double> v = new ArrayList<Double>();
             v.add(vel.get(0));
             for (int j = 1; j < vel.size(); j ++){
