@@ -224,6 +224,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
     }
 
+    public void initT265(){
+        trajectorySequenceRunner.initT265Robot();
+        T265.T265Init(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
+        T265.start();
+        localizer.useT265 = true;
+    }
+
     public static void getEncoders(){
         bulkData = expansionHub1.getBulkInputData();
         encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
@@ -312,9 +319,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
         relCurrentVelocity = localizer.getRelPoseVelocity();
-        if (display3WheelOdo){
-            trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
-        }
     }
     public void updateImuAngle(){
         if (!updateIMU) {
@@ -334,8 +338,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (signal != null) {
             updateDriveMotors(signal);
         }
-
-
+        if (display3WheelOdo){
+            trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
+        }
+        if (localizer.useT265){
+            trajectorySequenceRunner.updateT265(localizer.T265Pose);
+        }
         updateIMU = false;
     }
     public void updateSensor(){

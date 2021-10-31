@@ -31,6 +31,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     ArrayList<Double> loopTimes = new ArrayList<Double>();
     double velLoop = 10;
 
+    public boolean useT265 = false;
+    public Pose2d T265Pose = new Pose2d(0,0,0);
+    public Pose2d relT265Vel = new Pose2d(0,0,0);
+
     public Localizer(){
         for (int i = 0; i < velLoop; i ++){
             poseHistory.add(new Pose2d(0,0,0));
@@ -176,6 +180,14 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         relHistory.remove(n);
         poseHistory.remove(n);
         loopTimes.remove(n);
+
+        if (useT265){
+            Pose2d t265Estimate = T265.getPoseEstimate();
+            Pose2d t265VelEstimate = T265.getRelVelocity();
+            T265.sendOdometry(relCurrentVel);
+            T265Pose = t265Estimate;
+            relT265Vel = t265VelEstimate;
+        }
     }
 
     public double[] localizer(double relDeltaX, double relDeltaY, double deltaHeading, double heading){
