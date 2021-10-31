@@ -156,7 +156,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         turnController.setInputBounds(0, 2 * Math.PI);
 
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
-                new Pose2d(0.5, 0.5, Math.toRadians(5.0)), 0.5);
+                new Pose2d(0.25, 0.25, Math.toRadians(1.0)), 0.5);
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
@@ -230,15 +230,17 @@ public class SampleMecanumDrive extends MecanumDrive {
             trajectorySequenceRunner.initThreeWheelRobot();
         }
         if (displayT265){
-            initT265();
+            initT265(hardwareMap);
         }
     }
 
-    public void initT265(){
+    public void initT265(HardwareMap hardwareMap){
         trajectorySequenceRunner.initT265Robot();
-        T265.T265Init(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
-        T265.start();
+        localizer.a = new T265();
+        localizer.a.T265Init(new Pose2d(-8.3,-1.5),0.05, hardwareMap.appContext);//was 1.8574
+        localizer.a.start();
         localizer.useT265 = true;
+        localizer.T265Start = System.currentTimeMillis();
     }
 
     public static void getEncoders(){

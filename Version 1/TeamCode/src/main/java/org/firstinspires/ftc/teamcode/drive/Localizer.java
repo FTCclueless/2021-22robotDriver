@@ -15,7 +15,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     double odoHeading;
     double offsetHeading;
     public boolean updatPose;
-    double gain = 1.0;
+    double gain = 0.016;
     Pose2d currentPose = new Pose2d(0,0,0);
     Pose2d currentVel = new Pose2d(0,0,0);
     Pose2d relCurrentVel = new Pose2d(0,0,0);
@@ -34,6 +34,9 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public boolean useT265 = false;
     public Pose2d T265Pose = new Pose2d(0,0,0);
     public Pose2d relT265Vel = new Pose2d(0,0,0);
+
+    long T265Start = 0;
+    T265 a;
 
     public Localizer(){
         for (int i = 0; i < velLoop; i ++){
@@ -181,9 +184,9 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         poseHistory.remove(n);
         loopTimes.remove(n);
 
-        if (useT265){
-            Pose2d t265Estimate = T265.getPoseEstimate();
-            Pose2d t265VelEstimate = T265.getRelVelocity();
+        if (useT265 && System.currentTimeMillis() - T265Start >= 5000){
+            Pose2d t265Estimate = a.getPoseEstimate();
+            Pose2d t265VelEstimate = a.getRelVelocity();
             T265.sendOdometry(relCurrentVel);
             T265Pose = t265Estimate;
             relT265Vel = t265VelEstimate;

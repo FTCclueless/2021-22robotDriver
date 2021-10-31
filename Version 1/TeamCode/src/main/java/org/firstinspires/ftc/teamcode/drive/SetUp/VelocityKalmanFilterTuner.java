@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class VelocityKalmanFilterTuner extends LinearOpMode {
 
     public static double DISTANCE = 100;
-    public static double FULL_SPEED_DIST = 0;
+    public static double FULL_SPEED_DIST = 10;
     public static double POWER = 0.5;
 
     @Override
@@ -25,8 +25,6 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        ArrayList<Double> vel = new ArrayList<Double>();
 
         waitForStart();
 
@@ -36,17 +34,51 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
         while (!isStopRequested() && gamepad1.y) {
             idle();
         }
-        double sum = 0;
+        ArrayList<Double> pose = new ArrayList<Double>();
+        ArrayList<Double> vel = new ArrayList<Double>();
+        ArrayList<Double> times = new ArrayList<Double>();
+        double sumPose = 0;
+        double timeSum = 0;
+        long start = System.nanoTime();
+
         while (!isStopRequested() && drive.currentPose.getX() <= DISTANCE) {
-            drive.update();
-            if (drive.currentPose.getX() >= FULL_SPEED_DIST){
-                vel.add(drive.relCurrentVelocity.getX());
-                sum += drive.relCurrentVelocity.getX();
-            }
             drive.pinMotorPowers(POWER,POWER,POWER,POWER);
+
+            drive.update();
+
+            if (drive.currentPose.getX() >= FULL_SPEED_DIST){
+                double speed = drive.relCurrentVelocity.getX();
+                double time = (System.nanoTime()-start)/1000000000.0;
+
+                sumPose += drive.currentPose.getX();
+                timeSum += time;
+
+                pose.add(drive.currentPose.getX());
+                times.add(time);
+                vel.add(speed);
+            }
         }
         drive.setMotorPowers(0,0,0,0);
-        double average = sum/vel.size();
+
+        double averageTime = timeSum/times.size();
+        double averagePose = sumPose/pose.size();
+        double SPose = 0;
+        double STime = 0;
+        for (int i = 0; i < pose.size(); i ++){
+            SPose += Math.pow(pose.get(i)-averagePose,2);
+            STime += Math.pow(times.get(i)-averageTime,2);
+        }
+        SPose = Math.sqrt(SPose/((double)pose.size()-1.0));
+        STime = Math.sqrt(STime/((double)times.size()-1.0));
+        double r = 0;
+        for (int i = 0; i < pose.size(); i ++){
+            double ZPose = (pose.get(i)-averagePose)/SPose;
+            double ZTime = (times.get(i)-averageTime)/STime;
+            r += ZPose * ZTime;
+        }
+        r = Math.sqrt(r/((double)pose.size()-1.0));
+        double averageSpeed = SPose/STime * r;
+
         double minSDev = -1;
         double bestGain = 0;
         double fidelity = 1000.0;
@@ -59,9 +91,9 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
             }
             double error = 0;
             for (int j = 0; j < v.size(); j ++){
-                error += Math.pow(v.get(j)-average,2);
+                error += Math.pow(v.get(j)-averageSpeed,2);
             }
-            double SDev = Math.sqrt(error/v.size());
+            double SDev = Math.sqrt(error/(v.size()-1.0));
             Log.e(w + " ", SDev + " ");
             if (minSDev == -1 || SDev < minSDev){
                 minSDev = SDev;

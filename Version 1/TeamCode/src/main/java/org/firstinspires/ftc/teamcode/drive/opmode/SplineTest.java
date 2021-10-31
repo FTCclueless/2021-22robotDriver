@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 public class SplineTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap,true,true);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -34,7 +34,7 @@ public class SplineTest extends LinearOpMode {
                 .splineTo(new Vector2d(0, 0), Math.toRadians(180))
                 .build();
 
-        while(opModeIsActive() && i < 5) {
+        while(opModeIsActive() && i < 10) {
             drive.followTrajectorySequence(traj);
             drive.updateWait(500);
             drive.followTrajectorySequence(traj1);

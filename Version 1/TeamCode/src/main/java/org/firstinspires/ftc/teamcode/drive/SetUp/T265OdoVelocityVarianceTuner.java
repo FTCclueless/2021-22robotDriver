@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive.SetUp;
 
-import static org.firstinspires.ftc.teamcode.drive.T265.slmra;
 
 import android.util.Log;
 
@@ -12,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.T265;
 
 import java.util.ArrayList;
 
@@ -21,15 +19,12 @@ import java.util.ArrayList;
 public class T265OdoVelocityVarianceTuner extends LinearOpMode {
 
     public static double DISTANCE = 100;
-    public static double FULL_SPEED_DIST = 0;
+    public static double FULL_SPEED_DIST = 10;
     public static double POWER = 0.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        drive.trajectorySequenceRunner.initT265Robot();
-        T265.T265Init(new Pose2d(-8.3,-1.5),100, hardwareMap.appContext);
-        T265.start();
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -55,11 +50,6 @@ public class T265OdoVelocityVarianceTuner extends LinearOpMode {
 
             drive.update();
 
-            Pose2d t265Estimate = T265.getPoseEstimate();
-            T265.sendOdometry(drive.relCurrentVelocity);
-            drive.trajectorySequenceRunner.updateT265(t265Estimate);
-            Pose2d a = T265.getRelVelocity();
-
             if (drive.currentPose.getX() >= FULL_SPEED_DIST){
                 double speed = drive.relCurrentVelocity.getX();
                 double time = (System.nanoTime()-start)/1000000000.0;
@@ -71,9 +61,6 @@ public class T265OdoVelocityVarianceTuner extends LinearOpMode {
                 times.add(time);
                 vel.add(speed);
             }
-            telemetry.addData("Speed X",a.getX());
-            telemetry.addData("Speed Y",a.getY());
-            telemetry.update();
         }
         drive.setMotorPowers(0,0,0,0);
 

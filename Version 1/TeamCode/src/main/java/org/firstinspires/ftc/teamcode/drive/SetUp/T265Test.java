@@ -26,17 +26,21 @@ import org.firstinspires.ftc.teamcode.drive.T265;
 public class T265Test extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap,true,false);
         drive.trajectorySequenceRunner.initT265Robot();
-        T265.T265Init(new Pose2d(-8.3,-1.5),0.8, hardwareMap.appContext);
-        T265.start();
+        T265 a = new T265();
+        a.T265Init(new Pose2d(-8.3,-1.5),1.8574, hardwareMap.appContext);
+        a.start();
+        long start = System.currentTimeMillis();
         waitForStart();
         double lockHeadAngle = 0;
         while (!isStopRequested()) {
             drive.update();
-
-            Pose2d t265Estimate = T265.getPoseEstimate();
-            T265.sendOdometry(drive.relCurrentVelocity);
+            if (System.currentTimeMillis() - start >= 5000) {
+                Pose2d t265Estimate = a.getPoseEstimate();
+                a.sendOdometry(drive.relCurrentVelocity);
+                drive.trajectorySequenceRunner.updateT265(t265Estimate);
+            }
 
             double forward = gamepad1.left_stick_y * -0.4;
             double left = gamepad1.left_stick_x * 0.6;
@@ -58,7 +62,6 @@ public class T265Test extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
-            drive.trajectorySequenceRunner.updateT265(t265Estimate);
 
             /*
             telemetry.addData("X", drive.currentPose.getX());
