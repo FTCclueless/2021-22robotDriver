@@ -135,6 +135,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     long firstTiltTime;
 
     private boolean display3WheelOdo = true;
+    private boolean displayT265 = true;
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
@@ -221,6 +222,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         display3WheelOdo = display3WheelOdo && localizer.encoders.length == 4;
         if (display3WheelOdo){
             trajectorySequenceRunner.initThreeWheelRobot();
+        }
+        if (displayT265){
+            initT265();
         }
     }
 
