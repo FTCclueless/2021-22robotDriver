@@ -134,10 +134,14 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     long firstTiltTime;
 
-    private boolean display3WheelOdo = true;
-    private boolean displayT265 = true;
+    private boolean display3WheelOdo;
+    private boolean displayT265;
 
-    public SampleMecanumDrive(HardwareMap hardwareMap) {
+    public SampleMecanumDrive(HardwareMap hardwareMap){
+        this(hardwareMap, false, false);
+    }
+
+    public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
         long currentTime = System.currentTimeMillis();
         lastTouchPoll = currentTime;
@@ -219,6 +223,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         poseHistory = new ArrayList<Pose2d>();
 
 
+        displayT265 = t265;
+        display3WheelOdo = threeWheel;
         display3WheelOdo = display3WheelOdo && localizer.encoders.length == 4;
         if (display3WheelOdo){
             trajectorySequenceRunner.initThreeWheelRobot();
