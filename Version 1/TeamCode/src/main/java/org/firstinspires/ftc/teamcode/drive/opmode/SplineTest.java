@@ -30,9 +30,12 @@ public class SplineTest extends LinearOpMode {
                 .splineTo(new Vector2d(30, 30), 0)
                 .build();
         TrajectorySequence traj1 = drive.trajectorySequenceBuilder(traj.end(),true)
-                //.setReversed(true)
                 .splineTo(new Vector2d(0, 0), Math.toRadians(180))
                 .build();
+
+        drive.update();
+        drive.localizer.setPoseEstimate(new Pose2d(0,0,0));
+        drive.update();
 
         while(opModeIsActive() && i < 10) {
             drive.followTrajectorySequence(traj);
