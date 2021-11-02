@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 public class SplineTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap,true,true);
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap,false,true);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 

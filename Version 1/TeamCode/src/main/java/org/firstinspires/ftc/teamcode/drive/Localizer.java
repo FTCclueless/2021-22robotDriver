@@ -12,31 +12,40 @@ import java.util.ArrayList;
 
 public class Localizer implements com.acmerobotics.roadrunner.localization.Localizer {
     public Encoder[] encoders;
-    double odoHeading;
-    double offsetHeading;
-    public boolean updatPose;
+    double odoHeading = 0.0;
+    double offsetHeading = 0.0;
+    public boolean updatPose = true;
+
     double gain = 0.016;
-    Pose2d currentPose = new Pose2d(0,0,0);
-    Pose2d currentVel = new Pose2d(0,0,0);
-    Pose2d relCurrentVel = new Pose2d(0,0,0);
-    double x = 0;
-    double y = 0;
+
     double threeWheelX = 0;
     double threeWheelY = 0;
     Pose2d currentThreeWheelPose = new Pose2d(0,0,0);
-    long lastTime = System.nanoTime();
-    double startHeadingOffset = 0;
+
+    double x = 0;
+    double y = 0;
+    Pose2d currentPose = new Pose2d(0,0,0);
+
+    double velLoop = 10;
+    Pose2d currentVel = new Pose2d(0,0,0);
+    Pose2d relCurrentVel = new Pose2d(0,0,0);
     ArrayList<Pose2d> poseHistory = new ArrayList<Pose2d>();
     ArrayList<Pose2d> relHistory = new ArrayList<Pose2d>();
     ArrayList<Double> loopTimes = new ArrayList<Double>();
-    double velLoop = 10;
+
+    long lastTime = System.nanoTime();
+    double startHeadingOffset = 0;
 
     public boolean useT265 = false;
     public Pose2d T265Pose = new Pose2d(0,0,0);
     public Pose2d relT265Vel = new Pose2d(0,0,0);
-
     long T265Start = 0;
     T265 a;
+
+    double odoT265x = 0;
+    double odoT265y = 0;
+    double odoT265Heading = 0;
+    public Pose2d odoT265Pose = new Pose2d(0,0,0);
 
     public Localizer(){
         for (int i = 0; i < velLoop; i ++){
@@ -84,7 +93,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public void setPoseEstimate(@NotNull Pose2d pose2d) {
         x = pose2d.getX();
         y = pose2d.getY();
-        startHeadingOffset = pose2d.getHeading() - currentPose.getHeading();
+        startHeadingOffset += pose2d.getHeading() - currentPose.getHeading(); // was = now +=
     }
 
     @Nullable
@@ -134,26 +143,26 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 if (Math.abs(encoders[3].x) - Math.abs(encoders[2].x) > 0){
                     threeWheelDeltaY = deltaFront - deltaHeading * encoders[3].x;
                 }
-                double[] deltaThreeWheel = localizer(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
+                double[] deltaThreeWheel = getDeltas(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
                 threeWheelX += deltaThreeWheel[0];
                 threeWheelY += deltaThreeWheel[1];
                 currentThreeWheelPose = new Pose2d(threeWheelX, threeWheelY, heading);
             }
         }
         if (updatPose) {
-            double[] delta = localizer(relDeltaX,relDeltaY,deltaHeading, heading);
+            double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, heading);
             x += delta[0];
             y += delta[1];
             currentPose = new Pose2d(x,y,heading);
+            relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
+            poseHistory.add(0,new Pose2d(x,y,heading));
+            loopTimes.add(0,loopTime);
         }
         else{
-            relDeltaX = 0;
-            relDeltaY = 0;
-            deltaHeading = 0;
+            relHistory.add(0,new Pose2d(0,0,0));
+            poseHistory.add(0,new Pose2d(x,y,heading));
+            loopTimes.add(0,loopTime);
         }
-        relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
-        poseHistory.add(0,new Pose2d(x,y,heading));
-        loopTimes.add(0,loopTime);
         double totalTime = 0;
         Pose2d total = new Pose2d(0,0,0);
         int n = loopTimes.size()-1;
@@ -161,12 +170,12 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             totalTime += loopTimes.get(i);
             total = new Pose2d(total.getX()+relHistory.get(i).getX(),total.getY()+relHistory.get(i).getY(),total.getHeading()+relHistory.get(i).getHeading());
         }
-        Pose2d delta = new Pose2d(
+        Pose2d deltaLoops = new Pose2d(
                 poseHistory.get(0).getX()-poseHistory.get(n).getX(),
                 poseHistory.get(0).getY()-poseHistory.get(n).getY(),
                 poseHistory.get(0).getHeading()-poseHistory.get(n).getHeading()
         );
-        Pose2d currentVelP    = new Pose2d(delta.getX()/totalTime,delta.getY()/totalTime, delta.getHeading()/totalTime);
+        Pose2d currentVelP    = new Pose2d(deltaLoops.getX()/totalTime,deltaLoops.getY()/totalTime, deltaLoops.getHeading()/totalTime);
         Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
 
         currentVel = new Pose2d(
@@ -190,10 +199,24 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             T265.sendOdometry(relCurrentVel);
             T265Pose = t265Estimate;
             relT265Vel = t265VelEstimate;
+
+            double odoT265Gain = 0.01;
+
+            if (!updatPose){
+                odoT265Gain = 1.0;
+            }
+            else if (false){ //add condition for when T265 fails
+                odoT265Gain = 0;
+            }
+            odoT265Heading += deltaHeading*(1.0-odoT265Gain) + (t265Estimate.getHeading()-odoT265Heading)*odoT265Gain;
+            double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, odoT265Heading+startHeadingOffset);
+            odoT265x += delta[0]*(1.0-odoT265Gain) + (t265Estimate.getX()-odoT265x)*odoT265Gain;
+            odoT265y += delta[1]*(1.0-odoT265Gain) + (t265Estimate.getY()-odoT265y)*odoT265Gain;
+            odoT265Pose = new Pose2d(odoT265x,odoT265y,odoT265Heading+startHeadingOffset);
         }
     }
 
-    public double[] localizer(double relDeltaX, double relDeltaY, double deltaHeading, double heading){
+    public double[] getDeltas(double relDeltaX, double relDeltaY, double deltaHeading, double heading){
         if (deltaHeading != 0) { // this avoids the issue where deltaHeading = 0 and then it goes to undefined. This effectively does L'Hopital's
             double r1 = relDeltaX / deltaHeading;
             double r2 = relDeltaY / deltaHeading;
