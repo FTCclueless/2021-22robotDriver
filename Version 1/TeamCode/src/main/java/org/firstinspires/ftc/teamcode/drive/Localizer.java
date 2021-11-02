@@ -35,6 +35,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     long lastTime = System.nanoTime();
     double startHeadingOffset = 0;
+    double startXOffset = 0;
+    double startYOffset = 0;
 
     public boolean useT265 = false;
     public Pose2d T265Pose = new Pose2d(0,0,0);
@@ -91,8 +93,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     @Override
     public void setPoseEstimate(@NotNull Pose2d pose2d) {
-        x = pose2d.getX();
-        y = pose2d.getY();
+        startXOffset = pose2d.getX();
+        startYOffset = pose2d.getY();
         startHeadingOffset += pose2d.getHeading() - currentPose.getHeading(); // was = now +=
     }
 
@@ -153,7 +155,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, heading);
             x += delta[0];
             y += delta[1];
-            currentPose = new Pose2d(x,y,heading);
+            currentPose = new Pose2d(x+startXOffset,y+startYOffset,heading);
             relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
             poseHistory.add(0,new Pose2d(x,y,heading));
             loopTimes.add(0,loopTime);
@@ -212,7 +214,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, odoT265Heading+startHeadingOffset);
             odoT265x += delta[0]*(1.0-odoT265Gain) + (t265Estimate.getX()-odoT265x)*odoT265Gain;
             odoT265y += delta[1]*(1.0-odoT265Gain) + (t265Estimate.getY()-odoT265y)*odoT265Gain;
-            odoT265Pose = new Pose2d(odoT265x,odoT265y,odoT265Heading+startHeadingOffset);
+            odoT265Pose = new Pose2d(odoT265x+startXOffset,odoT265y+startYOffset,odoT265Heading+startHeadingOffset);
         }
     }
 
