@@ -212,8 +212,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             }
             odoT265Heading += deltaHeading*(1.0-odoT265Gain) + (t265Estimate.getHeading()-odoT265Heading)*odoT265Gain;
             double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, odoT265Heading+startHeadingOffset);
-            odoT265x += delta[0]*(1.0-odoT265Gain) + (t265Estimate.getX()-odoT265x)*odoT265Gain;
-            odoT265y += delta[1]*(1.0-odoT265Gain) + (t265Estimate.getY()-odoT265y)*odoT265Gain;
+            odoT265x += delta[0]*(1.0-odoT265Gain);
+            odoT265x += (t265Estimate.getX()-odoT265x)*odoT265Gain;
+            odoT265y += delta[1]*(1.0-odoT265Gain);
+            odoT265y += (t265Estimate.getY()-odoT265y)*odoT265Gain;
             odoT265Pose = new Pose2d(odoT265x+startXOffset,odoT265y+startYOffset,odoT265Heading+startHeadingOffset);
         }
     }
