@@ -95,8 +95,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     @Override
     public void setPoseEstimate(@NotNull Pose2d pose2d) {
-        startXOffset = pose2d.getX();
-        startYOffset = pose2d.getY();
+        startXOffset += pose2d.getX() - currentPose.getX();
+        startYOffset += pose2d.getY() - currentPose.getY();
         startHeadingOffset += pose2d.getHeading() - currentPose.getHeading(); // was = now +=
     }
 
@@ -197,39 +197,47 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         poseHistory.remove(n);
         loopTimes.remove(n);
 
-        if (useT265 && System.currentTimeMillis() - T265Start >= 5000){
-            long start = System.nanoTime();
+        if (useT265){
+            if (System.currentTimeMillis() - T265Start >= 5000) {
+                long start = System.nanoTime();
 
-            Pose2d t265Estimate = a.getPoseEstimate();
-            Pose2d t265VelEstimate = a.getRelVelocity();
-            T265.sendOdometry(relCurrentVel);
-            String confidence = a.getT265Confidence();
+                Pose2d t265Estimate = a.getPoseEstimate();
+                Pose2d t265VelEstimate = a.getRelVelocity();
+                T265.sendOdometry(relCurrentVel);
+                String confidence = a.getT265Confidence();
 
-            double t265Time = (System.nanoTime()-start)/1000000000.0;
+                double t265Time = (System.nanoTime() - start) / 1000000000.0;
 
-            //ToDo: these are just for debugging purposes and need to be removed
-            Log.e("t265Time",t265Time + " ");
-            Log.e("t265Confidence",confidence);
+                //ToDo: these are just for debugging purposes and need to be removed
+                Log.e("t265Time", t265Time + " ");
+                Log.e("t265Confidence", confidence);
 
-            T265Pose = t265Estimate;
-            relT265Vel = t265VelEstimate;
+                T265Pose = t265Estimate;
+                relT265Vel = t265VelEstimate;
 
-            double odoT265Gain = 0.01;
+                double odoT265Gain = 0.01;
 
-            if (!updatPose){
-                odoT265Gain = 1.0;
+                if (!updatPose) {
+                    odoT265Gain = 1.0;
+                } else if (false) { //ToDo: add condition for when T265 fails (some combo of velocity and confidence)
+                    odoT265Gain = 0;
+                }
+
+                odoT265Heading += deltaHeading * (1.0 - odoT265Gain) + (t265Estimate.getHeading() - odoT265Heading) * odoT265Gain;
+                double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
+                odoT265x += delta[0] * (1.0 - odoT265Gain);
+                odoT265x += (t265Estimate.getX() - odoT265x) * odoT265Gain;
+                odoT265y += delta[1] * (1.0 - odoT265Gain);
+                odoT265y += (t265Estimate.getY() - odoT265y) * odoT265Gain;
+                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
             }
-            else if (false){ //ToDo: add condition for when T265 fails (some combo of velocity and confidence)
-                odoT265Gain = 0;
+            else{
+                odoT265Heading += deltaHeading;
+                double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
+                odoT265x += delta[0];
+                odoT265y += delta[1];
+                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
             }
-
-            odoT265Heading += deltaHeading*(1.0-odoT265Gain) + (t265Estimate.getHeading()-odoT265Heading)*odoT265Gain;
-            double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, odoT265Heading+startHeadingOffset);
-            odoT265x += delta[0]*(1.0-odoT265Gain);
-            odoT265x += (t265Estimate.getX()-odoT265x)*odoT265Gain;
-            odoT265y += delta[1]*(1.0-odoT265Gain);
-            odoT265y += (t265Estimate.getY()-odoT265y)*odoT265Gain;
-            odoT265Pose = new Pose2d(odoT265x+startXOffset,odoT265y+startYOffset,odoT265Heading+startHeadingOffset);
         }
     }
 
