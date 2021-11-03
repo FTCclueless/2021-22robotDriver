@@ -354,6 +354,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
         }
         if (localizer.useT265){
+            trajectorySequenceRunner.t265Confidence = localizer.confidence;
+            trajectorySequenceRunner.t265Velocity = localizer.relT265Vel;
             trajectorySequenceRunner.updateT265(localizer.T265Pose);
         }
         updateIMU = false;

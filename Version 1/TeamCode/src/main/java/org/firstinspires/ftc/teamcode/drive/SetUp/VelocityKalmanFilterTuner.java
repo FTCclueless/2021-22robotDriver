@@ -46,8 +46,10 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
 
             drive.update();
 
+            double speed = drive.relCurrentVelocity.getX();
+            vel.add(speed);
+
             if (drive.currentPose.getX() >= FULL_SPEED_DIST){
-                double speed = drive.relCurrentVelocity.getX();
                 double time = (System.nanoTime()-start)/1000000000.0;
 
                 sumPose += drive.currentPose.getX();
@@ -55,7 +57,6 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
 
                 pose.add(drive.currentPose.getX());
                 times.add(time);
-                vel.add(speed);
             }
         }
         drive.setMotorPowers(0,0,0,0);
@@ -91,10 +92,11 @@ public class VelocityKalmanFilterTuner extends LinearOpMode {
             }
             double error = 0;
             for (int j = 0; j < v.size(); j ++){
-                error += Math.pow(v.get(j)-averageSpeed,2);
+                if (j >= vel.size()-pose.size()) {
+                    error += Math.pow(v.get(j) - averageSpeed, 2);
+                }
             }
             double SDev = Math.sqrt(error/(v.size()-1.0));
-            Log.e(w + " ", SDev + " ");
             if (minSDev == -1 || SDev < minSDev){
                 minSDev = SDev;
                 bestGain = w;

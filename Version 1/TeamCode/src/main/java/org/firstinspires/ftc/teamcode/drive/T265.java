@@ -27,6 +27,13 @@ public class T265 {
             slmra.start();
         }
     }
+    public static T265Camera.CameraUpdate getT265Data(){
+        return slmra.getLastReceivedCameraUpdate();
+    }
+    public static String getT265Confidence(){
+        T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
+        return t265Data.confidence.name();
+    }
     public static Pose2d getPoseEstimate(){
         T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
         Pose2d poseInches = new Pose2d(t265Data.pose.getX()*-39.3701,t265Data.pose.getY()*-39.3701,t265Data.pose.getHeading());

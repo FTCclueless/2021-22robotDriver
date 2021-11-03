@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.spartronics4915.lib.T265Camera;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     double velLoop = 10;
     Pose2d currentVel = new Pose2d(0,0,0);
     Pose2d relCurrentVel = new Pose2d(0,0,0);
+    String confidence = "no data";
     ArrayList<Pose2d> poseHistory = new ArrayList<Pose2d>();
     ArrayList<Pose2d> relHistory = new ArrayList<Pose2d>();
     ArrayList<Double> loopTimes = new ArrayList<Double>();
@@ -196,9 +198,19 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         loopTimes.remove(n);
 
         if (useT265 && System.currentTimeMillis() - T265Start >= 5000){
+            long start = System.nanoTime();
+
             Pose2d t265Estimate = a.getPoseEstimate();
             Pose2d t265VelEstimate = a.getRelVelocity();
             T265.sendOdometry(relCurrentVel);
+            String confidence = a.getT265Confidence();
+
+            double t265Time = (System.nanoTime()-start)/1000000000.0;
+
+            //ToDo: these are just for debugging purposes and need to be removed
+            Log.e("t265Time",t265Time + " ");
+            Log.e("t265Confidence",confidence);
+
             T265Pose = t265Estimate;
             relT265Vel = t265VelEstimate;
 
@@ -207,9 +219,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             if (!updatPose){
                 odoT265Gain = 1.0;
             }
-            else if (false){ //add condition for when T265 fails
+            else if (false){ //ToDo: add condition for when T265 fails (some combo of velocity and confidence)
                 odoT265Gain = 0;
             }
+
             odoT265Heading += deltaHeading*(1.0-odoT265Gain) + (t265Estimate.getHeading()-odoT265Heading)*odoT265Gain;
             double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, odoT265Heading+startHeadingOffset);
             odoT265x += delta[0]*(1.0-odoT265Gain);

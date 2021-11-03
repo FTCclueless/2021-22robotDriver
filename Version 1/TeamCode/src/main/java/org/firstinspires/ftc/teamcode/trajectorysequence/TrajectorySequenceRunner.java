@@ -60,6 +60,8 @@ public class TrajectorySequenceRunner {
 
     private robotComponents t265Robot;
     private Pose2d t265Pose;
+    public Pose2d t265Velocity;
+    public String t265Confidence;
     private robotComponents threeWheelRobot;
     private Pose2d threeWheelPose;
 
@@ -73,6 +75,9 @@ public class TrajectorySequenceRunner {
 
         t265Robot = null;
         t265Pose = null;
+        t265Velocity = null;
+        t265Confidence = null;
+        
         threeWheelRobot = null;
         threeWheelPose = null;
 
@@ -210,10 +215,16 @@ public class TrajectorySequenceRunner {
             poseHistory.removeFirst();
         }
         packet.put("loopTime", loopTime);
-
+        /*
         packet.put("xError", lastPoseError.getX());
         packet.put("yError", lastPoseError.getY());
         packet.put("headingError (deg)", Math.toDegrees(lastPoseError.getHeading()));
+        */
+        if (t265Pose != null) {
+            packet.put("t265 Confidence", t265Confidence);
+            packet.put("t265 velX", t265Velocity.getX());
+            packet.put("t265 velY", t265Velocity.getY());
+        }
         packet.put("x", poseEstimate.getX());
         packet.put("y", poseEstimate.getY());
         packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
