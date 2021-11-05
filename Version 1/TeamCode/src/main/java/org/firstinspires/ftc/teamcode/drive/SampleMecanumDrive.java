@@ -443,12 +443,22 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (backward){
                         m1 = -1;
                     }
-                    setPoseEstimate(new Pose2d(currentPose.getX(),(72-12.0/2.0)*multiplier*m1,currentPose.getHeading()));
+                    if ((!isKnownX || !isKnownY)) {
+                        setPoseEstimate(new Pose2d(currentPose.getX(), (72 - 12.0 / 2.0) * multiplier * m1, currentPose.getHeading()));
+                    }
+                    else if (Math.abs(currentPose.getY()) > 72 - 12.0 / 2.0 - 5){
+                        setPoseEstimate(new Pose2d(currentPose.getX(), (72 - 12.0 / 2.0) * Math.signum(currentPose.getY()), currentPose.getHeading())); // * multiplier * m1
+                    }
                     //localizer.y = (72-12.0/2.0)*multiplier*m1;
                     isKnownY = true;
                 }
                 else if (leftRight){
-                    setPoseEstimate(new Pose2d(72-12.0/2.0,currentPose.getY(),currentPose.getHeading()));
+                    if ((!isKnownX || !isKnownY)) {
+                        setPoseEstimate(new Pose2d(72-12.0/2.0,currentPose.getY(),currentPose.getHeading()));
+                    }
+                    else if (Math.abs(currentPose.getX()) > 72 - 12.0 / 2.0 - 5){
+                        setPoseEstimate(new Pose2d((72-12.0/2.0)*Math.signum(currentPose.getX()),currentPose.getY(),currentPose.getHeading()));
+                    }
                     //localizer.x = 72-12.0/2.0;
                     isKnownX = true;
                 }
