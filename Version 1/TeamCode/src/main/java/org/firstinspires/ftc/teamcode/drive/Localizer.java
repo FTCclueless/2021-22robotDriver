@@ -15,7 +15,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public Encoder[] encoders;
     double odoHeading = 0.0;
     double offsetHeading = 0.0;
-    public boolean updatPose = true;
+    public boolean updatOdo = true;
+    public boolean mergeT265Odo = false;
 
     double gain = 1; //0.016;
 
@@ -25,11 +26,14 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
     double x = 0;
     double y = 0;
-    Pose2d currentPose = new Pose2d(0,0,0);
+    Pose2d currentOdoPose = new Pose2d(0,0,0);
 
     double velLoop = 10;
+
+    Pose2d currentPose = new Pose2d(0,0,0);
     Pose2d currentVel = new Pose2d(0,0,0);
     Pose2d relCurrentVel = new Pose2d(0,0,0);
+
     String confidence = "no data";
     ArrayList<Pose2d> poseHistory = new ArrayList<Pose2d>();
     ArrayList<Pose2d> relHistory = new ArrayList<Pose2d>();
@@ -57,7 +61,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             relHistory.add(new Pose2d(0,0,0));
             loopTimes.add(0.001);
         }
-        updatPose = true;
+        updatOdo = true;
         offsetHeading = 0.0;
         encoders = new Encoder[4];
         encoders[0] = new Encoder(new Vector2d(0.125,-4.798502587509156),1.0);
@@ -139,34 +143,89 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         odoHeading = (encoders[0].getCurrentDist() - encoders[1].getCurrentDist())/(Math.abs(encoders[1].y-encoders[0].y));
         double heading = odoHeading + offsetHeading + startHeadingOffset;
 
+        double deltaFront = 0;
         if (encoders.length == 4){
-            double deltaFront = encoders[3].getDelta();     //E4
+            deltaFront = encoders[3].getDelta();     //E4
             relDeltaY = (deltaBack + deltaFront)/2 - deltaHeading*Math.abs(encoders[3].x-encoders[2].x);
-            if (updatPose) {
-                double threeWheelDeltaY = deltaBack - deltaHeading * encoders[2].x;
-                if (Math.abs(encoders[3].x) - Math.abs(encoders[2].x) > 0){
-                    threeWheelDeltaY = deltaFront - deltaHeading * encoders[3].x;
-                }
-                double[] deltaThreeWheel = getDeltas(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
-                threeWheelX += deltaThreeWheel[0];
-                threeWheelY += deltaThreeWheel[1];
-                currentThreeWheelPose = new Pose2d(threeWheelX, threeWheelY, heading);
+        }
+
+        Pose2d t265Estimate = new Pose2d(0,0,0);
+        Pose2d t265VelEstimate = new Pose2d(0,0,0);
+
+        if (useT265) {
+            if (System.currentTimeMillis() - T265Start >= 5000) {
+                long start = System.nanoTime();
+                t265Estimate = a.getPoseEstimate();
+                t265VelEstimate = a.getRelVelocity();
+                T265.sendOdometry(relCurrentVel);
+                String confidence = a.getT265Confidence();
+
+                double t265Time = (System.nanoTime() - start) / 1000000000.0;
+
+                //ToDo: these are just for debugging purposes and need to be removed
+                Log.e("t265Time", t265Time + " ");
+                Log.e("t265Confidence", confidence);
+
+                T265Pose = t265Estimate;
+                relT265Vel = t265VelEstimate;
             }
         }
-        if (updatPose) {
-            double[] delta = getDeltas(relDeltaX,relDeltaY,deltaHeading, heading);
+
+        if (mergeT265Odo && useT265){
+            if (System.currentTimeMillis() - T265Start >= 5000) {
+                double odoT265Gain = 0.01;
+                if (!updatOdo) {
+                    odoT265Gain = 1.0;
+                } else if (false) { //ToDo: add condition for when T265 fails (some combo of velocity and confidence)
+                    odoT265Gain = 0;
+                }
+                odoT265Heading += deltaHeading * (1.0 - odoT265Gain) + (t265Estimate.getHeading() - odoT265Heading) * odoT265Gain;
+                double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
+                odoT265x += delta[0] * (1.0 - odoT265Gain);
+                odoT265x += (t265Estimate.getX() - odoT265x) * odoT265Gain;
+                odoT265y += delta[1] * (1.0 - odoT265Gain);
+                odoT265y += (t265Estimate.getY() - odoT265y) * odoT265Gain;
+                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
+            }
+            else{
+                odoT265Heading += deltaHeading;
+                double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
+                odoT265x += delta[0];
+                odoT265y += delta[1];
+                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
+            }
+
+            currentPose = new Pose2d(odoT265Pose.getX(),odoT265Pose.getY(),odoT265Pose.getHeading());
+            heading = odoT265Pose.getHeading();
+        }
+
+        if (encoders.length == 4 && updatOdo){
+            double threeWheelDeltaY = deltaBack - deltaHeading * encoders[2].x;
+            if (Math.abs(encoders[3].x) - Math.abs(encoders[2].x) > 0){
+                threeWheelDeltaY = deltaFront - deltaHeading * encoders[3].x;
+            }
+            double[] deltaThreeWheel = getDeltas(relDeltaX, threeWheelDeltaY, deltaHeading, heading);
+            threeWheelX += deltaThreeWheel[0];
+            threeWheelY += deltaThreeWheel[1];
+            currentThreeWheelPose = new Pose2d(threeWheelX, threeWheelY, heading);
+        }
+        if (updatOdo){
+            double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, heading);
             x += delta[0];
             y += delta[1];
-            currentPose = new Pose2d(x+startXOffset,y+startYOffset,heading);
+            currentOdoPose = new Pose2d(x + startXOffset, y + startYOffset, heading);
             relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
-            poseHistory.add(0,new Pose2d(x,y,heading));
-            loopTimes.add(0,loopTime);
         }
         else{
             relHistory.add(0,new Pose2d(0,0,0));
-            poseHistory.add(0,new Pose2d(x,y,heading));
-            loopTimes.add(0,loopTime);
         }
+        poseHistory.add(0,new Pose2d(currentPose.getX(),currentPose.getY(),currentPose.getHeading()));
+        loopTimes.add(0,loopTime);
+
+        if (updatOdo && !mergeT265Odo) { // this is when we are using full odometry and want to update our position.
+            currentPose = new Pose2d(currentOdoPose.getX(), currentOdoPose.getY(), currentOdoPose.getHeading());
+        }
+
         double totalTime = 0;
         Pose2d total = new Pose2d(0,0,0);
         int n = loopTimes.size()-1;
@@ -196,49 +255,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         relHistory.remove(n);
         poseHistory.remove(n);
         loopTimes.remove(n);
-
-        if (useT265){
-            if (System.currentTimeMillis() - T265Start >= 5000) {
-                long start = System.nanoTime();
-
-                Pose2d t265Estimate = a.getPoseEstimate();
-                Pose2d t265VelEstimate = a.getRelVelocity();
-                T265.sendOdometry(relCurrentVel);
-                String confidence = a.getT265Confidence();
-
-                double t265Time = (System.nanoTime() - start) / 1000000000.0;
-
-                //ToDo: these are just for debugging purposes and need to be removed
-                Log.e("t265Time", t265Time + " ");
-                Log.e("t265Confidence", confidence);
-
-                T265Pose = t265Estimate;
-                relT265Vel = t265VelEstimate;
-
-                double odoT265Gain = 0.01;
-
-                if (!updatPose) {
-                    odoT265Gain = 1.0;
-                } else if (false) { //ToDo: add condition for when T265 fails (some combo of velocity and confidence)
-                    odoT265Gain = 0;
-                }
-
-                odoT265Heading += deltaHeading * (1.0 - odoT265Gain) + (t265Estimate.getHeading() - odoT265Heading) * odoT265Gain;
-                double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
-                odoT265x += delta[0] * (1.0 - odoT265Gain);
-                odoT265x += (t265Estimate.getX() - odoT265x) * odoT265Gain;
-                odoT265y += delta[1] * (1.0 - odoT265Gain);
-                odoT265y += (t265Estimate.getY() - odoT265y) * odoT265Gain;
-                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
-            }
-            else{
-                odoT265Heading += deltaHeading;
-                double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
-                odoT265x += delta[0];
-                odoT265y += delta[1];
-                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
-            }
-        }
     }
 
     public double[] getDeltas(double relDeltaX, double relDeltaY, double deltaHeading, double heading){

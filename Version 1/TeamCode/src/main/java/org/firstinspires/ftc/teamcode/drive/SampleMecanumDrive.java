@@ -138,10 +138,11 @@ public class SampleMecanumDrive extends MecanumDrive {
     private boolean displayT265;
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
-        this(hardwareMap, false, false);
+        this(hardwareMap, false, false,false);
     }
+    public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265){ this(hardwareMap, threeWheel, t265,false);}
 
-    public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265) {
+    public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265, boolean mergeT265Odo) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
         long currentTime = System.currentTimeMillis();
         lastTouchPoll = currentTime;
@@ -229,13 +230,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (display3WheelOdo){
             trajectorySequenceRunner.initThreeWheelRobot();
         }
-        if (displayT265){
+        if (displayT265 || mergeT265Odo){
+            if (displayT265) {
+                trajectorySequenceRunner.initT265Robot();
+            }
             initT265(hardwareMap);
+            if (mergeT265Odo){
+                localizer.mergeT265Odo = true;
+            }
         }
     }
 
     public void initT265(HardwareMap hardwareMap){
-        trajectorySequenceRunner.initT265Robot();
         localizer.a = new T265();
         localizer.a.T265Init(new Pose2d(-8.3,-1.5),0.05, hardwareMap.appContext);//was 1.8574
         localizer.a.start();
@@ -326,7 +332,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             localizer.updateHeading(imuAngle.firstAngle);
         }
         localizer.updateEncoders(encoders);
-        localizer.updatPose = !tiltBackward && !tiltForward;
+        localizer.updatOdo = !tiltBackward && !tiltForward;
         localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();
