@@ -17,7 +17,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     double offsetHeading = 0.0;
     public boolean updatPose = true;
 
-    double gain = 0.016;
+    double gain = 1; //0.016;
 
     double threeWheelX = 0;
     double threeWheelY = 0;

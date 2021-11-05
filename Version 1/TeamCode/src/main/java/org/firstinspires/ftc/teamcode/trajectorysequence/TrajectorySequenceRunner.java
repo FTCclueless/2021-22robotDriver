@@ -224,6 +224,9 @@ public class TrajectorySequenceRunner {
             packet.put("t265 Confidence", t265Confidence);
             packet.put("t265 velX", t265Velocity.getX());
             packet.put("t265 velY", t265Velocity.getY());
+            packet.put("t265X", t265Pose.getX());
+            packet.put("t265Y", t265Pose.getY());
+            packet.put("t265Heading (deg)", Math.toDegrees(t265Pose.getHeading()));
         }
         packet.put("x", poseEstimate.getX());
         packet.put("y", poseEstimate.getY());
