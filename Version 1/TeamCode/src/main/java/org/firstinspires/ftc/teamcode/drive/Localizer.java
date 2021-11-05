@@ -216,6 +216,13 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             currentOdoPose = new Pose2d(x + startXOffset, y + startYOffset, heading);
             relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
         }
+        else if (useT265){
+            relHistory.add(0,new Pose2d(
+                    t265VelEstimate.getX()*loopTime,
+                    t265VelEstimate.getY()*loopTime,
+                    t265VelEstimate.getHeading()*loopTime)
+            );
+        }
         else{
             relHistory.add(0,new Pose2d(0,0,0));
         }
