@@ -81,7 +81,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     }
 
     public void updateHeading(double imuHeading){
-        double headingDif = imuHeading-(odoHeading+offsetHeading);
+        double headingDif = imuHeading-(currentPose.getHeading()-startHeadingOffset);
         while (headingDif > Math.toRadians(180)){
             headingDif -= Math.toRadians(360);
         }
