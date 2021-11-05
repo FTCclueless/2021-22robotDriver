@@ -159,7 +159,6 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 long start = System.nanoTime();
                 t265Estimate = a.getPoseEstimate();
                 t265VelEstimate = a.getRelVelocity();
-                T265.sendOdometry(relCurrentVel);
                 String confidence = a.getT265Confidence();
 
                 double t265Time = (System.nanoTime() - start) / 1000000000.0;
@@ -262,6 +261,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 relCurrentVelP.getY()*gain + relCurrentVel.getY()*(1.0-gain),
                 relCurrentVelP.getHeading()*gain + relCurrentVel.getHeading()*(1.0-gain)
         );
+        
+        if (useT265) {
+            T265.sendOdometry(relCurrentVel);
+        }
 
         relHistory.remove(n);
         poseHistory.remove(n);
