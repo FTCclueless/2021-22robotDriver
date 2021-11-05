@@ -379,7 +379,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     tiltTime = System.currentTimeMillis();
                     isKnownY = false;
                     isKnownX = false;
-                    finalTiltHeading = new Vec3F((float)currentPose.getHeading(), imuAngle.secondAngle, imuAngle.thirdAngle);//imuAngle.firstAngle
+                    finalTiltHeading = new Vec3F((float)clipHeading(currentPose.getHeading()), imuAngle.secondAngle, imuAngle.thirdAngle);//imuAngle.firstAngle
                     tiltForward = imuAngle.secondAngle > 0;
                     tiltBackward = !tiltForward;
                     firstOffBarrier = true;
