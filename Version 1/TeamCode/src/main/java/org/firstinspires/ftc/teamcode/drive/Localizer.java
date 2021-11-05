@@ -152,6 +152,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         Pose2d t265Estimate = new Pose2d(0,0,0);
         Pose2d t265VelEstimate = new Pose2d(0,0,0);
 
+        boolean ist265EstimateAccurate = false;
+
         if (useT265) {
             if (System.currentTimeMillis() - T265Start >= 5000) {
                 long start = System.nanoTime();
@@ -168,6 +170,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
                 T265Pose = t265Estimate;
                 relT265Vel = t265VelEstimate;
+
+                ist265EstimateAccurate = true;//ToDo: add condition for when T265 fails (some combo of velocity and confidence)
             }
         }
 
@@ -176,7 +180,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 double odoT265Gain = 0.01;
                 if (!updatOdo) {
                     odoT265Gain = 1.0;
-                } else if (false) { //ToDo: add condition for when T265 fails (some combo of velocity and confidence)
+                } else if (!ist265EstimateAccurate) {
                     odoT265Gain = 0;
                 }
                 odoT265Heading += deltaHeading * (1.0 - odoT265Gain) + (t265Estimate.getHeading() - odoT265Heading) * odoT265Gain;
@@ -216,7 +220,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             currentOdoPose = new Pose2d(x + startXOffset, y + startYOffset, heading);
             relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
         }
-        else if (useT265){
+        else if (ist265EstimateAccurate){
             relHistory.add(0,new Pose2d(
                     t265VelEstimate.getX()*loopTime,
                     t265VelEstimate.getY()*loopTime,
