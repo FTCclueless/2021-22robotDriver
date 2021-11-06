@@ -98,14 +98,18 @@ public class SampleMecanumDrive extends MecanumDrive {
     long lastTouchPoll;
     long lastTiltPoll;
 
-    public int intakeCase = 0;
+    public static int intakeCase = 0;
     private int lastIntakeCase = 0;
     private long intakeTime;
     boolean transferMineral = false;
     boolean startIntake = true;
-    public int slidesCase = 0;
+    public static int slidesCase = 0;
     private int lastSlidesCase = 0;
     boolean startSlides = true;
+
+    static double slideExtensionLength = 0;
+    static double turretHeading = 0;
+    static double v4barOrientation = 0;
 
     public static ColorSensor color;
 
@@ -271,7 +275,12 @@ public class SampleMecanumDrive extends MecanumDrive {
             encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         }
         // you can set the bulkData to the other expansion hub to get data from the other one
-        //bulkData = expansionHub2.getBulkInputData();
+        if (!(slidesCase == 0)) { // the only enoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
+            bulkData = expansionHub2.getBulkInputData();
+            slideExtensionLength = bulkData.getMotorCurrentPosition(slides);
+            turretHeading = bulkData.getMotorCurrentPosition(turret);
+            v4barOrientation =  bulkData.getMotorCurrentPosition(v4bar);
+        }
     }
 
     public void turnAsync(double angle) {
@@ -365,7 +374,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         startIntake = true;
     }
 
-    public void startDeposite(Pose2d relTarget, int height){
+    public void startDeposite(Pose2d relTarget, double height){
+        turretHeading = Math.atan2(relTarget.getY() * -1,relTarget.getX() * -1);
+        double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
+        double v4BarLength = 8;
+        double slope = 0.1228;
+        double a = (slope*slope + 1);
+        double b = -1.0*(2*length + 2*slope*height);
+        double c = length*length - Math.pow(v4BarLength,2) + height * height;
+        double slideExtension = (-1.0 * b - Math.sqrt(b*b - 4.0 * a * c)) / (2.0 * a);
+        slideExtensionLength = slideExtension * 1.0098;
+        v4barOrientation = Math.atan2(height - slideExtension*slope,slideExtension - length);
         startSlides = true;
     }
 
