@@ -93,10 +93,19 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     static RevBulkData bulkData;
     static ExpansionHubEx expansionHub1, expansionHub2;
-    public static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront;
+    public static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, v4bar, turret, slides;
     static TouchSensor lf, lb, rb, rf;
     long lastTouchPoll;
     long lastTiltPoll;
+
+    public int intakeCase = 0;
+    private int lastIntakeCase = 0;
+    private long intakeTime;
+    boolean transferMineral = false;
+    boolean startIntake = true;
+    public int slidesCase = 0;
+    private int lastSlidesCase = 0;
+    boolean startSlides = true;
 
     public static ColorSensor color;
 
@@ -149,6 +158,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         firstTiltTime = currentTime;
         lastTiltPoll = currentTime;
         tiltTime = currentTime;
+        intakeTime = currentTime;
 
         staticHeading = 0;
         r = new robotComponents(true);
@@ -182,8 +192,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         rightFront =    (ExpansionHubMotor) hardwareMap.dcMotor.get("rf");
 
         // add more motors here
-
-        //expansionHub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
+        expansionHub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
+        intake = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake");
+        v4bar  = (ExpansionHubMotor) hardwareMap.dcMotor.get("v4bar");
+        turret = (ExpansionHubMotor) hardwareMap.dcMotor.get("turret");
+        slides = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides");
 
 
 //        dropperServo.setDirection(Servo.Direction.REVERSE);
@@ -347,6 +360,74 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateVisualizer(){
         r.setOdoColor(isKnownX && isKnownY);
     }
+
+    public void startIntake(){
+        startIntake = true;
+    }
+
+    public void startDeposite(Pose2d relTarget, int height){
+        startSlides = true;
+    }
+
+    public void updateIntake(){
+        if (lastIntakeCase != intakeCase) {
+            switch (intakeCase) {
+                case 1: break; // rotate the servo down
+                case 2: intake.setPower(1); break; // turn on the intake (forward)
+                case 3: break; // lift up the servo
+                case 4: intake.setPower(-1); break; // rotate the servo backward
+                case 5: transferMineral = true; intake.setPower(0);  break; // turn off the intake
+            }
+            intakeTime = System.currentTimeMillis();
+        }
+        int a = intakeCase;
+        switch (a) {
+            case 1: if (System.currentTimeMillis() - intakeTime >= 200){intakeCase ++;} break;  // waiting for the servo to drop
+            case 2: if (System.currentTimeMillis() - intakeTime >= 1000){intakeCase ++;} break;  // waiting for a mineral in intake
+            case 3: if (System.currentTimeMillis() - intakeTime >= 200 && slidesCase == 0){intakeCase ++;} break;  // waiting for the servo to go up &&
+            case 4: if (System.currentTimeMillis() - intakeTime >= 100){intakeCase ++;} break;  // waiting for mineral to leave the intake
+        }
+        lastIntakeCase = intakeCase;
+    }
+
+    public void updateSlides(){
+        if (transferMineral) { // I have deposited into the area
+            if (lastSlidesCase != slidesCase) {
+                switch (slidesCase) {
+                    case 1: break; // rotate turret
+                    case 2: break; // extend slides & v4bar
+                    case 3: break; // deposite
+                    case 4: break; // go back to start
+                    case 5: break; // rotate turret back
+                }
+            }
+            int a = slidesCase;
+            switch (a) {
+                //wait for turret to rotate
+                //wait for arm to be over area
+                //wait for the block to drop => intakeCase = 0; lastIntakeCase = 0;
+                //wait for the arm to be at start
+                //wait for the intake to be facing correct direction
+                //transferMineral = false; slideCase = 0; lastSlideCase = 0;
+            }
+            lastSlidesCase = slidesCase;
+        }
+    }
+
+    public void updateScoring(){
+        if (startIntake && intakeCase == 0){
+            intakeCase = 1;
+            startIntake = false;
+        }
+        if (startSlides && slidesCase == 1){
+            slidesCase = 1;
+            startSlides = false;
+        }
+
+        updateIntake();
+        //updateSlides();
+    }
+
     public void update() {
         loops ++;
         updateEstimate();
@@ -356,6 +437,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (signal != null) {
             updateDriveMotors(signal);
         }
+
+        updateScoring();
+
         if (display3WheelOdo){
             trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
         }
