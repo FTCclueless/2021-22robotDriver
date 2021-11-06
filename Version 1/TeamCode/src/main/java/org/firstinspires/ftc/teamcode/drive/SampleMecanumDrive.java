@@ -374,8 +374,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         startIntake = true;
     }
 
-    public void startDeposite(Pose2d relTarget, double height){
+    public void startDeposit(Pose2d relTarget, double height){
         turretHeading = Math.atan2(relTarget.getY() * -1,relTarget.getX() * -1);
+        height -= 8.86;
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
         double v4BarLength = 8;
         double slope = 0.1228;
@@ -385,6 +386,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         double slideExtension = (-1.0 * b - Math.sqrt(b*b - 4.0 * a * c)) / (2.0 * a);
         slideExtensionLength = slideExtension * 1.0098;
         v4barOrientation = Math.atan2(height - slideExtension*slope,slideExtension - length);
+        while (v4barOrientation < 0){
+            v4barOrientation += Math.PI * 2;
+        }
         startSlides = true;
     }
 
@@ -415,7 +419,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 switch (slidesCase) {
                     case 1: break; // rotate turret
                     case 2: break; // extend slides & v4bar
-                    case 3: break; // deposite
+                    case 3: break; // deposit
                     case 4: break; // go back to start
                     case 5: break; // rotate turret back
                 }
