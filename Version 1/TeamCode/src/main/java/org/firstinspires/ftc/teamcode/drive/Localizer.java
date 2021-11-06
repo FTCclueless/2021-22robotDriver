@@ -248,20 +248,28 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 poseHistory.get(0).getY()-poseHistory.get(n).getY(),
                 poseHistory.get(0).getHeading()-poseHistory.get(n).getHeading()
         );
-        Pose2d currentVelP    = new Pose2d(deltaLoops.getX()/totalTime,deltaLoops.getY()/totalTime, deltaLoops.getHeading()/totalTime);
-        Pose2d relCurrentVelP = new Pose2d(total.getX()/totalTime,total.getY()/totalTime, total.getHeading()/totalTime);
 
+        Pose2d currentVelP    = new Pose2d(
+                deltaLoops.getX()/totalTime,
+                deltaLoops.getY()/totalTime,
+                deltaLoops.getHeading()/totalTime
+        );
         currentVel = new Pose2d(
                 currentVelP.getX()*gain + currentVel.getX()*(1.0-gain),
                 currentVelP.getY()*gain + currentVel.getY()*(1.0-gain),
                 currentVelP.getHeading()*gain + currentVel.getHeading()*(1.0-gain)
+        );
+
+        Pose2d relCurrentVelP = new Pose2d(
+                total.getX()/totalTime,
+                total.getY()/totalTime,
+                total.getHeading()/totalTime
         );
         relCurrentVel = new Pose2d(
                 relCurrentVelP.getX()*gain + relCurrentVel.getX()*(1.0-gain),
                 relCurrentVelP.getY()*gain + relCurrentVel.getY()*(1.0-gain),
                 relCurrentVelP.getHeading()*gain + relCurrentVel.getHeading()*(1.0-gain)
         );
-        
         if (useT265) {
             T265.sendOdometry(relCurrentVel);
         }
