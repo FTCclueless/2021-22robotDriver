@@ -118,6 +118,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     double turretTickToRadians = 0;
     double v4barTickToRadians = 0;
 
+    double currentIntake = 1;
+
     public static ColorSensor color;
 
     public BNO055IMU imu;
@@ -391,6 +393,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void startIntake(boolean rightIntake){
+        currentIntake = 1;
+        if (rightIntake){
+            currentIntake = -1;
+        }
         startIntake = true;
     } // TODO: Make sure that the program knows which intake we want to use
 
@@ -446,8 +452,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                     case 3: break; // TODO: servo deposit
                     case 4: // go back to start TODO: reset servo to start pose
                         slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0); break;
-                    case 5: // rotate turret back TODO: need to turn it toward the intake that it goes to
-                        turret.setTargetPosition(0); turret.setPower(0); break;
+                    case 5: // rotate turret back
+                        turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians)); turret.setPower(0); break;
                 }
                 slideTime = System.currentTimeMillis();
             }
@@ -464,8 +470,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4: //wait for the arm to be at start
                     if (Math.abs(slideExtensionLength/slideTickToInch) <= 1 &&
                             Math.abs(v4barOrientation/v4barTickToRadians) <= Math.toRadians(1)){slidesCase ++;} break;
-                case 5: //wait for the intake to be facing correct direction TODO: need to turn it toward the intake that it goes to
-                    if (Math.abs(turretHeading/turretTickToRadians) <= Math.toRadians(1)){slidesCase ++;} break;
+                case 5: //wait for the intake to be facing correct direction
+                    if (Math.abs(turretHeading/turretTickToRadians - Math.toRadians(57.5)*currentIntake) <= Math.toRadians(1)){slidesCase ++;} break;
                 case 6: //resets the slidesCase & officially says mineral has not been transfered
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; break;
             }
