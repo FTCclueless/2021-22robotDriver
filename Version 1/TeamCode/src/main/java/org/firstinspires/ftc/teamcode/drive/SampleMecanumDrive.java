@@ -118,6 +118,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     double turretTickToRadians = 0;
     double v4barTickToRadians = 0;
 
+    public Servo[] servos = new Servo[3];
+
     double currentIntake = 1;
 
     public static ColorSensor color;
@@ -212,9 +214,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret = (ExpansionHubMotor) hardwareMap.dcMotor.get("turret");
         slides = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides");
 
-
-//        dropperServo.setDirection(Servo.Direction.REVERSE);
-
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
         for (DcMotorEx motor : motors) {
@@ -241,6 +240,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         v4bar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        servos[0] = hardwareMap.servo.get("rightIntake");
+        servos[1] = hardwareMap.servo.get("leftIntake");
+        servos[2] = hardwareMap.servo.get("deposit");
 
 
         // reverse any motors using DcMotor.setDirection()
@@ -297,7 +300,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         }
         // you can set the bulkData to the other expansion hub to get data from the other one
-        if (!(slidesCase == 0)) { // the only enoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
+        if (!(slidesCase == 0)) { // the only encoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
             bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides);
             turretHeading = bulkData.getMotorCurrentPosition(turret);
@@ -422,9 +425,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
-                case 1: break; // rotate the servo down
+                case 1: if(currentIntake == 1){servos[1].setPosition(0);} if(currentIntake == -1){servos[0].setPosition(0);} break; // rotate the servo down
                 case 2: intake.setPower(1); break; // turn on the intake (forward)
-                case 3: break; // lift up the servo
+                case 3: if(currentIntake == 1){servos[1].setPosition(0);} if(currentIntake == -1){servos[0].setPosition(0);} break; // lift up the servo
                 case 4: intake.setPower(-1); break; // rotate the servo backward
                 case 5: transferMineral = true; intake.setPower(0);  break; // turn off the intake
             }
@@ -448,10 +451,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                         turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0);break;
                     case 2: // extend slides & v4bar & TODO: pre-tilt the deposit servo a little
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
-                        v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0); break;
-                    case 3: break; // TODO: servo deposit
+                        v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0);
+                        servos[2].setPosition(0); break;
+                    case 3: servos[2].setPosition(0); break; // TODO: servo deposit
                     case 4: // go back to start TODO: reset servo to start pose
-                        slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0); break;
+                        slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0);
+                        servos[2].setPosition(0); break;
                     case 5: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians)); turret.setPower(0); break;
                 }
