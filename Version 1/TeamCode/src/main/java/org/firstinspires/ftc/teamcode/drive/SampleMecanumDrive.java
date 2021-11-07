@@ -101,6 +101,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static int intakeCase = 0;
     private int lastIntakeCase = 0;
     private long intakeTime;
+    private long slideTime;
     boolean transferMineral = false;
     boolean startIntake = true;
     public static int slidesCase = 0;
@@ -110,6 +111,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     static double slideExtensionLength = 0;
     static double turretHeading = 0;
     static double v4barOrientation = 0;
+    static double targetSlideExtensionLength = 0;
+    static double targetTurretHeading = 0;
+    static double targetV4barOrientation = 0;
+    double slideTickToInch = 0;
+    double turretTickToRadians = 0;
+    double v4barTickToRadians = 0;
 
     public static ColorSensor color;
 
@@ -163,6 +170,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastTiltPoll = currentTime;
         tiltTime = currentTime;
         intakeTime = currentTime;
+        slideTime = currentTime;
 
         staticHeading = 0;
         r = new robotComponents(true);
@@ -228,10 +236,13 @@ public class SampleMecanumDrive extends MecanumDrive {
             setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
 
+        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        v4bar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // TODO: reverse any motors using DcMotor.setDirection()
 
-        // TODO: if desired, use setLocalizer() to change the localization method
+        // reverse any motors using DcMotor.setDirection()
+        // if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
         localizer = new Localizer();
         encoders = new int[localizer.encoders.length];
@@ -256,6 +267,15 @@ public class SampleMecanumDrive extends MecanumDrive {
                 localizer.mergeT265Odo = true;
             }
         }
+    }
+
+    public void resetAssemblies(){
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        v4bar.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        v4bar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void initT265(HardwareMap hardwareMap){
@@ -370,12 +390,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         r.setOdoColor(isKnownX && isKnownY);
     }
 
-    public void startIntake(){
+    public void startIntake(boolean rightIntake){
         startIntake = true;
-    }
+    } // TODO: Make sure that the program knows which intake we want to use
 
     public void startDeposit(Pose2d relTarget, double height){
-        turretHeading = Math.atan2(relTarget.getY() * -1,relTarget.getX() * -1);
+        targetTurretHeading = Math.atan2(relTarget.getY() * -1,relTarget.getX() * -1);
         height -= 8.86;
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
         double v4BarLength = 8;
@@ -384,11 +404,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         double b = -1.0*(2*length + 2*slope*height);
         double c = length*length - Math.pow(v4BarLength,2) + height * height;
         double slideExtension = (-1.0 * b - Math.sqrt(b*b - 4.0 * a * c)) / (2.0 * a);
-        slideExtensionLength = slideExtension * 1.0098;
-        v4barOrientation = Math.atan2(height - slideExtension*slope,slideExtension - length);
-        while (v4barOrientation < 0){
-            v4barOrientation += Math.PI * 2;
+        targetSlideExtensionLength = slideExtension * 1.0098;
+        targetV4barOrientation = Math.atan2(height - slideExtension*slope,slideExtension - length);
+        while (targetV4barOrientation < 0){
+            targetV4barOrientation += Math.PI * 2;
         }
+        targetV4barOrientation -= Math.toRadians(13.1);
         startSlides = true;
     }
 
@@ -403,6 +424,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
             intakeTime = System.currentTimeMillis();
         }
+        lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= 200){intakeCase ++;} break;  // waiting for the servo to drop
@@ -410,30 +432,43 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 3: if (System.currentTimeMillis() - intakeTime >= 200 && slidesCase == 0){intakeCase ++;} break;  // waiting for the servo to go up &&
             case 4: if (System.currentTimeMillis() - intakeTime >= 100){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
-        lastIntakeCase = intakeCase;
     }
 
     public void updateSlides(){
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
-                    case 1: break; // rotate turret
-                    case 2: break; // extend slides & v4bar
-                    case 3: break; // deposit
-                    case 4: break; // go back to start
-                    case 5: break; // rotate turret back
+                    case 1: // rotate turret
+                        turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0);break;
+                    case 2: // extend slides & v4bar & TODO: pre-tilt the deposit servo a little
+                        slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
+                        v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0); break;
+                    case 3: break; // TODO: servo deposit
+                    case 4: // go back to start TODO: reset servo to start pose
+                        slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0); break;
+                    case 5: // rotate turret back TODO: need to turn it toward the intake that it goes to
+                        turret.setTargetPosition(0); turret.setPower(0); break;
                 }
-            }
-            int a = slidesCase;
-            switch (a) {
-                //wait for turret to rotate
-                //wait for arm to be over area
-                //wait for the block to drop => intakeCase = 0; lastIntakeCase = 0;
-                //wait for the arm to be at start
-                //wait for the intake to be facing correct direction
-                //transferMineral = false; slideCase = 0; lastSlideCase = 0;
+                slideTime = System.currentTimeMillis();
             }
             lastSlidesCase = slidesCase;
+            int a = slidesCase;
+            switch (a) {
+                case 1: //wait for turret to rotate
+                    if (Math.abs(turretHeading/turretTickToRadians - targetTurretHeading) <= Math.toRadians(1)){slidesCase ++;} break;
+                case 2: //wait for arm to be over area TODO: check whether wants to drop
+                    if (Math.abs(slideExtensionLength/slideTickToInch - targetSlideExtensionLength) <= 1 &&
+                            Math.abs(v4barOrientation/v4barTickToRadians - targetV4barOrientation) <= Math.toRadians(1)){slidesCase ++;} break;
+                case 3: //wait for the block to drop => reset the intakeCase
+                    if (System.currentTimeMillis() - slideTime >= 200){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} break;
+                case 4: //wait for the arm to be at start
+                    if (Math.abs(slideExtensionLength/slideTickToInch) <= 1 &&
+                            Math.abs(v4barOrientation/v4barTickToRadians) <= Math.toRadians(1)){slidesCase ++;} break;
+                case 5: //wait for the intake to be facing correct direction TODO: need to turn it toward the intake that it goes to
+                    if (Math.abs(turretHeading/turretTickToRadians) <= Math.toRadians(1)){slidesCase ++;} break;
+                case 6: //resets the slidesCase & officially says mineral has not been transfered
+                    transferMineral = false; slidesCase = 0; lastSlidesCase = 0; break;
+            }
         }
     }
 
@@ -442,13 +477,13 @@ public class SampleMecanumDrive extends MecanumDrive {
             intakeCase = 1;
             startIntake = false;
         }
-        if (startSlides && slidesCase == 1){
+        if (startSlides && slidesCase == 0){
             slidesCase = 1;
             startSlides = false;
         }
 
         updateIntake();
-        //updateSlides();
+        updateSlides();
     }
 
     public void update() {
