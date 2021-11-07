@@ -456,7 +456,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (a) {
                 case 1: //wait for turret to rotate
                     if (Math.abs(turretHeading/turretTickToRadians - targetTurretHeading) <= Math.toRadians(1)){slidesCase ++;} break;
-                case 2: //wait for arm to be over area TODO: check whether wants to drop
+                case 2: //wait for arm to be over area TODO: check whether wants to drop (maybe an autoDrop variable vs a manual button input for mechanical)
                     if (Math.abs(slideExtensionLength/slideTickToInch - targetSlideExtensionLength) <= 1 &&
                             Math.abs(v4barOrientation/v4barTickToRadians - targetV4barOrientation) <= Math.toRadians(1)){slidesCase ++;} break;
                 case 3: //wait for the block to drop => reset the intakeCase
