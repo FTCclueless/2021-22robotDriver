@@ -116,7 +116,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     static double targetV4barOrientation = 0;
     double slideTickToInch = 842.1053; // 1000.0/(1.1875);
     double turretTickToRadians = 0;
-    double v4barTickToRadians = 176.8389; //500.0/Math.toRadians(162.0);
+    double v4barTickToRadians = 176.8389; //500.0/Math.toRadians(162.0); //171.151991636 (312 rpm and 2:1 ratio)
 
     public Servo[] servos = new Servo[4];
 
