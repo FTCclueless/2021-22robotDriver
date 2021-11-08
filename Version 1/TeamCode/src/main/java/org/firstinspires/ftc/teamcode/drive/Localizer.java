@@ -18,7 +18,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public boolean updatOdo = true;
     public boolean mergeT265Odo = false;
 
-    double gain = 1; //0.016;
+    double gain = 0.109;
 
     double threeWheelX = 0;
     double threeWheelY = 0;
@@ -159,7 +159,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 long start = System.nanoTime();
                 t265Estimate = a.getPoseEstimate();
                 t265VelEstimate = a.getRelVelocity();
-                String confidence = a.getT265Confidence();
+                confidence = a.getT265Confidence();
 
                 double t265Time = (System.nanoTime() - start) / 1000000000.0;
 

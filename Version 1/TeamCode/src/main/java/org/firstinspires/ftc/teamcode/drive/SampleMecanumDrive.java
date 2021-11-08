@@ -99,14 +99,14 @@ public class SampleMecanumDrive extends MecanumDrive {
     long lastTiltPoll;
 
     public static int intakeCase = 0;
-    private int lastIntakeCase = 0;
+    public int lastIntakeCase = 0;
     private long intakeTime;
     private long slideTime;
     boolean transferMineral = false;
-    boolean startIntake = true;
+    boolean startIntake = false;
     public static int slidesCase = 0;
     private int lastSlidesCase = 0;
-    boolean startSlides = true;
+    boolean startSlides = false;
 
     static double slideExtensionLength = 0;
     static double turretHeading = 0;
@@ -118,7 +118,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     double turretTickToRadians = 0;
     double v4barTickToRadians = 0;
 
-    public Servo[] servos = new Servo[3];
+    public Servo[] servos = new Servo[4];
 
     double currentIntake = 1;
 
@@ -237,6 +237,11 @@ public class SampleMecanumDrive extends MecanumDrive {
             setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
 
+        slides.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        turret.setTargetPosition(0);
+        v4bar.setTargetPosition(0);
+        slides.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         v4bar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -244,6 +249,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos[0] = hardwareMap.servo.get("rightIntake");
         servos[1] = hardwareMap.servo.get("leftIntake");
         servos[2] = hardwareMap.servo.get("deposit");
+        servos[3] = hardwareMap.servo.get("odoLift");
 
 
         // reverse any motors using DcMotor.setDirection()
@@ -272,6 +278,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                 localizer.mergeT265Odo = true;
             }
         }
+
+        intakeCase = 0;
+        lastIntakeCase = 0;
+        slidesCase = 0;
+        lastSlidesCase = 0;
     }
 
     public void resetAssemblies(){
@@ -285,7 +296,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void initT265(HardwareMap hardwareMap){
         localizer.a = new T265();
-        localizer.a.T265Init(new Pose2d(-8.3,-1.5),0.05, hardwareMap.appContext);//was 1.8574
+        localizer.a.T265Init(new Pose2d(-8.3,-1.5),0.680755, hardwareMap.appContext);//was 1.8574
         localizer.a.start();
         localizer.useT265 = true;
         localizer.T265Start = System.currentTimeMillis();
@@ -401,7 +412,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             currentIntake = -1;
         }
         startIntake = true;
-    } // TODO: Make sure that the program knows which intake we want to use
+    }
 
     public void startDeposit(Pose2d relTarget, double height){
         targetTurretHeading = Math.atan2(relTarget.getY() * -1,relTarget.getX() * -1);
@@ -425,22 +436,25 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
-                case 1: if(currentIntake == 1){servos[1].setPosition(0);} if(currentIntake == -1){servos[0].setPosition(0);} break; // rotate the servo down
-                case 2: intake.setPower(1); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos[1].setPosition(0);} if(currentIntake == -1){servos[0].setPosition(0);} break; // lift up the servo
-                case 4: intake.setPower(-1); break; // rotate the servo backward
-                case 5: transferMineral = true; intake.setPower(0);  break; // turn off the intake
+                case 1: if(currentIntake == 1){servos[1].setPosition(0.068);} if(currentIntake == -1){servos[0].setPosition(0.779);} break; // rotate the servo down
+                case 2: intake.setPower(-0.85); break; // turn on the intake (forward)
+                case 3: intake.setPower(0.0); if(currentIntake == 1){servos[1].setPosition(0.747);} if(currentIntake == -1){servos[0].setPosition(0.1);} break; // lift up the servo
+                case 4: intake.setPower(-0.5); break;
+                case 5: intake.setPower(0.6); break; // rotate the servo backward
+                case 6: transferMineral = true; intake.setPower(0);  break; // turn off the intake
             }
             intakeTime = System.currentTimeMillis();
         }
         lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
-            case 1: if (System.currentTimeMillis() - intakeTime >= 200){intakeCase ++;} break;  // waiting for the servo to drop
-            case 2: if (System.currentTimeMillis() - intakeTime >= 1000){intakeCase ++;} break;  // waiting for a mineral in intake
-            case 3: if (System.currentTimeMillis() - intakeTime >= 200 && slidesCase == 0){intakeCase ++;} break;  // waiting for the servo to go up &&
-            case 4: if (System.currentTimeMillis() - intakeTime >= 100){intakeCase ++;} break;  // waiting for mineral to leave the intake
+            case 1: if (System.currentTimeMillis() - intakeTime >= 1000){intakeCase ++;} break;  // waiting for the servo to drop
+            case 2: if (System.currentTimeMillis() - intakeTime >= 1500){intakeCase ++;} break;  // waiting for a mineral in intake
+            case 3: if (System.currentTimeMillis() - intakeTime >= 200){intakeCase ++;} break;
+            case 4: if (System.currentTimeMillis() - intakeTime >= 500 && slidesCase == 0){intakeCase ++;} break;  // waiting for the servo to go up &&
+            case 5: if (System.currentTimeMillis() - intakeTime >= 950){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
+        Log.e("case", intakeCase + " " + slidesCase);
     }
 
     public void updateSlides(){
@@ -449,14 +463,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                 switch (slidesCase) {
                     case 1: // rotate turret
                         turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0);break;
-                    case 2: // extend slides & v4bar & TODO: pre-tilt the deposit servo a little
+                    case 2: // extend slides & v4bar & servo pre-tilt
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
                         v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0);
-                        servos[2].setPosition(0); break;
-                    case 3: servos[2].setPosition(0); break; // TODO: servo deposit
-                    case 4: // go back to start TODO: reset servo to start pose
+                        servos[2].setPosition(0.406); break;
+                    case 3: servos[2].setPosition(1); break;
+                    case 4: // go back to start
                         slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0);
-                        servos[2].setPosition(0); break;
+                        servos[2].setPosition(0.29); break;
                     case 5: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians)); turret.setPower(0); break;
                 }
@@ -486,10 +500,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateScoring(){
         if (startIntake && intakeCase == 0){
             intakeCase = 1;
+            intakeTime = System.currentTimeMillis();
             startIntake = false;
         }
         if (startSlides && slidesCase == 0){
             slidesCase = 1;
+            slideTime = System.currentTimeMillis();
             startSlides = false;
         }
 
@@ -500,14 +516,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate();
-        updateSensor();
-        updateVisualizer();
-        DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
-        if (signal != null) {
-            updateDriveMotors(signal);
-        }
-
-        updateScoring();
 
         if (display3WheelOdo){
             trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
@@ -517,6 +525,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             trajectorySequenceRunner.t265Velocity = localizer.relT265Vel;
             trajectorySequenceRunner.updateT265(localizer.T265Pose);
         }
+
+        updateSensor();
+        updateVisualizer();
+        DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
+        if (signal != null) {
+            updateDriveMotors(signal);
+        }
+
+        updateScoring();
         updateIMU = false;
     }
     public void updateSensor(){
@@ -542,7 +559,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     tiltForward = imuAngle.secondAngle > 0;
                     tiltBackward = !tiltForward;
                     firstOffBarrier = true;
-                    //Todo: lift up the odo pods
+                    servos[3].setPosition(0.492);
                 }
             }
             else{
@@ -579,7 +596,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     tiltForward = false;
                     tiltBackward = false;
-                    //Todo: drop odo pds
+                    servos[3].setPosition(0.255);
                 }
             }
         }
@@ -824,7 +841,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     @Override
     public Double getExternalHeadingVelocity() {
-        // TODO: This must be changed to match your configuration
+        // This must be changed to match your configuration
         //                           | Z axis
         //                           |
         //     (Motor Port Side)     |   / X axis

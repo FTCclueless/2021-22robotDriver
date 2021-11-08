@@ -30,6 +30,10 @@ public class Teleop extends LinearOpMode {
 
         double lockHeadAngle = 0;
 
+        drive.startIntake(false);
+        drive.intakeCase = 0;
+        drive.lastIntakeCase = 0;
+
         while (!isStopRequested()) {
             drive.update();
             double forward = gamepad1.left_stick_y;
