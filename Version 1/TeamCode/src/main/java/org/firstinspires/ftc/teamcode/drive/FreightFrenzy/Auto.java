@@ -43,6 +43,8 @@ public class Auto extends LinearOpMode {
                         }
                     })
                     .setReversed(true)
+                    .splineTo(new Vector2d(36.5,endPoint.getY()),Math.toRadians(180))
+                    .setReversed(true)
                     .splineTo(new Vector2d(endPoint.getX(),endPoint.getY()),Math.toRadians(180))
                     .turn(0)
                     .addTemporalMarker(() -> {
