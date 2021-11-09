@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_ACCEL;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_VEL;
@@ -9,7 +8,6 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MOTOR_VELO_PID
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.encoderTicksToInches;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.getMotorVelocityF;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
@@ -36,7 +34,6 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAcceleration
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -69,11 +66,8 @@ import java.util.List;
 public class SampleMecanumDrive extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(7, 0.075,0.5);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(100, 10, 0);
-    private ArrayList<Pose2d> poseHistory;
 
     private PIDFController turnController;
-
-    private String TAG = "SampleTankDrive";
 
     public static double LATERAL_MULTIPLIER = 1.75;
 
@@ -98,22 +92,22 @@ public class SampleMecanumDrive extends MecanumDrive {
     long lastTouchPoll;
     long lastTiltPoll;
 
-    public static int intakeCase = 0;
-    public int lastIntakeCase = 0;
+    public int intakeCase;
+    public int lastIntakeCase;
     private long intakeTime;
     private long slideTime;
     boolean transferMineral = false;
     boolean startIntake = false;
-    public static int slidesCase = 0;
-    private int lastSlidesCase = 0;
+    public int slidesCase;
+    private int lastSlidesCase;
     boolean startSlides = false;
 
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
     public double v4barOrientation = 0;
-    static double targetSlideExtensionLength = 0;
-    static double targetTurretHeading = 0;
-    static double targetV4barOrientation = 0;
+    public double targetSlideExtensionLength = 0;
+    public double targetTurretHeading = 0;
+    public double targetV4barOrientation = 0;
     public double slideTickToInch = 71.0953;
     public double turretTickToRadians = 578.3213;
     public double v4barTickToRadians = 199.4211;
@@ -163,7 +157,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     long firstTiltTime;
 
     private boolean display3WheelOdo;
-    private boolean displayT265;
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
@@ -264,17 +257,15 @@ public class SampleMecanumDrive extends MecanumDrive {
         setLocalizer(localizer);
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(follower, HEADING_PID);
-        poseHistory = new ArrayList<Pose2d>();
 
 
-        displayT265 = t265;
         display3WheelOdo = threeWheel;
         display3WheelOdo = display3WheelOdo && localizer.encoders.length == 4;
         if (display3WheelOdo){
             trajectorySequenceRunner.initThreeWheelRobot();
         }
-        if (displayT265 || mergeT265Odo){
-            if (displayT265) {
+        if (t265 || mergeT265Odo){
+            if (t265) {
                 trajectorySequenceRunner.initT265Robot();
             }
             initT265(hardwareMap);
@@ -394,7 +385,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             localizer.updateHeading(imuAngle.firstAngle);
         }
         localizer.updateEncoders(encoders);
-        localizer.updatOdo = !tiltBackward && !tiltForward;
+        localizer.updateOdo = !tiltBackward && !tiltForward;
         localizer.update();
         currentPose = getPoseEstimate();
         currentVelocity = getPoseVelocity();

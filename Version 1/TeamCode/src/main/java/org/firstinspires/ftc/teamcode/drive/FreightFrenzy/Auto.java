@@ -2,10 +2,8 @@ package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
@@ -20,7 +18,7 @@ public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        TrajectorySequence traj[] = new TrajectorySequence[5];
+        TrajectorySequence[] traj = new TrajectorySequence[5];
         Pose2d endPoint = new Pose2d(12,64,0);
         double y = 24 - endPoint.getY();
         double x = y / Math.tan(Math.toRadians(57.5));
@@ -33,7 +31,7 @@ public class Auto extends LinearOpMode {
                     })
                     .splineTo(new Vector2d(36.5, 64), 0)
                     .splineToConstantHeading(new Vector2d(38, 63 - (3 * i) % 9),0)
-                    .splineToConstantHeading(new Vector2d(43 + (int)(i/3) * 4, 63 - (3 * i) % 9),0)
+                    .splineToConstantHeading(new Vector2d(43 + (i/3)*4, 63 - (3 * i) % 9),0)
                     .addTemporalMarker(() -> {
                         while(drive.intakeCase <= 2){
                             double power = 0.3;

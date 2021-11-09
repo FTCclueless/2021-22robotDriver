@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.spartronics4915.lib.T265Camera;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,8 +13,8 @@ import java.util.ArrayList;
 public class Localizer implements com.acmerobotics.roadrunner.localization.Localizer {
     public Encoder[] encoders;
     double odoHeading = 0.0;
-    double offsetHeading = 0.0;
-    public boolean updatOdo = true;
+    double offsetHeading;
+    public boolean updateOdo;
     public boolean mergeT265Odo = false;
 
     double gain = 0.109;
@@ -61,7 +60,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             relHistory.add(new Pose2d(0,0,0));
             loopTimes.add(0.001);
         }
-        updatOdo = true;
+        updateOdo = true;
         offsetHeading = 0.0;
         encoders = new Encoder[4];
         encoders[0] = new Encoder(new Vector2d(0.125,-4.798502587509156),1.0);
@@ -177,7 +176,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         if (mergeT265Odo && useT265){
             if (System.currentTimeMillis() - T265Start >= 5000) {
                 double odoT265Gain = 0.01;
-                if (!updatOdo) {
+                if (!updateOdo) {
                     odoT265Gain = 1.0;
                 } else if (!ist265EstimateAccurate) {
                     odoT265Gain = 0;
@@ -188,21 +187,19 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 odoT265x += (t265Estimate.getX() - odoT265x) * odoT265Gain;
                 odoT265y += delta[1] * (1.0 - odoT265Gain);
                 odoT265y += (t265Estimate.getY() - odoT265y) * odoT265Gain;
-                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
             }
             else{
                 odoT265Heading += deltaHeading;
                 double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, odoT265Heading + startHeadingOffset);
                 odoT265x += delta[0];
                 odoT265y += delta[1];
-                odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
             }
-
+            odoT265Pose = new Pose2d(odoT265x + startXOffset, odoT265y + startYOffset, odoT265Heading + startHeadingOffset);
             currentPose = new Pose2d(odoT265Pose.getX(),odoT265Pose.getY(),odoT265Pose.getHeading());
             heading = odoT265Pose.getHeading();
         }
 
-        if (encoders.length == 4 && updatOdo){
+        if (encoders.length == 4 && updateOdo){
             double threeWheelDeltaY = deltaBack - deltaHeading * encoders[2].x;
             if (Math.abs(encoders[3].x) - Math.abs(encoders[2].x) > 0){
                 threeWheelDeltaY = deltaFront - deltaHeading * encoders[3].x;
@@ -212,7 +209,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             threeWheelY += deltaThreeWheel[1];
             currentThreeWheelPose = new Pose2d(threeWheelX, threeWheelY, heading);
         }
-        if (updatOdo){
+        if (updateOdo){
             double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, heading);
             x += delta[0];
             y += delta[1];
@@ -232,7 +229,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         poseHistory.add(0,new Pose2d(currentPose.getX(),currentPose.getY(),currentPose.getHeading()));
         loopTimes.add(0,loopTime);
 
-        if (updatOdo && !mergeT265Odo) { // this is when we are using full odometry and want to update our position.
+        if (updateOdo && !mergeT265Odo) { // this is when we are using full odometry and want to update our position.
             currentPose = new Pose2d(currentOdoPose.getX(), currentOdoPose.getY(), currentOdoPose.getHeading());
         }
 
@@ -260,7 +257,7 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
                 (total.getHeading()/totalTime)*gain + relCurrentVel.getHeading()*(1.0-gain)
         );
         if (useT265) {
-            T265.sendOdometry(relCurrentVel);
+            a.sendOdometry(relCurrentVel);
         }
 
         relHistory.remove(n);
