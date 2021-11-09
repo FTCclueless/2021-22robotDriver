@@ -114,9 +114,11 @@ public class SampleMecanumDrive extends MecanumDrive {
     static double targetSlideExtensionLength = 0;
     static double targetTurretHeading = 0;
     static double targetV4barOrientation = 0;
-    double slideTickToInch = 842.1053; // 1000.0/(1.1875);
-    double turretTickToRadians = 0;
-    double v4barTickToRadians = 176.8389; //500.0/Math.toRadians(162.0); //171.151991636 (312 rpm and 2:1 ratio)
+    static double slideTickToInch = 71.0953;
+    static double turretTickToRadians = 578.3213;
+    static double v4barTickToRadians = 199.4211;
+
+    private boolean deposit = false;
 
     public Servo[] servos = new Servo[4];
 
@@ -142,6 +144,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     boolean tiltBackward = false;
 
     long tiltTime;
+
+    public long depositTime = 0;
 
     boolean isKnownY = true;
     boolean isKnownX = true;
@@ -313,9 +317,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         // you can set the bulkData to the other expansion hub to get data from the other one
         if (!(slidesCase == 0)) { // the only encoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
             bulkData = expansionHub2.getBulkInputData();
-            slideExtensionLength = bulkData.getMotorCurrentPosition(slides);
-            turretHeading = bulkData.getMotorCurrentPosition(turret);
-            v4barOrientation =  bulkData.getMotorCurrentPosition(v4bar);
+            slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
+            turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
+            v4barOrientation =  bulkData.getMotorCurrentPosition(v4bar)/v4barTickToRadians;
         }
     }
 
@@ -432,6 +436,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         targetV4barOrientation -= Math.toRadians(13.1);
         startSlides = true;
     }
+    public void deposit(){
+        deposit = true;
+    }
 
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
@@ -441,7 +448,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 3: intake.setPower(0.0); if(currentIntake == 1){servos[1].setPosition(0.747);} if(currentIntake == -1){servos[0].setPosition(0.1);} break; // lift up the servo
                 case 4: intake.setPower(-0.5); break;
                 case 5: intake.setPower(0.6); break; // rotate the servo backward
-                case 6: transferMineral = true; intake.setPower(0);  break; // turn off the intake
+                case 6: transferMineral = true; intake.setPower(0); depositTime = System.currentTimeMillis(); break; // turn off the intake
             }
             intakeTime = System.currentTimeMillis();
         }
@@ -467,11 +474,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
                         v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0);
                         servos[2].setPosition(0.406); break;
-                    case 3: servos[2].setPosition(1); break;
-                    case 4: // go back to start
+                    case 4: servos[2].setPosition(1); break;
+                    case 5: // go back to start
                         slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0);
                         servos[2].setPosition(0.29); break;
-                    case 5: // rotate turret back
+                    case 6: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians)); turret.setPower(0); break;
                 }
                 slideTime = System.currentTimeMillis();
@@ -479,20 +486,22 @@ public class SampleMecanumDrive extends MecanumDrive {
             lastSlidesCase = slidesCase;
             int a = slidesCase;
             switch (a) {
-                case 1: //wait for turret to rotate
-                    if (Math.abs(turretHeading/turretTickToRadians - targetTurretHeading) <= Math.toRadians(1)){slidesCase ++;} break;
-                case 2: //wait for arm to be over area TODO: check whether wants to drop (maybe an autoDrop variable vs a manual button input for mechanical)
-                    if (Math.abs(slideExtensionLength/slideTickToInch - targetSlideExtensionLength) <= 1 &&
-                            Math.abs(v4barOrientation/v4barTickToRadians - targetV4barOrientation) <= Math.toRadians(1)){slidesCase ++;} break;
-                case 3: //wait for the block to drop => reset the intakeCase
+                case 1: //wait for turret to get near to end
+                    if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
+                case 2: //wait for arm to be over area
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && Math.abs(v4barOrientation - targetV4barOrientation) <= Math.toRadians(5)){slidesCase ++;} break;
+                case 3: //wait for everything to get to the end and it wants to deposit
+                    if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(5) && deposit){slidesCase ++;} break;
+                case 4: //wait for the block to drop => reset the intakeCase
                     if (System.currentTimeMillis() - slideTime >= 200){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} break;
-                case 4: //wait for the arm to be at start
-                    if (Math.abs(slideExtensionLength/slideTickToInch) <= 1 &&
-                            Math.abs(v4barOrientation/v4barTickToRadians) <= Math.toRadians(1)){slidesCase ++;} break;
-                case 5: //wait for the intake to be facing correct direction
-                    if (Math.abs(turretHeading/turretTickToRadians - Math.toRadians(57.5)*currentIntake) <= Math.toRadians(1)){slidesCase ++;} break;
-                case 6: //resets the slidesCase & officially says mineral has not been transfered
-                    transferMineral = false; slidesCase = 0; lastSlidesCase = 0; break;
+                case 5: //wait for the arm to be at start
+                    if (Math.abs(slideExtensionLength) <= 10 && Math.abs(v4barOrientation) <= Math.toRadians(20)){slidesCase ++;} break;
+                case 6: //wait for the intake to be facing correct direction
+                    if (Math.abs(turretHeading - Math.toRadians(57.5)*currentIntake) <= Math.toRadians(5)){slidesCase ++;} break;
+                case 7: //wait for the arm to be at start
+                    if (Math.abs(slideExtensionLength) <= 1 && Math.abs(v4barOrientation) <= Math.toRadians(5)){slidesCase ++;} break;
+                case 9: //resets the slidesCase & officially says mineral has not been transfered
+                    transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; break;
             }
         }
     }
