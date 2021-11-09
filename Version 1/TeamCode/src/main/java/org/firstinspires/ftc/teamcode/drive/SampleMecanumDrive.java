@@ -116,7 +116,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public Servo[] servos = new Servo[4];
 
-    double currentIntake = 1;
+    double currentIntake = 0;
 
     public static ColorSensor color;
 
@@ -402,9 +402,16 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void startIntake(boolean rightIntake){
-        currentIntake = 1;
+        double targetIntake = 1;
         if (rightIntake){
-            currentIntake = -1;
+            targetIntake = -1;
+        }
+        if (currentIntake != targetIntake){
+            currentIntake = targetIntake;
+            if (!transferMineral){
+                turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians));
+                turret.setPower(1.0);
+            }
         }
         startIntake = true;
     }
@@ -470,7 +477,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0);
                         servos[2].setPosition(0.29); break;
                     case 6: // rotate turret back
-                        turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians)); turret.setPower(0); break;
+                        turret.setTargetPosition((int)(Math.toRadians(57.5)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
                 }
                 slideTime = System.currentTimeMillis();
             }
