@@ -456,9 +456,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         int a = intakeCase;
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= 1000){intakeCase ++;} break;  // waiting for the servo to drop
-            case 2: if (System.currentTimeMillis() - intakeTime >= 1500){intakeCase ++;} break;  // waiting for a mineral in intake
+            case 2: if (System.currentTimeMillis() - intakeTime >= 1500){intakeCase ++;} break;  //TODO: waiting for a mineral in intake
             case 3: if (System.currentTimeMillis() - intakeTime >= 200){intakeCase ++;} break;
-            case 4: if (System.currentTimeMillis() - intakeTime >= 500 && slidesCase == 0){intakeCase ++;} break;  // waiting for the servo to go up &&
+            case 4: if (System.currentTimeMillis() - intakeTime >= 900 && slidesCase == 0){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
             case 5: if (System.currentTimeMillis() - intakeTime >= 950){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
         Log.e("case", intakeCase + " " + slidesCase);
