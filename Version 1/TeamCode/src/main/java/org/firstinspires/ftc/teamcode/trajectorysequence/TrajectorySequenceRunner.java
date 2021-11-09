@@ -58,6 +58,8 @@ public class TrajectorySequenceRunner {
 
     Long lastLoopTime;
 
+    public double error = 0;
+
     private robotComponents t265Robot;
     private Pose2d t265Pose;
     public Pose2d t265Velocity;
@@ -228,6 +230,7 @@ public class TrajectorySequenceRunner {
             packet.put("t265Y", t265Pose.getY());
             packet.put("t265Heading (deg)", Math.toDegrees(t265Pose.getHeading()));
         }
+        packet.put("error", error);
         packet.put("x", poseEstimate.getX());
         packet.put("y", poseEstimate.getY());
         packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
