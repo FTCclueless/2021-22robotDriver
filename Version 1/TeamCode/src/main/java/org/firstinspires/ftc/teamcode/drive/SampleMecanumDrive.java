@@ -91,9 +91,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private List<DcMotorEx> motors;
 
-    static RevBulkData bulkData;
-    static ExpansionHubEx expansionHub1, expansionHub2;
-    public static ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, v4bar, turret, slides;
+    RevBulkData bulkData;
+    ExpansionHubEx expansionHub1, expansionHub2;
+    public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, v4bar, turret, slides;
     static TouchSensor lf, lb, rb, rf;
     long lastTouchPoll;
     long lastTiltPoll;
@@ -108,15 +108,15 @@ public class SampleMecanumDrive extends MecanumDrive {
     private int lastSlidesCase = 0;
     boolean startSlides = false;
 
-    static double slideExtensionLength = 0;
-    static double turretHeading = 0;
-    static double v4barOrientation = 0;
+    public double slideExtensionLength = 0;
+    public double turretHeading = 0;
+    public double v4barOrientation = 0;
     static double targetSlideExtensionLength = 0;
     static double targetTurretHeading = 0;
     static double targetV4barOrientation = 0;
-    static double slideTickToInch = 71.0953;
-    static double turretTickToRadians = 578.3213;
-    static double v4barTickToRadians = 199.4211;
+    public double slideTickToInch = 71.0953;
+    public double turretTickToRadians = 578.3213;
+    public double v4barTickToRadians = 199.4211;
 
     private boolean deposit = false;
 
@@ -306,7 +306,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         localizer.T265Start = System.currentTimeMillis();
     }
 
-    public static void getEncoders(){
+    public void getEncoders(){
         bulkData = expansionHub1.getBulkInputData();
         encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
         encoders[1] = bulkData.getMotorCurrentPosition(leftFront);
