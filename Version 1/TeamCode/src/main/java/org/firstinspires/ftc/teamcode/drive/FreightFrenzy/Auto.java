@@ -29,7 +29,7 @@ public class Auto extends LinearOpMode {
                     .addTemporalMarker(() -> {
                         drive.startIntake(false);
                         if (robotFinished) {
-                            drive.startDeposit(depositPoint,30);
+                            drive.startDeposit(depositPoint,16);
                         }
                     })
                     .splineTo(new Vector2d(36.5, 64), 0)
