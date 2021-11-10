@@ -23,15 +23,18 @@ public class Auto extends LinearOpMode {
         double y = 24 - endPoint.getY();
         double x = y / Math.tan(Math.toRadians(57.5));
         Pose2d depositPoint = new Pose2d(x,y);
+        boolean robotFinished = false;
         for (int i = 0; i < 5; i ++) {
             traj[i] = drive.trajectorySequenceBuilder(endPoint)
                     .addTemporalMarker(() -> {
                         drive.startIntake(false);
-                        //drive.startDeposit(depositPoint,30);
+                        if (robotFinished) {
+                            drive.startDeposit(depositPoint,30);
+                        }
                     })
                     .splineTo(new Vector2d(36.5, 64), 0)
-                    .splineToConstantHeading(new Vector2d(38, 63 - (3 * i) % 9),0)
-                    .splineToConstantHeading(new Vector2d(43 + (i/3)*4, 63 - (3 * i) % 9),0)
+                    .splineToConstantHeading(new Vector2d(38, 63 - 3 * (i % 3)),0)
+                    .splineToConstantHeading(new Vector2d(43 + (i/3)*4, 63 - 3 * (i % 3)),0)
                     .addTemporalMarker(() -> {
                         while(drive.intakeCase <= 2){
                             double power = 0.3;
@@ -48,16 +51,18 @@ public class Auto extends LinearOpMode {
                     .addTemporalMarker(() -> {
                         drive.intakeCase = 0;
                         drive.lastIntakeCase = 0;
-                        while(System.currentTimeMillis() - drive.depositTime <= 1500){
-                            drive.update();
+                        if (robotFinished) {
+                            drive.deposit();
+                            drive.setMotorPowers(0,0,0,0);
+                            while(drive.slidesCase <= 4){
+                                drive.update();
+                            }
                         }
-                        /*
-                        drive.deposit();
-                        drive.setMotorPowers(0,0,0,0);
-                        while(drive.slidesCase <= 4){
-                            drive.update();
+                        else {
+                            while (System.currentTimeMillis() - drive.depositTime <= 1500) {
+                                drive.update();
+                            }
                         }
-                        */
                     })
                     .build();
         }
