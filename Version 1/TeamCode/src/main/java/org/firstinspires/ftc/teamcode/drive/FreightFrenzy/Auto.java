@@ -34,7 +34,7 @@ public class Auto extends LinearOpMode {
                     })
                     .splineTo(new Vector2d(36.5, 64), 0)
                     .splineToConstantHeading(new Vector2d(38, 63 - 3 * (i % 3)),0)
-                    .splineToConstantHeading(new Vector2d(43 + (i/3)*4, 63 - 3 * (i % 3)),0)
+                    .splineToConstantHeading(new Vector2d(40 + (i / 3) * 4, 63 - (i % 3) * 3),0)
                     .addTemporalMarker(() -> {
                         while(drive.intakeCase <= 2){
                             double power = 0.3;
