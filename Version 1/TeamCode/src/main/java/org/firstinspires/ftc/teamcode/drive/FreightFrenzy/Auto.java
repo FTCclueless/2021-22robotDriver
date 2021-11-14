@@ -18,14 +18,14 @@ public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        TrajectorySequence[] traj = new TrajectorySequence[5];
+        TrajectorySequence[] intake = new TrajectorySequence[5];
         Pose2d endPoint = new Pose2d(12,64,0);
         double y = 24 - endPoint.getY();
         double x = y / Math.tan(Math.toRadians(57.5));
         Pose2d depositPoint = new Pose2d(x,y);
         boolean robotFinished = false;
         for (int i = 0; i < 5; i ++) {
-            traj[i] = drive.trajectorySequenceBuilder(endPoint)
+            intake[i] = drive.trajectorySequenceBuilder(endPoint)
                     .addTemporalMarker(() -> {
                         drive.startIntake(false);
                         if (robotFinished) {
@@ -33,45 +33,54 @@ public class Auto extends LinearOpMode {
                         }
                     })
                     .splineTo(new Vector2d(36.5, 64), 0)
-                    .splineToConstantHeading(new Vector2d(38, 63 - 3 * (i % 3)),0)
-                    .splineToConstantHeading(new Vector2d(40 + (i / 3) * 4, 63 - (i % 3) * 3),0)
-                    .addTemporalMarker(() -> {
-                        while(drive.intakeCase <= 2){
-                            double power = 0.3;
-                            double turn = drive.currentPose.getHeading();
-                            drive.pinMotorPowers(power+turn,power+turn,power-turn,power-turn);
-                            drive.update();
-                        }
-                    })
-                    .setReversed(true)
-                    .splineToConstantHeading(new Vector2d(36.5,endPoint.getY()),Math.toRadians(180))
-                    .setReversed(true)
-                    .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),Math.toRadians(180))
-                    .turn(0)
-                    .addTemporalMarker(() -> {
-                        drive.intakeCase = 0;
-                        drive.lastIntakeCase = 0;
-                        if (robotFinished) {
-                            drive.deposit();
-                            drive.setMotorPowers(0,0,0,0);
-                            while(drive.slidesCase <= 4){
-                                drive.update();
-                            }
-                        }
-                        else {
-                            while (System.currentTimeMillis() - drive.depositTime <= 1500) {
-                                drive.update();
-                            }
-                        }
-                    })
+                    .splineTo(new Vector2d(40 + (i / 3) * 4,64),Math.toRadians((i % 3) * -15))
                     .build();
+                    //.splineToConstantHeading(new Vector2d(38, 63 - 3 * (i % 3)),0)
+                    //.splineToConstantHeading(new Vector2d(40 + (i / 3) * 4, 63 - (i % 3) * 3),0)
         }
         waitForStart();
         setUp();
+
+
         long start = System.currentTimeMillis();
         int numMinerals = 0;
+
+
         while (numMinerals < 5 && System.currentTimeMillis() - start <= 22000){
-            drive.followTrajectorySequence(traj[numMinerals]);
+
+
+            drive.followTrajectorySequence(intake[numMinerals]);
+
+
+            double power = 0.3;
+            double startHeading = drive.currentPose.getHeading();
+            while(drive.intakeCase <= 2){
+                double turn = drive.currentPose.getHeading() - startHeading;
+                drive.pinMotorPowers(power+turn,power+turn,power-turn,power-turn);
+                drive.update();
+            }
+
+
+            TrajectorySequence deposit = drive.trajectorySequenceBuilder(drive.currentPose)
+                    .setReversed(true)
+                    .splineTo(new Vector2d(36.5,endPoint.getY()),Math.toRadians(180))
+                    .setReversed(true)
+                    .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),Math.toRadians(180))
+                    .turn(0)
+                    .build();
+            drive.followTrajectorySequence(deposit);
+
+
+            drive.intakeCase = 0;
+            drive.lastIntakeCase = 0;
+            drive.deposit();
+
+
+            while (System.currentTimeMillis() - drive.depositTime <= 1500) { //drive.slidesCase <= 4
+                drive.update();
+            }
+
+
             numMinerals ++;
         }
         while (opModeIsActive()){
