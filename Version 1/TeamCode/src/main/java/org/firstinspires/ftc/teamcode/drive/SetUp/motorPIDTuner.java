@@ -32,7 +32,7 @@ public class motorPIDTuner extends LinearOpMode {
             if (gamepad1.a){
                 state = "idle";
             }
-            if (gamepad1.b){
+            if (gamepad1.b && false){
                 state = "v4bar";
                 drive.v4bar.setPower(1);
                 drive.slides.setPower(0);
