@@ -15,7 +15,7 @@ public class T265 {
     public void T265Init(Pose2d p, double odometryCovariance, Context appContext){
         if (slmra == null) {
             transform2d = new Transform2d(new Translation2d(p.getX() * 0.0254, p.getY() * 0.0254), new Rotation2d());
-            slmra = new T265Camera(new Transform2d(new Translation2d(p.getX() * 0.0254, p.getY() * 0.0254), new Rotation2d()), odometryCovariance, appContext);
+            slmra = new T265Camera(new Transform2d(new Translation2d(), new Rotation2d()), odometryCovariance, appContext);
         }
     }
     public void updateCovariance(double odometryCovariance, Context appContext){
@@ -35,7 +35,13 @@ public class T265 {
     }
     public Pose2d getPoseEstimate(){
         T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
-        return new Pose2d(t265Data.pose.getX()*-39.3701,t265Data.pose.getY()*-39.3701,t265Data.pose.getHeading());
+        double x = t265Data.pose.getX() * -1
+                + transform2d.getTranslation().getX() * (1 - Math.cos(t265Data.pose.getHeading()))
+                - transform2d.getTranslation().getY() * Math.sin(t265Data.pose.getHeading());
+        double y = t265Data.pose.getY() * -1
+                + transform2d.getTranslation().getY() * (1 - Math.cos(t265Data.pose.getHeading()))
+                + transform2d.getTranslation().getX() * Math.sin(t265Data.pose.getHeading());
+        return new Pose2d(x * 39.3701,y * 39.3701,t265Data.pose.getHeading());
     }
     public Pose2d getRelVelocity(){
         T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
