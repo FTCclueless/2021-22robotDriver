@@ -62,11 +62,11 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         }
         updateOdo = true;
         offsetHeading = 0.0;
-        encoders = new Encoder[4];
+        encoders = new Encoder[3];
         encoders[0] = new Encoder(new Vector2d(0.125,-4.798502587509156),1.0);
         encoders[1] = new Encoder(new Vector2d(0.125,4.746510815258789),  -1.0);
-        encoders[2] = new Encoder(new Vector2d(2.311807240850830,-3), -1.0);
-        encoders[3] = new Encoder(new Vector2d(6.531451276593018,-3),  1.0);
+        //encoders[2] = new Encoder(new Vector2d(2.311807240850830,-3), -1.0);
+        encoders[2] = new Encoder(new Vector2d(6.531451276593018,3),  -1.0);
     }
 
     public void updateEncoders(int[] encoders){
