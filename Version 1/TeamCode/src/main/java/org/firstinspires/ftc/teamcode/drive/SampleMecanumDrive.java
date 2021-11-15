@@ -566,7 +566,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateIMU = false;
     }
     public void updateSensor(){
-        updateColorSensor();
+        updateLineDetection();
         updateWallDetection();
         updateOdoOverBarrier();
     }
@@ -669,7 +669,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             lastTouchPoll = System.currentTimeMillis();
         }
     }
-    public void updateColorSensor(){
+    public void updateLineDetection(){
         double robotWidth = 12.5;
         boolean detectLine = false;
         double colorX = 0.996;
