@@ -12,8 +12,8 @@ public class ServoTuner extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         waitForStart();
-        double[] servoPos = new double[drive.servos.length];
-        for (int i = 0; i < drive.servos.length; i ++){
+        double[] servoPos = new double[drive.servos.size()];
+        for (int i = 0; i < drive.servos.size(); i ++){
             servoPos[i] = 0.5;
         }
         int servoIndex = 0;
@@ -32,13 +32,13 @@ public class ServoTuner extends LinearOpMode {
             servoPos[servoIndex] = Math.min(1.0,Math.max(0,servoPos[servoIndex]));
 
             long start = System.nanoTime();
-            drive.servos[servoIndex].setPosition(servoPos[servoIndex]);
+            drive.servos.get(servoIndex).setPosition(servoPos[servoIndex]);
             double elapsedTime = (System.nanoTime()-start)/1000000000.0;
             totalTime += elapsedTime;
 
             boolean x = gamepad1.x;
             if (x && !lastX){
-                servoIndex += drive.servos.length - 1;
+                servoIndex += drive.servos.size() - 1;
             }
             lastX = x;
             boolean y = gamepad1.y;
@@ -46,7 +46,7 @@ public class ServoTuner extends LinearOpMode {
                 servoIndex += 1;
             }
             lastY = y;
-            servoIndex = servoIndex % drive.servos.length;
+            servoIndex = servoIndex % drive.servos.size();
 
             telemetry.addData("servoNum", servoIndex);
             telemetry.addData("servoPos", servoPos[servoIndex]);

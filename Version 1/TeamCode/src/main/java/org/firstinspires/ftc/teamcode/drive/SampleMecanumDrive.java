@@ -89,9 +89,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides;
-    TouchSensor lf, lb, rb, rf;
-    public AnalogInput rightIntake, leftIntake;
-    double rightIntakeVal = 0, leftIntakeVal = 0;
+    public AnalogInput rightIntake, leftIntake, rightWall, leftWall;
+    double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal;
     long lastTouchPoll;
     long lastTiltPoll;
 
@@ -107,7 +106,6 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
-    public double v4barOrientation = 0;
     public double targetSlideExtensionLength = 0;
     public double targetTurretHeading = 0;
     public double targetV4barOrientation = 0;
@@ -118,7 +116,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private double intakeTurretInterfaceHeading = 57.5;
 
-    public Servo[] servos = new Servo[3];
+    public ArrayList<Servo> servos;
 
     double currentIntake = 0;
 
@@ -199,7 +197,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
-        color = hardwareMap.colorSensor.get("cs");
+        color = hardwareMap.colorSensor.get("cs"); //TODO: Replace this with an analog sensor
         color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
@@ -245,12 +243,29 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        servos[0] = hardwareMap.servo.get("rightIntake");
-        servos[1] = hardwareMap.servo.get("leftIntake");
-        servos[2] = hardwareMap.servo.get("odoLift");
+
+        servos = new ArrayList<>();
+        for (int i = 0; i < 12; i ++) {
+            switch (i){
+                case 0: servos.add(hardwareMap.servo.get("rightIntake")); break;
+                case 1: servos.add(hardwareMap.servo.get("leftIntake")); break;
+                case 2: servos.add(hardwareMap.servo.get("deposit")); break;
+                case 3: servos.add(hardwareMap.servo.get("odoLift")); break;
+                case 4: servos.add(hardwareMap.servo.get("v4bar")); break;
+                case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
+                case 6: servos.add(hardwareMap.servo.get("leftCapstone")); break;
+            }
+        }
 
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
+        rightWall = hardwareMap.analogInput.get("rightWall");
+        leftWall = hardwareMap.analogInput.get("leftWall");
+        rightIntakeVal = 0;
+        leftIntakeVal = 0;
+        rightWallVal = 0;
+        leftWallVal = 0;
+
 
 
         // reverse any motors using DcMotor.setDirection()
@@ -307,13 +322,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (encoders.length == 4) {
             encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         }
+        //TODO: Get the analog input devices to all be on the control hub
         rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
+        leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
+        rightWallVal = bulkData.getAnalogInputValue(rightWall);
+        leftWallVal = bulkData.getAnalogInputValue(leftWall);
+
         // you can set the bulkData to the other expansion hub to get data from the other one
-        if (!(slidesCase == 0) || intakeCase == 4 || (currentIntake == 1 && intakeCase == 2)) { // the only encoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
+        if (!(slidesCase == 0) || intakeCase == 4 ){ //|| (currentIntake == 1 && intakeCase == 2)) { // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
             bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
-            leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
+            //leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
         }
     }
 
@@ -444,9 +464,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
-                case 1: if(currentIntake == 1){servos[1].setPosition(0.068);} if(currentIntake == -1){servos[0].setPosition(0.762);} break; // rotate the servo down
+                case 1: if(currentIntake == 1){servos.get(1).setPosition(0.068);} if(currentIntake == -1){servos.get(0).setPosition(0.762);} break; // rotate the servo down
                 case 2: intake.setPower(-0.85); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos[1].setPosition(0.747);} if(currentIntake == -1){servos[0].setPosition(0.113);} break; // lift up the servo
+                case 3: if(currentIntake == 1){servos.get(1).setPosition(0.747);} if(currentIntake == -1){servos.get(0).setPosition(0.113);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
                 case 5: intake.setPower(0.6); break; // rotate the servo backward
                 case 6: transferMineral = true; intake.setPower(0); depositTime = System.currentTimeMillis(); break; // turn off the intake
@@ -465,6 +485,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateSlides(){
+        //TODO: implement v4bar as a servo
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
@@ -472,12 +493,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                         turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0);break;
                     case 2: // extend slides & v4bar & servo pre-tilt
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
-                        //v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0);
-                        servos[2].setPosition(0.406); break;
-                    case 4: servos[2].setPosition(1); break;
+                        servos.get(2).setPosition(0.406); break;
+                    case 4: servos.get(2).setPosition(1); break;
                     case 5: // go back to start
-                        slides.setTargetPosition(0); slides.setPower(1.0); //v4bar.setTargetPosition(0); v4bar.setPower(1.0);
-                        servos[2].setPosition(0.29); break;
+                        slides.setTargetPosition(0); slides.setPower(1.0);
+                        servos.get(2).setPosition(0.29); break;
                     case 6: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
                 }
@@ -489,17 +509,17 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: //wait for turret to get near to end
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
                 case 2: //wait for arm to be over area
-                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && Math.abs(v4barOrientation - targetV4barOrientation) <= Math.toRadians(5)){slidesCase ++;} break;
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && System.currentTimeMillis() - slidesCase >= targetV4barOrientation * 238.7){slidesCase ++;} break;
                 case 3: //wait for everything to get to the end and it wants to deposit
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(5) && deposit){slidesCase ++;} break;
                 case 4: //wait for the block to drop => reset the intakeCase
                     if (System.currentTimeMillis() - slideTime >= 200){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} break;
                 case 5: //wait for the arm to be at start
-                    if (Math.abs(slideExtensionLength) <= 10 && Math.abs(v4barOrientation) <= Math.toRadians(20)){slidesCase ++;} break;
+                    if (Math.abs(slideExtensionLength) <= 10){slidesCase ++;} break;
                 case 6: //wait for the intake to be facing correct direction
                     if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){slidesCase ++;} break;
                 case 7: //wait for the arm to be at start
-                    if (Math.abs(slideExtensionLength) <= 1 && Math.abs(v4barOrientation) <= Math.toRadians(5)){slidesCase ++;} break;
+                    if (Math.abs(slideExtensionLength) <= 1){slidesCase ++;} break;
                 case 9: //resets the slidesCase & officially says mineral has not been transfered
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; break;
             }
@@ -547,7 +567,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
     public void updateSensor(){
         updateColorSensor();
-        //updateTouchSensor();
+        updateWallDetection();
         updateOdoOverBarrier();
     }
     public void updateOdoOverBarrier(){
@@ -568,7 +588,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     tiltForward = imuAngle.secondAngle > 0;
                     tiltBackward = !tiltForward;
                     firstOffBarrier = true;
-                    servos[3].setPosition(0.668);
+                    servos.get(3).setPosition(0.668);
                 }
             }
             else{
@@ -605,46 +625,44 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     tiltForward = false;
                     tiltBackward = false;
-                    servos[3].setPosition(0.48);
+                    servos.get(3).setPosition(0.48);
                 }
             }
         }
     }
-    public void updateTouchSensor(){
-        if ((!isKnownX || !isKnownY) || System.currentTimeMillis() - lastTouchPoll > 250){
-            boolean left = lf.isPressed() && lb.isPressed();
-            boolean right = rf.isPressed() && rb.isPressed();
+    public void updateWallDetection(){
+        if ((!isKnownX || !isKnownY) || Math.abs(currentPose.getX()) >= 72 - 6 - 4 || Math.abs(currentPose.getY()) >= 72 - 6 - 4){
             double heading = clipHeading(currentPose.getHeading());
+            //TODO: Get the actual value for the sensors when in idle
+            boolean left = leftWallVal <= 300;
+            boolean right = rightWallVal <= 300;
             if (right ^ left){ // this is XOR it means that this or this but not both this and this
                 boolean forward = Math.abs(heading) < Math.toRadians(15);
                 boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
                 boolean leftRight = Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15);
-                double multiplier = 1.0;
-                if (right){
-                    multiplier = -1.0;
-                }
                 if (forward || backward){
-                    double m1 = 1;
-                    if (backward){
-                        m1 = -1;
+                    double distance;
+                    if (left){
+                        distance = leftWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
-                    if ((!isKnownX || !isKnownY)) {
-                        setPoseEstimate(new Pose2d(currentPose.getX(), (72 - 12.0 / 2.0) * multiplier * m1, currentPose.getHeading()));
+                    else{
+                        distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
-                    else if (Math.abs(currentPose.getY()) > 72 - 12.0 / 2.0 - 5){
-                        setPoseEstimate(new Pose2d(currentPose.getX(), (72 - 12.0 / 2.0) * Math.signum(currentPose.getY()), currentPose.getHeading())); // * multiplier * m1
-                    }
-                    //localizer.y = (72-12.0/2.0)*multiplier*m1;
+                    //TODO: implement kalman filter here
+                    setPoseEstimate(new Pose2d(currentPose.getX(), (72 - 6.0 - distance) * Math.signum(currentPose.getY()), currentPose.getHeading()));
                     isKnownY = true;
                 }
                 else if (leftRight){
-                    if ((!isKnownX || !isKnownY)) {
-                        setPoseEstimate(new Pose2d(72-12.0/2.0,currentPose.getY(),currentPose.getHeading()));
+                    //TODO: implement kalman filter here
+                    double distance;
+                    if (left){
+                        distance = leftWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
-                    else if (Math.abs(currentPose.getX()) > 72 - 12.0 / 2.0 - 5){
-                        setPoseEstimate(new Pose2d((72-12.0/2.0)*Math.signum(currentPose.getX()),currentPose.getY(),currentPose.getHeading()));
+                    else{
+                        distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
-                    //localizer.x = 72-12.0/2.0;
+                    //TODO: implement kalman filter here
+                    setPoseEstimate(new Pose2d((72 - 6.0 - distance) * Math.signum(currentPose.getX()),currentPose.getY(),currentPose.getHeading()));
                     isKnownX = true;
                 }
             }
