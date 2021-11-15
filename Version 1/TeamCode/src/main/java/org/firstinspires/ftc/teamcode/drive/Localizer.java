@@ -102,6 +102,12 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         startYOffset += pose2d.getY() - currentPose.getY();
         startHeadingOffset += pose2d.getHeading() - currentPose.getHeading(); // was = now +=
     }
+    public void setX(@NotNull double x){
+        startYOffset += x - currentPose.getX();
+    }
+    public void setY(@NotNull double y){
+        startYOffset += y - currentPose.getY();
+    }
 
     @Nullable
     @Override

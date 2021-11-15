@@ -611,16 +611,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                             if (backward){
                                 m2 = -1.0;
                             }
-                            setPoseEstimate(new Pose2d(24 + (10)*m1*m2,currentPose.getY(),currentPose.getHeading()));
-                            //localizer.x = 24 + (10)*m1*m2;
+                            localizer.setX(24 + (10)*m1*m2);
                         }
                         if (left || right){
                             double m2 = 1.0;
                             if (right){
                                 m2 = -1.0;
                             }
-                            setPoseEstimate(new Pose2d(currentPose.getX(),(24 + (10)*m1*m2) * Math.signum(currentPose.getY()),currentPose.getHeading()));
-                            //localizer.y = (24 + (10)*m1*m2) * Math.signum(currentPose.getY());
+                            localizer.setY((24 + (10)*m1*m2) * Math.signum(currentPose.getY()));
                         }
                     }
                     tiltForward = false;
@@ -649,7 +647,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
                     //TODO: implement kalman filter here
-                    setPoseEstimate(new Pose2d(currentPose.getX(), (72 - 6.0 - distance) * Math.signum(currentPose.getY()), currentPose.getHeading()));
+                    localizer.setY((72 - 6.0 - distance) * Math.signum(currentPose.getY()));
                     isKnownY = true;
                 }
                 else if (leftRight){
@@ -662,7 +660,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
                     //TODO: implement kalman filter here
-                    setPoseEstimate(new Pose2d((72 - 6.0 - distance) * Math.signum(currentPose.getX()),currentPose.getY(),currentPose.getHeading()));
+                    localizer.setX((72 - 6.0 - distance) * Math.signum(currentPose.getX()));
                     isKnownX = true;
                 }
             }
@@ -693,21 +691,18 @@ public class SampleMecanumDrive extends MecanumDrive {
                 if (Math.abs(var) > Math.toRadians(90-15)) { // facing forward or backward (going over the left right line)
                     double speed = Math.signum(currentVelocity.getX()) * multiplier;
                     double m1 = Math.signum(var);
-                    setPoseEstimate(new Pose2d(72 - 43.5 + 1 - speed + m1*colorX,currentPose.getY(),currentPose.getHeading()));
-                    //localizer.x = 72 - 43.5 + 1 - speed + m1*colorX;
+                    localizer.setX(72 - 43.5 + 1 - speed + m1*colorX);
                     isKnownX = true;
                 } else if (Math.abs(var) < Math.toRadians(15)) {
                     double m1 = Math.signum(heading)*-1;
                     double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                    setPoseEstimate(new Pose2d(currentPose.getX(),(72 - 43.5 + 1) * m1 - speed + colorX*m1,currentPose.getHeading()));
-                    //localizer.y = (72 - 43.5 + 1) * m1 - speed + colorX*m1;
+                    localizer.setY((72 - 43.5 + 1) * m1 - speed + colorX*m1);
                     isKnownY = true;
                 }
             } else if (leftRightEntrance) {
                 double speed = Math.signum(currentVelocity.getX()) * multiplier;
                 double m1 = Math.signum(heading)*-1.0;
-                setPoseEstimate(new Pose2d(72 - 43.5 + 1 - speed + m1*colorX,currentPose.getY(),currentPose.getHeading()));
-                //localizer.x = 72 - 43.5 + 1 - speed + m1*colorX;
+                localizer.setX(72 - 43.5 + 1 - speed + m1*colorX);
                 isKnownX = true;
             } else if (topLeftEntrance || topRightEntrance) {
                 double m1 = 1;
@@ -716,8 +711,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
                 double m2 = Math.signum(heading);
                 double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                setPoseEstimate(new Pose2d(currentPose.getX(),(72 - 43.5 + 1) * m1 - speed - colorX*m2,currentPose.getHeading()));
-                //localizer.y = (72 - 43.5 + 1) * m1 - speed - colorX*m2;
+                localizer.setY((72 - 43.5 + 1) * m1 - speed - colorX*m2);
                 isKnownY = true;
             }
         }
