@@ -49,7 +49,7 @@ public class T265 {
         return new Pose2d(a.vxMetersPerSecond*-39.3701,a.vyMetersPerSecond*-39.3701,a.omegaRadiansPerSecond);
     }
     public void sendOdometry(Pose2d relVel){
-        double relX = relVel.getX()*-0.0254 + relVel.getHeading()*transform2d.getTranslation().getY()*-1;
+        double relX = relVel.getX()*-0.0254 - relVel.getHeading()*transform2d.getTranslation().getY();
         if (Math.abs(relX) <= 0.01){
             relX = 0;
         }
