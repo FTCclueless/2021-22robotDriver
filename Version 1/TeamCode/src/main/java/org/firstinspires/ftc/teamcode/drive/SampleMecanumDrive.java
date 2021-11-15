@@ -653,8 +653,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                     else{
                         distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
-                    //TODO: implement kalman filter here
-                    localizer.setY((72 - 6.0 - distance) * Math.signum(currentPose.getY()));
+                    double gain = 0.01;
+                    double yVal = currentPose.getY()*(1.0-gain) + ((72 - 6.0 - distance) * Math.signum(currentPose.getY()))*gain;
+                    localizer.setY(yVal);
                     isKnownY = true;
                 }
                 else if (leftRight){
@@ -666,8 +667,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                     else{
                         distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
                     }
-                    //TODO: implement kalman filter here
-                    localizer.setX((72 - 6.0 - distance) * Math.signum(currentPose.getX()));
+                    double gain = 0.01;
+                    double xVal = currentPose.getX()*(1.0-gain) + ((72 - 6.0 - distance) * Math.signum(currentPose.getX()))*gain;
+                    localizer.setX(xVal);
                     isKnownX = true;
                 }
             }
