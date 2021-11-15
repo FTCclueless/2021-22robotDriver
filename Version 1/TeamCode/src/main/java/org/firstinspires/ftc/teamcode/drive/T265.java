@@ -37,10 +37,10 @@ public class T265 {
         T265Camera.CameraUpdate t265Data = slmra.getLastReceivedCameraUpdate();
         double x = t265Data.pose.getX() * -1
                 + transform2d.getTranslation().getX() * (1 - Math.cos(t265Data.pose.getHeading()))
-                - transform2d.getTranslation().getY() * Math.sin(t265Data.pose.getHeading());
+                + transform2d.getTranslation().getY() * Math.sin(t265Data.pose.getHeading());
         double y = t265Data.pose.getY() * -1
                 + transform2d.getTranslation().getY() * (1 - Math.cos(t265Data.pose.getHeading()))
-                + transform2d.getTranslation().getX() * Math.sin(t265Data.pose.getHeading());
+                - transform2d.getTranslation().getX() * Math.sin(t265Data.pose.getHeading());
         return new Pose2d(x * 39.3701,y * 39.3701,t265Data.pose.getHeading());
     }
     public Pose2d getRelVelocity(){
