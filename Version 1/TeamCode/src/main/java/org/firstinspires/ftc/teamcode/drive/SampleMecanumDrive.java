@@ -197,7 +197,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
-        color = hardwareMap.colorSensor.get("cs"); //TODO: Replace this with an analog sensor
+        color = hardwareMap.colorSensor.get("cs");
         color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
@@ -322,7 +322,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (encoders.length == 4) {
             encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         }
-        //TODO: Get the analog input devices to all be on the control hub
         rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
         leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
         rightWallVal = bulkData.getAnalogInputValue(rightWall);
@@ -485,7 +484,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateSlides(){
-        //TODO: implement v4bar as a servo
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
@@ -659,7 +657,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                     isKnownY = true;
                 }
                 else if (leftRight){
-                    //TODO: implement kalman filter here
                     double distance;
                     if (left){
                         distance = leftWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
