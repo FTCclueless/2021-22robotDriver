@@ -512,7 +512,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: //wait for turret to get near to end
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
                 case 2: //wait for arm to be over area
-                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && System.currentTimeMillis() - slidesCase >= targetV4barOrientation * 238.7){slidesCase ++;} break;
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && System.currentTimeMillis() - slidesCase >= targetV4barOrientation * 238.7){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
                 case 3: //wait for everything to get to the end and it wants to deposit
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(5) && deposit){slidesCase ++;} break;
                 case 4: //wait for the block to drop => reset the intakeCase
