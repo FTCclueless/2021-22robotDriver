@@ -493,10 +493,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                         turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0);break;
                     case 2: // extend slides & v4bar & servo pre-tilt
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
+                        setV4barOrientation(targetV4barOrientation);
                         servos.get(2).setPosition(0.406); break;
-                    case 4: servos.get(2).setPosition(1); break;
+                    case 4: //deposit
+                        servos.get(2).setPosition(1); break;
                     case 5: // go back to start
                         slides.setTargetPosition(0); slides.setPower(1.0);
+                        setV4barOrientation(0);
                         servos.get(2).setPosition(0.29); break;
                     case 6: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
@@ -524,6 +527,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; break;
             }
         }
+    }
+
+    public void setV4barOrientation(double targetV4barOrientation){
+        servos.get(4).setPosition(targetV4barOrientation); //TODO: Find the position to angle
     }
 
     public void updateScoring(){
