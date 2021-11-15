@@ -50,7 +50,8 @@ public class SensorTest extends LinearOpMode {
             //Orientation orientation = drive.imu.getAngularOrientation();
             //double angle = drive.imu.getAngularOrientation().secondAngle;
             //double current = drive.rightRear.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
-            double voltage = drive.getBatteryVoltage();
+           // double voltage = drive.getBatteryVoltage();
+            double val = drive.leftIntake.getVoltage();
             double elapsedTimeRLI = (System.nanoTime() - startTime)/1000000.0;
             totalElapsedRLITime += elapsedTimeRLI;
             loops ++;
@@ -59,7 +60,8 @@ public class SensorTest extends LinearOpMode {
             //telemetry.addData("Imu heading", orientation.secondAngle);
             //telemetry.addData("Imu heading", angle);
             //telemetry.addData("currentMotor", current);
-            telemetry.addData("volatage", drive.getBatteryVoltage());
+            //telemetry.addData("volatage", drive.getBatteryVoltage());
+            telemetry.addData("volatage", val);
             telemetry.addData("ReadTime", elapsedTimeRLI);
             telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
             telemetry.update();

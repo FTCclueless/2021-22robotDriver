@@ -27,7 +27,7 @@ public class Teleop extends LinearOpMode {
 
         double lockHeadAngle = 0;
 
-        drive.startIntake(false);
+        drive.startIntake(true);
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
 

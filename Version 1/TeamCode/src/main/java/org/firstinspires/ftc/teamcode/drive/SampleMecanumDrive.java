@@ -34,6 +34,7 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAcceleration
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -87,8 +88,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
-    public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, v4bar, turret, slides;
-    static TouchSensor lf, lb, rb, rf;
+    public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides;
+    TouchSensor lf, lb, rb, rf;
+    public AnalogInput rightIntake, leftIntake;
+    double rightIntakeVal = 0, leftIntakeVal = 0;
     long lastTouchPoll;
     long lastTiltPoll;
 
@@ -110,13 +113,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetV4barOrientation = 0;
     public double slideTickToInch = 71.0953;
     public double turretTickToRadians = 578.3213;
-    public double v4barTickToRadians = 199.4211;
 
     private boolean deposit = false;
 
     private double intakeTurretInterfaceHeading = 57.5;
 
-    public Servo[] servos = new Servo[4];
+    public Servo[] servos = new Servo[3];
 
     double currentIntake = 0;
 
@@ -209,7 +211,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         // add more motors here
         expansionHub2 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 2");
         intake = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake");
-        v4bar  = (ExpansionHubMotor) hardwareMap.dcMotor.get("v4bar");
         turret = (ExpansionHubMotor) hardwareMap.dcMotor.get("turret");
         slides = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides");
 
@@ -239,16 +240,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setTargetPosition(0);
-        v4bar.setTargetPosition(0);
         slides.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        v4bar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         servos[0] = hardwareMap.servo.get("rightIntake");
         servos[1] = hardwareMap.servo.get("leftIntake");
-        servos[2] = hardwareMap.servo.get("deposit");
-        servos[3] = hardwareMap.servo.get("odoLift");
+        servos[2] = hardwareMap.servo.get("odoLift");
+
+        rightIntake = hardwareMap.analogInput.get("rightIntake");
+        leftIntake = hardwareMap.analogInput.get("leftIntake");
 
 
         // reverse any motors using DcMotor.setDirection()
@@ -284,10 +286,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void resetAssemblies(){
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        v4bar.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        v4bar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
@@ -307,12 +307,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (encoders.length == 4) {
             encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         }
+        rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
         // you can set the bulkData to the other expansion hub to get data from the other one
-        if (!(slidesCase == 0)) { // the only encoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
+        if (!(slidesCase == 0) || intakeCase == 4 || (currentIntake == 1 && intakeCase == 2)) { // the only encoders on the second hub are for the v4bar, the turret, and the slides (all of these are in slides case and none are in the intake case)
             bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
-            v4barOrientation =  bulkData.getMotorCurrentPosition(v4bar)/v4barTickToRadians;
+            leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
         }
     }
 
@@ -443,9 +444,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
-                case 1: if(currentIntake == 1){servos[1].setPosition(0.068);} if(currentIntake == -1){servos[0].setPosition(0.779);} break; // rotate the servo down
+                case 1: if(currentIntake == 1){servos[1].setPosition(0.068);} if(currentIntake == -1){servos[0].setPosition(0.762);} break; // rotate the servo down
                 case 2: intake.setPower(-0.85); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos[1].setPosition(0.747);} if(currentIntake == -1){servos[0].setPosition(0.1);} break; // lift up the servo
+                case 3: if(currentIntake == 1){servos[1].setPosition(0.747);} if(currentIntake == -1){servos[0].setPosition(0.113);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
                 case 5: intake.setPower(0.6); break; // rotate the servo backward
                 case 6: transferMineral = true; intake.setPower(0); depositTime = System.currentTimeMillis(); break; // turn off the intake
@@ -456,12 +457,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         int a = intakeCase;
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= 500){intakeCase ++;} break;  // waiting for the servo to drop
-            case 2: if (System.currentTimeMillis() - intakeTime >= 1500){intakeCase ++;} break;  //TODO: waiting for a mineral in intake
-            case 3: if (System.currentTimeMillis() - intakeTime >= 900 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
-            case 4: if(Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(1)){intakeCase ++;}; break;//wait for the slides to be in the correct orientation
+            case 2: if (currentIntake == -1 && rightIntakeVal <= 300){intakeCase ++;} if (currentIntake == 1 && leftIntakeVal <= 300){intakeCase ++;} break;  //TODO: waiting for a mineral in intake
+            case 3: if (System.currentTimeMillis() - intakeTime >= 600 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
+            case 4: if(Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(1)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
             case 5: if (System.currentTimeMillis() - intakeTime >= 950){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
-        Log.e("case", intakeCase + " " + slidesCase);
     }
 
     public void updateSlides(){
@@ -472,11 +472,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                         turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0);break;
                     case 2: // extend slides & v4bar & servo pre-tilt
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
-                        v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0);
+                        //v4bar.setTargetPosition((int)(targetV4barOrientation*v4barTickToRadians)); v4bar.setPower(1.0);
                         servos[2].setPosition(0.406); break;
                     case 4: servos[2].setPosition(1); break;
                     case 5: // go back to start
-                        slides.setTargetPosition(0); slides.setPower(1.0); v4bar.setTargetPosition(0); v4bar.setPower(1.0);
+                        slides.setTargetPosition(0); slides.setPower(1.0); //v4bar.setTargetPosition(0); v4bar.setPower(1.0);
                         servos[2].setPosition(0.29); break;
                     case 6: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
@@ -568,7 +568,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     tiltForward = imuAngle.secondAngle > 0;
                     tiltBackward = !tiltForward;
                     firstOffBarrier = true;
-                    servos[3].setPosition(0.492);
+                    servos[3].setPosition(0.668);
                 }
             }
             else{
@@ -605,7 +605,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     tiltForward = false;
                     tiltBackward = false;
-                    servos[3].setPosition(0.255);
+                    servos[3].setPosition(0.48);
                 }
             }
         }
