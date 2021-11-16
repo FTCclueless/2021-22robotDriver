@@ -27,12 +27,10 @@ public class Teleop extends LinearOpMode {
 
         double lockHeadAngle = 0;
 
-        drive.startIntake(true);
-        drive.intakeCase = 0;
-        drive.lastIntakeCase = 0;
 
         while (!isStopRequested()) {
             drive.update();
+
             double forward = gamepad1.left_stick_y * -1;
             double left = gamepad1.left_stick_x;
             double turn = gamepad1.right_stick_x * 0.35;
@@ -40,6 +38,13 @@ public class Teleop extends LinearOpMode {
                 forward *= 0.4;
                 left *= 0.5;
             }
+
+            if (gamepad1.a){
+                drive.intakeCase = 0;
+                drive.lastIntakeCase = 0;
+                drive.startIntake(true);
+            }
+
             boolean lockHeading = true;
             if (Math.abs(turn) > 0.01){ lockHeading = false; }
             if (lockHeading){

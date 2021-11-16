@@ -528,7 +528,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void setV4barOrientation(double targetV4barOrientation){
-        servos.get(4).setPosition(targetV4barOrientation); //TODO: Find the position to angle
+        servos.get(4).setPosition(targetV4barOrientation * 0.191); //TODO: Find the starting position & the 0.191 is 1 / 300* (but converted to radians)
     }
 
     public void updateScoring(){
