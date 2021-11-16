@@ -12,6 +12,8 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -129,6 +131,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public int loops = 0;
 
+    public double sumIntakeSensor;
+    public double intakeSensorLoops;
+
     public Pose2d currentPose = new Pose2d(0,0,0);
     public Pose2d currentVelocity = new Pose2d(0,0,0);
     public Pose2d relCurrentVelocity = new Pose2d(0,0,0);
@@ -241,6 +246,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
+        intakeSensorLoops = 1;
+        sumIntakeSensor = 0;
+
         servos = new ArrayList<>();
         for (int i = 0; i < 12; i ++) {
             switch (i){
@@ -323,6 +331,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
         rightWallVal = bulkData.getAnalogInputValue(rightWall);
         leftWallVal = bulkData.getAnalogInputValue(leftWall);
+
+        if (intakeCase >= 1 && intakeCase <= 4){
+            if(currentIntake == 1 && leftIntakeVal <= 300){
+                sumIntakeSensor += leftIntakeVal;
+                intakeSensorLoops ++;
+            }
+            if(currentIntake == -1 && rightIntakeVal <= 300){
+                sumIntakeSensor += rightIntakeVal;
+                intakeSensorLoops ++;
+            }
+        }
 
         // you can set the bulkData to the other expansion hub to get data from the other one
         if (!(slidesCase == 0) || intakeCase == 4 ){ //|| (currentIntake == 1 && intakeCase == 2)) { // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
@@ -460,12 +479,16 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
-                case 1: if(currentIntake == 1){servos.get(1).setPosition(0.068);} if(currentIntake == -1){servos.get(0).setPosition(0.762);} break; // rotate the servo down
+                case 1: // rotate the servo down
+                    intakeSensorLoops = 1; sumIntakeSensor = 0;
+                    if(currentIntake == 1){servos.get(1).setPosition(0.068);}
+                    if(currentIntake == -1){servos.get(0).setPosition(0.762);}
+                    break;
                 case 2: intake.setPower(-0.85); break; // turn on the intake (forward)
                 case 3: if(currentIntake == 1){servos.get(1).setPosition(0.747);} if(currentIntake == -1){servos.get(0).setPosition(0.113);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
                 case 5: intake.setPower(0.6); break; // rotate the servo backward
-                case 6: transferMineral = true; intake.setPower(0); depositTime = System.currentTimeMillis(); break; // turn off the intake
+                case 6: transferMineral = true; intake.setPower(0); depositTime = System.currentTimeMillis(); Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + ""); break; // turn off the intake
             }
             intakeTime = System.currentTimeMillis();
         }
