@@ -33,13 +33,12 @@ public class Teleop extends LinearOpMode {
 
         while (!isStopRequested()) {
             drive.update();
-            double forward = gamepad1.left_stick_y;
+            double forward = gamepad1.left_stick_y * -1;
             double left = gamepad1.left_stick_x;
-            double turn = gamepad1.right_stick_x;
-            turn *= 0.35;
+            double turn = gamepad1.right_stick_x * 0.35;
             if (!gamepad1.left_stick_button){
-                forward *= - 0.4;
-                left *= 0.6;
+                forward *= 0.4;
+                left *= 0.5;
             }
             boolean lockHeading = true;
             if (Math.abs(turn) > 0.01){ lockHeading = false; }
