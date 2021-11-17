@@ -655,14 +655,16 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
     public void updateWallDetection(){
         //TODO: Get the actual value for the sensors when in idle
-        boolean left = leftWallVal <= 300;
-        boolean right = rightWallVal <= 300;
+        boolean leftSensor = leftWallVal <= 300;
+        boolean rightSensor = rightWallVal <= 300;
         double heading = clipHeading(currentPose.getHeading());
-        if (right ^ left){ // this is XOR it means that this or this but not both this and this
-            boolean forwardBackward = Math.abs(heading) < Math.toRadians(15) && Math.abs(heading) > Math.toRadians(180 - 15);
-            boolean leftRight = Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15);
+        if (leftSensor ^ rightSensor){ // this is XOR it means that this or this but not both this and this
+            boolean forward = Math.abs(heading) < Math.toRadians(15);
+            boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
+            boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
+            boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
             double distance;
-            if (left){
+            if (leftSensor){
                 distance = (leftWallVal - 1)/100.0; //TODO: Find the function for light reflectance vs distance
             }
             else{
@@ -670,30 +672,60 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
             double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
             double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
-
             double gain = 0.01;
             double detectionDist = 4.0;
             double extraOffset = 2.0;
-            if (forwardBackward){
-                if (isKnownY){
-                    if (Math.abs(currentPose.getY()) - 72.0 > -6.0 - detectionDist - extraOffset) {
-                        localizer.setY(currentPose.getY() * (1.0 - gain) + ((72 - Math.abs(currentYDist)) * Math.signum(currentPose.getY())) * gain);
+            double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
+            if (forward || backward){
+                double m = 1;
+                if (backward){
+                    m = -1;
+                }
+                if (!isKnownY){
+                    if (leftSensor && Math.signum(currentPose.getY()) == m){
+                        isKnownY = true;
+                        localizer.setY((72 - Math.abs(currentYDist)) * m);
+                    }
+                    if (rightSensor && Math.signum(currentPose.getY()) == -1 * m){
+                        isKnownY = true;
+                        localizer.setY((-72 + Math.abs(currentYDist)) * m);
                     }
                 }
-                else{
-                    isKnownY = true;
-                    localizer.setY((72 - Math.abs(currentYDist)) * Math.signum(currentPose.getY()));
+                else {
+                    if (((leftSensor && m == 1) || (rightSensor && m == -1))  && currentPose.getY() - maxDetectionLocation > 0){
+                        isKnownY = true;
+                        localizer.setY(72 - Math.abs(currentYDist));
+                    }
+                    if (((rightSensor && m == 1) || (leftSensor && m == -1)) && currentPose.getY() + maxDetectionLocation < 0){
+                        isKnownY = true;
+                        localizer.setY(-72 + Math.abs(currentYDist));
+                    }
                 }
             }
-            else if (leftRight){
-                if (isKnownX){
-                    if (Math.abs(currentPose.getX()) - 72.0 > -6.0 - detectionDist - extraOffset) {
-                        localizer.setX(currentPose.getX() * (1.0 - gain) + ((72 - Math.abs(currentXDist)) * Math.signum(currentPose.getX())) * gain);
+            if (right || left){
+                double m = 1;
+                if (left){
+                    m = -1;
+                }
+                if (!isKnownY){
+                    if (leftSensor && Math.signum(currentPose.getX()) == m){
+                        isKnownX = true;
+                        localizer.setX((72 - Math.abs(currentXDist)) * m);
+                    }
+                    if (rightSensor && Math.signum(currentPose.getX()) == -1 * m){
+                        isKnownX = true;
+                        localizer.setX((-72 + Math.abs(currentXDist)) * m);
                     }
                 }
-                else{
-                    isKnownX = true;
-                    localizer.setX((72 - Math.abs(currentXDist)) * Math.signum(currentPose.getX()));
+                else {
+                    if (((leftSensor && m == 1) || (rightSensor && m == -1))  && currentPose.getX() - maxDetectionLocation > 0){
+                        isKnownX = true;
+                        localizer.setX(72 - Math.abs(currentXDist));
+                    }
+                    if (((rightSensor && m == 1) || (leftSensor && m == -1)) && currentPose.getX() + maxDetectionLocation < 0){
+                        isKnownX = true;
+                        localizer.setX(-72 + Math.abs(currentXDist));
+                    }
                 }
             }
         }
