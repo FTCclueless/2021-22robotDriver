@@ -676,6 +676,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             double detectionDist = 4.0;
             double extraOffset = 2.0;
             double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
+            //TODO: Implement the kalman filter for the location update
             if (forward || backward){
                 double m = 1;
                 if (backward){
