@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.drive.SetUp;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
+@Config
 @TeleOp(group = "SetUp")
 public class motorPIDTuner extends LinearOpMode {
     public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
