@@ -11,20 +11,32 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @TeleOp(group = "SetUp")
 public class motorPIDTuner extends LinearOpMode {
-    PIDFCoefficients TURRET_PID;
-    PIDFCoefficients SLIDES_PID;
+    public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
+    public static double tP = tF * 0.1;
+    public static double tI = tF * 0.01;
+    public static double tD = 0;
+    public static double tPP = 5;
+    public static double sF = 32767.0 / (223.0 / 60.0 * 751.83);
+    public static double sP = sF * 0.1;
+    public static double sI = sF * 0.01;
+    public static double sD = 0;
+    public static double sPP = 5;
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         drive.resetAssemblies();
         waitForStart();
         String state = "idle";
-        TURRET_PID = drive.turret.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION);
-        SLIDES_PID = drive.slides.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION);
         long start = System.currentTimeMillis();
         double targetPos = 0;
         drive.slidesCase = -1;
         while (!isStopRequested()) {
+
+            drive.turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
+            drive.turret.setPositionPIDFCoefficients(tPP);
+            drive.slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
+            drive.slides.setPositionPIDFCoefficients(sPP);
+
             if (gamepad1.a){
                 state = "idle";
             }
