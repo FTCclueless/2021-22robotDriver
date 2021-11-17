@@ -668,8 +668,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             else{
                 distance = (rightWallVal - 1)/100.0; //TODO: Find the function for light reflectance vs distance
             }
-            double currentXDist = Math.cos(heading)*(-4.0) - Math.sin(heading)*(6.0 + distance);
-            double currentYDist = Math.cos(heading)*(6.0 + distance) + Math.sin(heading)*(-4.0);
+            double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
+            double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
 
             double gain = 0.01;
             double detectionDist = 4.0;
