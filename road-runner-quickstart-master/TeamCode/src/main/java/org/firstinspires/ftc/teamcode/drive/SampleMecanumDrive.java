@@ -654,44 +654,50 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
     }
     public void updateWallDetection(){
-        if ((!isKnownX || !isKnownY) || Math.abs(currentPose.getX()) >= 72 - 6 - 4 || Math.abs(currentPose.getY()) >= 72 - 6 - 4){
-            double heading = clipHeading(currentPose.getHeading());
-            //TODO: Get the actual value for the sensors when in idle
-            boolean left = leftWallVal <= 300;
-            boolean right = rightWallVal <= 300;
-            if (right ^ left){ // this is XOR it means that this or this but not both this and this
-                boolean forward = Math.abs(heading) < Math.toRadians(15);
-                boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
-                boolean leftRight = Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15);
-                if (forward || backward){
-                    double distance;
-                    if (left){
-                        distance = leftWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
+        //TODO: Get the actual value for the sensors when in idle
+        boolean left = leftWallVal <= 300;
+        boolean right = rightWallVal <= 300;
+        double heading = clipHeading(currentPose.getHeading());
+        if (right ^ left){ // this is XOR it means that this or this but not both this and this
+            boolean forwardBackward = Math.abs(heading) < Math.toRadians(15) && Math.abs(heading) > Math.toRadians(180 - 15);
+            boolean leftRight = Math.abs(Math.abs(heading) - Math.toRadians(90)) < Math.toRadians(15);
+            double distance;
+            if (left){
+                distance = (leftWallVal - 1)/100.0; //TODO: Find the function for light reflectance vs distance
+            }
+            else{
+                distance = (rightWallVal - 1)/100.0; //TODO: Find the function for light reflectance vs distance
+            }
+            double currentXDist = Math.cos(heading)*(-4.0) - Math.sin(heading)*(6.0 + distance);
+            double currentYDist = Math.cos(heading)*(6.0 + distance) + Math.sin(heading)*(-4.0);
+
+            double gain = 0.01;
+            double detectionDist = 4.0;
+            double extraOffset = 2.0;
+            if (forwardBackward){
+                if (isKnownY){
+                    if (Math.abs(currentPose.getY()) - 72.0 > -6.0 - detectionDist - extraOffset) {
+                        localizer.setY(currentPose.getY() * (1.0 - gain) + ((72 - Math.abs(currentYDist)) * Math.signum(currentPose.getY())) * gain);
                     }
-                    else{
-                        distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
-                    }
-                    double gain = 0.01;
-                    double yVal = currentPose.getY()*(1.0-gain) + ((72 - 6.0 - distance) * Math.signum(currentPose.getY()))*gain;
-                    localizer.setY(yVal);
-                    isKnownY = true;
                 }
-                else if (leftRight){
-                    double distance;
-                    if (left){
-                        distance = leftWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
-                    }
-                    else{
-                        distance = rightWallVal/100.0 - 3; //TODO: Find the function for light reflectance vs distance
-                    }
-                    double gain = 0.01;
-                    double xVal = currentPose.getX()*(1.0-gain) + ((72 - 6.0 - distance) * Math.signum(currentPose.getX()))*gain;
-                    localizer.setX(xVal);
-                    isKnownX = true;
+                else{
+                    isKnownY = true;
+                    localizer.setY((72 - Math.abs(currentYDist)) * Math.signum(currentPose.getY()));
                 }
             }
-            lastTouchPoll = System.currentTimeMillis();
+            else if (leftRight){
+                if (isKnownX){
+                    if (Math.abs(currentPose.getX()) - 72.0 > -6.0 - detectionDist - extraOffset) {
+                        localizer.setX(currentPose.getX() * (1.0 - gain) + ((72 - Math.abs(currentXDist)) * Math.signum(currentPose.getX())) * gain);
+                    }
+                }
+                else{
+                    isKnownX = true;
+                    localizer.setX((72 - Math.abs(currentXDist)) * Math.signum(currentPose.getX()));
+                }
+            }
         }
+        lastTouchPoll = System.currentTimeMillis();
     }
     public void updateLineDetection(){
         double robotWidth = 12.5;
@@ -699,10 +705,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         double colorX = 0.996;
         int threshold = 200;
         int sensorThreshold = 3;
-        boolean leftRightEntrance = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
-        boolean topLeftEntrance = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
-        boolean topRightEntrance = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
-        if ((!isKnownX || !isKnownY) || leftRightEntrance || topLeftEntrance || topRightEntrance){
+        boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
+        boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
+        boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
+        if ((!isKnownX || !isKnownY) || leftRight || topLeft || topRight){
             detectLine = color.alpha() > threshold;
         }
         boolean updatePose = lastLightReading != detectLine;
@@ -713,31 +719,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (updatePose) {
             double heading = clipHeading(currentPose.getHeading());
             double var = Math.abs(heading)-Math.toRadians(90);
-            if (!isKnownX || !isKnownY) {
-                if (Math.abs(var) > Math.toRadians(90-15)) { // facing forward or backward (going over the left right line)
-                    double speed = Math.signum(currentVelocity.getX()) * multiplier;
-                    double m1 = Math.signum(var);
-                    localizer.setX(72 - 43.5 + 1 - speed + m1*colorX);
-                    isKnownX = true;
-                } else if (Math.abs(var) < Math.toRadians(15)) {
-                    double m1 = Math.signum(heading)*-1;
-                    double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                    localizer.setY((72 - 43.5 + 1) * m1 - speed + colorX*m1);
-                    isKnownY = true;
-                }
-            } else if (leftRightEntrance) {
+            if (leftRight || (!isKnownX && Math.abs(var) > Math.toRadians(85))) {
                 double speed = Math.signum(currentVelocity.getX()) * multiplier;
-                double m1 = Math.signum(heading)*-1.0;
-                localizer.setX(72 - 43.5 + 1 - speed + m1*colorX);
+                double m1 = Math.cos(heading)*colorX;
+                localizer.setX(72 - 43.5 + 1 - speed - m1);
                 isKnownX = true;
-            } else if (topLeftEntrance || topRightEntrance) {
-                double m1 = 1;
-                if (topRightEntrance){
-                    m1 = -1;
-                }
-                double m2 = Math.signum(heading);
+            }
+            else if (topLeft || topRight || (!isKnownY && Math.abs(var) < Math.toRadians(15))) {
+                double m1 = Math.signum(currentPose.getY());
+                double m2 = Math.sin(heading)*colorX;
                 double speed = Math.signum(currentVelocity.getY()) * multiplier;
-                localizer.setY((72 - 43.5 + 1) * m1 - speed - colorX*m2);
+                localizer.setY((72 - 43.5 + 1) * m1 - speed - m2);
                 isKnownY = true;
             }
         }
