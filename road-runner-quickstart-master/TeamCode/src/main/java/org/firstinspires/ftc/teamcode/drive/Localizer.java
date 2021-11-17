@@ -14,6 +14,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
     public Encoder[] encoders;
     double odoHeading = 0.0;
     double offsetHeading;
+    double offsetX;
+    double offsetY;
     public boolean updateOdo;
     public boolean mergeT265Odo = false;
 
@@ -61,7 +63,11 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             loopTimes.add(0.001);
         }
         updateOdo = true;
+
         offsetHeading = 0.0;
+        offsetX = 0;
+        offsetY = 0;
+
         encoders = new Encoder[3];
         encoders[0] = new Encoder(new Vector2d(0.125,-4.81033),1.0);
         encoders[1] = new Encoder(new Vector2d(0.125,4.76263),  -1.0);
@@ -103,10 +109,10 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         startHeadingOffset += pose2d.getHeading() - currentPose.getHeading(); // was = now +=
     }
     public void setX(@NotNull double x){
-        startYOffset += x - currentPose.getX();
+        offsetX += x - currentPose.getX();
     }
     public void setY(@NotNull double y){
-        startYOffset += y - currentPose.getY();
+        offsetY += y - currentPose.getY();
     }
 
     @Nullable
@@ -161,16 +167,9 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
 
         if (useT265) {
             if (System.currentTimeMillis() - T265Start >= 5000) {
-                long start = System.nanoTime();
                 t265Estimate = a.getPoseEstimate();
                 t265VelEstimate = a.getRelVelocity();
                 confidence = a.getT265Confidence();
-
-                double t265Time = (System.nanoTime() - start) / 1000000000.0;
-
-                //ToDo: these are just for debugging purposes and need to be removed
-                Log.e("t265Time", t265Time + " ");
-                Log.e("t265Confidence", confidence);
 
                 T265Pose = t265Estimate;
                 relT265Vel = t265VelEstimate;
@@ -215,11 +214,12 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
             threeWheelY += deltaThreeWheel[1];
             currentThreeWheelPose = new Pose2d(threeWheelX, threeWheelY, heading);
         }
+
         if (updateOdo){
             double[] delta = getDeltas(relDeltaX, relDeltaY, deltaHeading, heading);
             x += delta[0];
             y += delta[1];
-            currentOdoPose = new Pose2d(x + startXOffset, y + startYOffset, heading);
+            currentOdoPose = new Pose2d(x + startXOffset + offsetX, y + startYOffset + offsetY, heading);
             relHistory.add(0,new Pose2d(relDeltaX,relDeltaY,deltaHeading));
         }
         else if (ist265EstimateAccurate){

@@ -622,7 +622,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     //when this is first true then we update the pose
                     if (firstOffBarrier){
                         firstOffBarrier = false;
-                        double heading = finalTiltHeading.getData()[0];
+                        double heading = clipHeading(currentPose.getHeading());//finalTiltHeading.getData()[0];
                         double m1 = 1.0;
                         if (finalTiltHeading.getData()[2] < 0){
                             m1 = -1.0; // facing upward ==> when you face upward at the end it means you went over backward
