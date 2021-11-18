@@ -665,10 +665,10 @@ public class SampleMecanumDrive extends MecanumDrive {
             boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
             double distance;
             if (leftSensor){
-                distance = (leftWallVal - 1)/100.0; //TODO: Find the function for light reflectance vs distance
+                distance = (leftWallVal)/100.0; //TODO: Find the function for light reflectance vs distance
             }
             else{
-                distance = (rightWallVal - 1)/100.0; //TODO: Find the function for light reflectance vs distance
+                distance = (rightWallVal)/100.0; //TODO: Find the function for light reflectance vs distance
             }
             double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
             double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
@@ -676,30 +676,22 @@ public class SampleMecanumDrive extends MecanumDrive {
             double detectionDist = 4.0;
             double extraOffset = 2.0;
             double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
-            //TODO: Implement the kalman filter for the location update
             if (forward || backward){
                 double m = 1;
                 if (backward){
                     m = -1;
                 }
+                double side = Math.signum(currentPose.getY());
                 if (!isKnownY){
-                    if (leftSensor && Math.signum(currentPose.getY()) == m){
+                    if ((leftSensor && side == m) || (rightSensor && side == -1 * m)){
                         isKnownY = true;
-                        localizer.setY((72 - Math.abs(currentYDist)) * m);
-                    }
-                    if (rightSensor && Math.signum(currentPose.getY()) == -1 * m){
-                        isKnownY = true;
-                        localizer.setY((-72 + Math.abs(currentYDist)) * m);
+                        localizer.setY((72 - Math.abs(currentXDist)) * side);
                     }
                 }
                 else {
-                    if (((leftSensor && m == 1) || (rightSensor && m == -1))  && currentPose.getY() - maxDetectionLocation > 0){
+                    if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getY()) > maxDetectionLocation){
                         isKnownY = true;
-                        localizer.setY(72 - Math.abs(currentYDist));
-                    }
-                    if (((rightSensor && m == 1) || (leftSensor && m == -1)) && currentPose.getY() + maxDetectionLocation < 0){
-                        isKnownY = true;
-                        localizer.setY(-72 + Math.abs(currentYDist));
+                        localizer.setY(currentPose.getY() * (1.0 - gain) + (72 - Math.abs(currentYDist))*side * gain);
                     }
                 }
             }
@@ -708,24 +700,19 @@ public class SampleMecanumDrive extends MecanumDrive {
                 if (left){
                     m = -1;
                 }
-                if (!isKnownY){
-                    if (leftSensor && Math.signum(currentPose.getX()) == m){
+                double side = Math.signum(currentPose.getX());
+                if (!isKnownX){
+                    if ((leftSensor && side == m) || (rightSensor && side == -1 * m)){
                         isKnownX = true;
-                        localizer.setX((72 - Math.abs(currentXDist)) * m);
-                    }
-                    if (rightSensor && Math.signum(currentPose.getX()) == -1 * m){
-                        isKnownX = true;
-                        localizer.setX((-72 + Math.abs(currentXDist)) * m);
+                        localizer.setX((72 - Math.abs(currentXDist)) * side);
                     }
                 }
                 else {
-                    if (((leftSensor && m == 1) || (rightSensor && m == -1))  && currentPose.getX() - maxDetectionLocation > 0){
+                    // if ((left sensor and facing wall) or (right sensor and facing opposite of wall)) and (near wall)
+                    if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getX()) > maxDetectionLocation){
                         isKnownX = true;
-                        localizer.setX(72 - Math.abs(currentXDist));
-                    }
-                    if (((rightSensor && m == 1) || (leftSensor && m == -1)) && currentPose.getX() + maxDetectionLocation < 0){
-                        isKnownX = true;
-                        localizer.setX(-72 + Math.abs(currentXDist));
+                        //teleports the robot to the wall closest to where it currently is
+                        localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentYDist))*side * gain);
                     }
                 }
             }
