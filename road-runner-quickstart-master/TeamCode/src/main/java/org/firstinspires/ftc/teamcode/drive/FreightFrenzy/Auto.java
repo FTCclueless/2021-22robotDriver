@@ -17,19 +17,18 @@ public class Auto extends LinearOpMode {
     Pose2d startingPose = new Pose2d(12,66,0);
     @Override
     public void runOpMode() throws InterruptedException {
-
+        //double y = 24 - endPoint.getY();
+        //double x = y / Math.tan(Math.toRadians(57.5));
+        //Pose2d depositPoint = new Pose2d(x,y);
         TrajectorySequence[] intake = new TrajectorySequence[5];
         Pose2d endPoint = new Pose2d(12,64,0);
-        double y = 24 - endPoint.getY();
-        double x = y / Math.tan(Math.toRadians(57.5));
-        Pose2d depositPoint = new Pose2d(x,y);
         boolean robotFinished = false;
         for (int i = 0; i < 5; i ++) {
             intake[i] = drive.trajectorySequenceBuilder(endPoint)
                     .addTemporalMarker(() -> {
                         drive.startIntake(false);
                         if (robotFinished) {
-                            drive.startDeposit(depositPoint,16);
+                            drive.startDeposit(endPoint, new Pose2d(12,24),16);
                         }
                     })
                     .splineTo(new Vector2d(36.5, 64), 0)

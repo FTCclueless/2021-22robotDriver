@@ -454,7 +454,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         startIntake = true;
     }
 
-    public void startDeposit(Pose2d relTarget, double height){
+    public void startDeposit(Pose2d endPose, Pose2d targetPose, double height){
+        Pose2d relTarget = new Pose2d(
+                Math.cos(endPose.getHeading())*(endPose.getX()-targetPose.getX()) + Math.sin(endPose.getHeading())*(endPose.getY()-targetPose.getY()),
+                Math.cos(endPose.getHeading())*(endPose.getY()-targetPose.getY()) + Math.sin(endPose.getHeading())*(endPose.getX()-targetPose.getX())
+        );
         targetTurretHeading = Math.atan2(relTarget.getY() * -1,relTarget.getX() * -1);
         height -= 8.86;
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
