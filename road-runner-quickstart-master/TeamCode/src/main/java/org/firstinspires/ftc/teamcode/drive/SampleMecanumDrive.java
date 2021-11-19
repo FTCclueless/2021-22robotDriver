@@ -259,6 +259,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4: servos.add(hardwareMap.servo.get("v4bar")); break;
                 case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
                 case 6: servos.add(hardwareMap.servo.get("leftCapstone")); break;
+                case 7: servos.add(hardwareMap.servo.get("duckSpin")); break;
+                case 8: servos.add(hardwareMap.servo.get("duckSpinSpin")); break;
             }
         }
 
