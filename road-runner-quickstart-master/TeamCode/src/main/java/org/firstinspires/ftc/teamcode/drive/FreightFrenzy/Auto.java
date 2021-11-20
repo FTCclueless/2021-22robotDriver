@@ -13,11 +13,12 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
  */
 @Autonomous(group = "Auto")
 public class Auto extends LinearOpMode {
-    SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-    Pose2d startingPose = new Pose2d(12,66,0);
     Long start;
+    SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
     @Override
     public void runOpMode() throws InterruptedException {
+        Pose2d startingPose = new Pose2d(12,66,0);
+
         //TODO: implement alliances
         TrajectorySequence[] intake = new TrajectorySequence[5];
         Pose2d endPoint = new Pose2d(12,64,0);
@@ -31,29 +32,15 @@ public class Auto extends LinearOpMode {
         }
         int capNum = 2;
         waitForStart();
-        Vector2d pos = new Vector2d(26 + 8.83 * capNum,46.75);
-        double hed = 0;
-        if(capNum == 2){
-            pos = new Vector2d(36.2, 44.7);
-            hed = 0.35622;
-        }
-        TrajectorySequence grabCap = drive.trajectorySequenceBuilder(startingPose)
-                .splineTo(pos,hed)
-                .build();
-        TrajectorySequence goToStart = drive.trajectorySequenceBuilder(new Pose2d(pos.getX(),pos.getY(),hed))
-                .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),endPoint.getHeading())
-                .build();
         //The program begins
         setUp(startingPose);
-        //TODO: Drop the arm
-        drive.startDeposit(new Pose2d(pos.getX(),pos.getY(),hed), new Pose2d(12,24),16); //TODO: Make the height vary on the capNum
-        drive.followTrajectorySequence(grabCap);
-        waitForDeposit();
-        //TODO: Lift up arm
-        drive.followTrajectorySequence(goToStart);
+
+        //grabCapstone(capNum,endPoint);
+        depositFirst(capNum,startingPose,endPoint);
+
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
-            drive.startDeposit(endPoint, new Pose2d(12,24),16);
+            drive.startDeposit(endPoint, new Pose2d(-12,24),20);
             drive.followTrajectorySequence(intake[numMinerals]); //going into the wearhouse
             intakeMineral(0.4,drive.currentPose.getHeading(),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
@@ -65,6 +52,18 @@ public class Auto extends LinearOpMode {
         while (opModeIsActive()){
             drive.update();
         }
+    }
+    public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
+        switch (capNum) {
+            case 0: drive.startDeposit(endPoint, new Pose2d(-0.7, 35.3), 6.25); break;
+            case 1: drive.startDeposit(endPoint, new Pose2d(-2.1, 33.9), 12.13); break;
+            case 2: drive.startDeposit(endPoint, new Pose2d(-12, 24), 20); break;
+        }
+        TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
+                .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
+                .build();
+        drive.followTrajectorySequence(c);
+        waitForDeposit();
     }
     public void waitForDeposit(){
         drive.deposit();
@@ -96,5 +95,25 @@ public class Auto extends LinearOpMode {
         drive.update();
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
+    }
+    public void grabCapstone(double capNum, Pose2d endPoint, Pose2d startingPose){
+        Vector2d pos = new Vector2d(26 + 8.83 * capNum,46.75);
+        double hed = 0;
+        if(capNum == 2){
+            pos = new Vector2d(36.2, 44.7);
+            hed = 0.35622;
+        }
+        TrajectorySequence grabCap = drive.trajectorySequenceBuilder(startingPose)
+                .splineTo(pos,hed)
+                .build();
+        TrajectorySequence goToStart = drive.trajectorySequenceBuilder(new Pose2d(pos.getX(),pos.getY(),hed))
+                .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),endPoint.getHeading())
+                .build();
+        //TODO: Drop the arm
+        drive.startDeposit(new Pose2d(pos.getX(),pos.getY(),hed), new Pose2d(12,24),16); //TODO: Make the height vary on the capNum
+        drive.followTrajectorySequence(grabCap);
+        waitForDeposit();
+        //TODO: Lift up arm
+        drive.followTrajectorySequence(goToStart);
     }
 }

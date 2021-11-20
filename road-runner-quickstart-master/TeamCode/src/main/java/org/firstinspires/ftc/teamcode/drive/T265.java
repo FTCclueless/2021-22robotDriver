@@ -49,10 +49,12 @@ public class T265 {
         return new Pose2d(a.vxMetersPerSecond*-39.3701,a.vyMetersPerSecond*-39.3701,a.omegaRadiansPerSecond);
     }
     public void sendOdometry(Pose2d relVel){
+        //taking into account the fact that the velX is the sum of the translation velX and rotation velX
         double relX = relVel.getX()*-0.0254 - relVel.getHeading()*transform2d.getTranslation().getY();
         if (Math.abs(relX) <= 0.01){
             relX = 0;
         }
+        //taking into account the fact that the velY is the sum of the translation velY and rotation velY
         double relY = relVel.getY()*-0.0254 + relVel.getHeading()*transform2d.getTranslation().getX();
         if (Math.abs(relY) <= 0.01){
             relY = 0;
