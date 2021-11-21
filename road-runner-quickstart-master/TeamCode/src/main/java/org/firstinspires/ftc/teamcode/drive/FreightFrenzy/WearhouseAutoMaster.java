@@ -26,7 +26,6 @@ public class WearhouseAutoMaster extends LinearOpMode {
         }
         Pose2d startingPose = new Pose2d(12,66 * am,0);
 
-        //TODO: implement alliances
         TrajectorySequence[] intake = new TrajectorySequence[5];
         Pose2d endPoint = new Pose2d(12,64*am,0);
         int numIntakes = 11;
