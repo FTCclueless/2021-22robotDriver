@@ -20,11 +20,11 @@ public class WearhouseAutoMaster extends LinearOpMode {
     }
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d startingPose = new Pose2d(12,66,0);
         double am = 1.0;
         if (alliance){
             am = -1.0;
         }
+        Pose2d startingPose = new Pose2d(12,66 * am,0);
 
         //TODO: implement alliances
         TrajectorySequence[] intake = new TrajectorySequence[5];
@@ -37,6 +37,7 @@ public class WearhouseAutoMaster extends LinearOpMode {
                     .splineTo(new Vector2d(40 + (i / 3) * 4,64*am),Math.toRadians((i % 3) * -15)*am)
                     .build();
         }
+        //TODO: Implement ML here
         int capNum = 2;
         waitForStart();
         //The program begins
