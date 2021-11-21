@@ -14,20 +14,25 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 @Autonomous(group = "Auto")
 public class Auto extends LinearOpMode {
     Long start;
+    boolean alliance = false;
     SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d startingPose = new Pose2d(12,66,0);
+        double am = 1.0;
+        if (alliance){
+            am = -1.0;
+        }
 
         //TODO: implement alliances
         TrajectorySequence[] intake = new TrajectorySequence[5];
-        Pose2d endPoint = new Pose2d(12,64,0);
+        Pose2d endPoint = new Pose2d(12,64*am,0);
         int numIntakes = 7;
         int numMinerals = 0;
         for (int i = 0; i < numIntakes; i ++) {
             intake[i] = drive.trajectorySequenceBuilder(endPoint)
-                    .splineTo(new Vector2d(36.5, 64), 0)
-                    .splineTo(new Vector2d(40 + (i / 3) * 4,64),Math.toRadians((i % 3) * -15))
+                    .splineTo(new Vector2d(36.5, 64*am), 0)
+                    .splineTo(new Vector2d(40 + (i / 3) * 4,64*am),Math.toRadians((i % 3) * -15)*am)
                     .build();
         }
         int capNum = 2;
@@ -40,7 +45,7 @@ public class Auto extends LinearOpMode {
 
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
-            drive.startDeposit(endPoint, new Pose2d(-12,24),20);
+            drive.startDeposit(endPoint, new Pose2d(-12,24 * am),20);
             drive.followTrajectorySequence(intake[numMinerals]); //going into the wearhouse
             intakeMineral(0.4,drive.currentPose.getHeading(),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
@@ -55,9 +60,9 @@ public class Auto extends LinearOpMode {
     }
     public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
         switch (capNum) {
-            case 0: drive.startDeposit(endPoint, new Pose2d(-0.7, 35.3), 6.25); break;
-            case 1: drive.startDeposit(endPoint, new Pose2d(-2.1, 33.9), 12.13); break;
-            case 2: drive.startDeposit(endPoint, new Pose2d(-12, 24), 20); break;
+            case 0: drive.startDeposit(endPoint, new Pose2d(-0.7, 35.3 * Math.signum(endPoint.getY())), 6.25); break;
+            case 1: drive.startDeposit(endPoint, new Pose2d(-2.1, 33.9 * Math.signum(endPoint.getY())), 12.13); break;
+            case 2: drive.startDeposit(endPoint, new Pose2d(-12., 24.0 * Math.signum(endPoint.getY())), 20); break;
         }
         TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
