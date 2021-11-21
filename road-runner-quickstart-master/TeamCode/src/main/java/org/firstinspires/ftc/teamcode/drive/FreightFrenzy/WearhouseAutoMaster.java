@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
@@ -11,11 +10,14 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "Auto")
-public class Auto extends LinearOpMode {
+public class WearhouseAutoMaster extends LinearOpMode {
     Long start;
-    boolean alliance = false;
+    boolean alliance;
     SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
+    public WearhouseAutoMaster(boolean red){
+        alliance = red;
+    }
     @Override
     public void runOpMode() throws InterruptedException {
         Pose2d startingPose = new Pose2d(12,66,0);
