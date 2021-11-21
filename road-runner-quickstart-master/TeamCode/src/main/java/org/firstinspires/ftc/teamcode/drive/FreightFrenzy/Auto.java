@@ -27,7 +27,7 @@ public class Auto extends LinearOpMode {
         //TODO: implement alliances
         TrajectorySequence[] intake = new TrajectorySequence[5];
         Pose2d endPoint = new Pose2d(12,64*am,0);
-        int numIntakes = 7;
+        int numIntakes = 11;
         int numMinerals = 0;
         for (int i = 0; i < numIntakes; i ++) {
             intake[i] = drive.trajectorySequenceBuilder(endPoint)
