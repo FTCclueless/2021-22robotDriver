@@ -103,24 +103,4 @@ public class WearhouseAutoMaster extends LinearOpMode {
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
     }
-    public void grabCapstone(double capNum, Pose2d endPoint, Pose2d startingPose){
-        Vector2d pos = new Vector2d(26 + 8.83 * capNum,46.75);
-        double hed = 0;
-        if(capNum == 2){
-            pos = new Vector2d(36.2, 44.7);
-            hed = 0.35622;
-        }
-        TrajectorySequence grabCap = drive.trajectorySequenceBuilder(startingPose)
-                .splineTo(pos,hed)
-                .build();
-        TrajectorySequence goToStart = drive.trajectorySequenceBuilder(new Pose2d(pos.getX(),pos.getY(),hed))
-                .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),endPoint.getHeading())
-                .build();
-        //TODO: Drop the arm
-        drive.startDeposit(new Pose2d(pos.getX(),pos.getY(),hed), new Pose2d(12,24),16); //TODO: Make the height vary on the capNum
-        drive.followTrajectorySequence(grabCap);
-        waitForDeposit();
-        //TODO: Lift up arm
-        drive.followTrajectorySequence(goToStart);
-    }
 }
