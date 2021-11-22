@@ -503,11 +503,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
-            case 1: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;  // waiting for the servo to drop
+            case 1: if (System.currentTimeMillis() - intakeTime >= 310){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if (currentIntake == -1 && rightIntakeVal <= 300){intakeCase ++;} if (currentIntake == 1 && leftIntakeVal <= 300){intakeCase ++;} break;
             case 3: if (System.currentTimeMillis() - intakeTime >= 250 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(1)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: if (System.currentTimeMillis() - intakeTime >= 270){intakeCase ++;} break;  // waiting for mineral to leave the intake
+            case 5: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
     }
 
