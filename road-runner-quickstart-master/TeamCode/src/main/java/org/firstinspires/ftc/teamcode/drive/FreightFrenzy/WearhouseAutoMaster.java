@@ -20,6 +20,7 @@ public class WearhouseAutoMaster extends LinearOpMode {
     }
     @Override
     public void runOpMode() throws InterruptedException {
+        drive.intakeTurretInterfaceHeading = 0;
         double am = 1.0;
         if (alliance){
             am = -1.0;
@@ -48,6 +49,8 @@ public class WearhouseAutoMaster extends LinearOpMode {
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12,24 * am),20);
+            drive.targetTurretHeading = 0;
+            drive.targetSlideExtensionLength = 0;
             drive.followTrajectorySequence(intake[numMinerals]); //going into the wearhouse
             intakeMineral(0.4,drive.currentPose.getHeading(),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
@@ -66,6 +69,8 @@ public class WearhouseAutoMaster extends LinearOpMode {
             case 1: drive.startDeposit(endPoint, new Pose2d(-2.1, 33.9 * Math.signum(endPoint.getY())), 12.13); break;
             case 2: drive.startDeposit(endPoint, new Pose2d(-12., 24.0 * Math.signum(endPoint.getY())), 20); break;
         }
+        drive.targetTurretHeading = 0;
+        drive.targetSlideExtensionLength = 0;
         TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
                 .build();

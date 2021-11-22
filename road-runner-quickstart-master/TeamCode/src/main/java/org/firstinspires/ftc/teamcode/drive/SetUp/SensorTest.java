@@ -46,12 +46,13 @@ public class SensorTest extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             long startTime = System.nanoTime();
-            //int rli = drive.color.alpha();
+            int rli = drive.color.alpha();
             //Orientation orientation = drive.imu.getAngularOrientation();
             //double angle = drive.imu.getAngularOrientation().secondAngle;
             //double current = drive.rightRear.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
            // double voltage = drive.getBatteryVoltage();
-            double val = drive.leftIntake.getVoltage();
+            double val1 = drive.leftWall.getVoltage();
+            double val2 = drive.rightWall.getVoltage();
             double elapsedTimeRLI = (System.nanoTime() - startTime)/1000000.0;
             totalElapsedRLITime += elapsedTimeRLI;
             loops ++;
@@ -61,9 +62,11 @@ public class SensorTest extends LinearOpMode {
             //telemetry.addData("Imu heading", angle);
             //telemetry.addData("currentMotor", current);
             //telemetry.addData("volatage", drive.getBatteryVoltage());
-            telemetry.addData("volatage", val);
-            telemetry.addData("ReadTime", elapsedTimeRLI);
-            telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
+            telemetry.addData("left Wall", val1);
+            telemetry.addData("right Wall", val2);
+            telemetry.addData("rl1", rli);
+            //telemetry.addData("ReadTime", elapsedTimeRLI);
+            //telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
             telemetry.update();
 
         }

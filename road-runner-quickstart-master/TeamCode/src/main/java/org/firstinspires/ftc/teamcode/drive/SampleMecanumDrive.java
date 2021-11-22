@@ -113,7 +113,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean deposit = false;
 
-    private final double intakeTurretInterfaceHeading = 57.5;
+    public double intakeTurretInterfaceHeading = 57.5;
+
+    double v4barSpeed = 750/Math.PI; // the time it takes the v4bar to rotate 1 radian (750/pi)
 
     public ArrayList<Servo> servos;
 
@@ -536,7 +538,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: //wait for turret to get near to end
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
                 case 2: //wait for arm to be over area
-                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && System.currentTimeMillis() - slidesCase >= targetV4barOrientation * 238.7){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && System.currentTimeMillis() - slidesCase >= targetV4barOrientation * v4barSpeed){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
                 case 3: //wait for everything to get to the end and it wants to deposit
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(5) && deposit){slidesCase ++;} break;
                 case 4: //wait for the block to drop => reset the intakeCase
@@ -729,7 +731,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double robotWidth = 12.5;
         boolean detectLine = false;
         double colorX = 0.996;
-        int threshold = 200;
+        int threshold = 200; //TODO: review this sensor
         int sensorThreshold = 3;
         boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
         boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
