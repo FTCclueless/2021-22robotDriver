@@ -26,9 +26,11 @@ public class Teleop extends LinearOpMode {
         waitForStart();
 
         double lockHeadAngle = 0;
-
+        drive.intakeTurretInterfaceHeading = 0;
 
         while (!isStopRequested()) {
+            drive.targetTurretHeading = 0;
+            drive.targetSlideExtensionLength = 0;
             drive.update();
 
             double forward = gamepad1.left_stick_y * -1;

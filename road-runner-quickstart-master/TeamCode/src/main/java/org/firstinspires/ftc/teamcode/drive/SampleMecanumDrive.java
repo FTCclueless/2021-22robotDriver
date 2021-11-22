@@ -261,7 +261,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4: servos.add(hardwareMap.servo.get("v4bar")); break;
                 case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
                 case 6: servos.add(hardwareMap.servo.get("leftCapstone")); break;
-                case 7: servos.add(hardwareMap.servo.get("duckSpin")); break;
+                //case 7: servos.add(hardwareMap.servo.get("duckSpin")); break;
                 case 8: servos.add(hardwareMap.servo.get("duckSpinSpin")); break;
             }
         }
@@ -493,20 +493,20 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if(currentIntake == -1){servos.get(0).setPosition(0.762);}
                     break;
                 case 2: intake.setPower(-0.85); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos.get(1).setPosition(0.747);} if(currentIntake == -1){servos.get(0).setPosition(0.113);} break; // lift up the servo
-                case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
+                case 3: if(currentIntake == 1){servos.get(1).setPosition(1.0);} if(currentIntake == -1){servos.get(0).setPosition(0.157);} break; // lift up the servo
+                case 4: break; //turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
                 case 5: intake.setPower(0.6); break; // rotate the servo backward
-                case 6: transferMineral = true; intake.setPower(0); depositTime = System.currentTimeMillis(); Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + ""); break; // turn off the intake
-            }
+                case 6: intake.setPower(0); depositTime = System.currentTimeMillis(); Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + ""); break; // turn off the intake
+            }//transferMineral = true;
             intakeTime = System.currentTimeMillis();
         }
         lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
-            case 1: if (System.currentTimeMillis() - intakeTime >= 360){intakeCase ++;} break;  // waiting for the servo to drop
+            case 1: if (System.currentTimeMillis() - intakeTime >= 450){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if (currentIntake == -1 && rightIntakeVal <= 300){intakeCase ++;} if (currentIntake == 1 && leftIntakeVal <= 300){intakeCase ++;} break;
-            case 3: if (System.currentTimeMillis() - intakeTime >= 600 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
-            case 4: if(Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(1)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
+            case 3: if (System.currentTimeMillis() - intakeTime >= 450 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
+            case 4: intakeCase ++; break; //if(Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(1)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
             case 5: if (System.currentTimeMillis() - intakeTime >= 450){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
     }
