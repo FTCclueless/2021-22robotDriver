@@ -52,7 +52,7 @@ public class WearhouseAutoMaster extends LinearOpMode {
             drive.targetTurretHeading = 0;
             drive.targetSlideExtensionLength = 0;
             drive.followTrajectorySequence(intake[numMinerals]); //going into the wearhouse
-            intakeMineral(0.4,drive.currentPose.getHeading(),2000); // getting a mineral
+            intakeMineral(0.75,drive.currentPose.getHeading(),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
             waitForDeposit(); // deposit the block when first possible
             numMinerals ++;
