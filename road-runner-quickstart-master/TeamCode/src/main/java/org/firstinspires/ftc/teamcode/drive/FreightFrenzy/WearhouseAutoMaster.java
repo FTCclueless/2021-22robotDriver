@@ -25,16 +25,16 @@ public class WearhouseAutoMaster extends LinearOpMode {
         if (alliance){
             am = -1.0;
         }
-        Pose2d startingPose = new Pose2d(12,66 * am,0);
+        Pose2d startingPose = new Pose2d(12,65.25 * am,0);
 
         TrajectorySequence[] intake = new TrajectorySequence[5];
-        Pose2d endPoint = new Pose2d(12,64*am,0);
+        Pose2d endPoint = new Pose2d(12,65*am,0);
         int numIntakes = 11;
         int numMinerals = 0;
         for (int i = 0; i < numIntakes; i ++) {
             intake[i] = drive.trajectorySequenceBuilder(endPoint)
-                    .splineTo(new Vector2d(36.5, 64*am), 0)
-                    .splineTo(new Vector2d(40 + (i / 3) * 4,64*am),Math.toRadians((i % 3) * -15)*am)
+                    .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
+                    .splineTo(new Vector2d(40 + (i / 3) * 4,endPoint.getY() - (i / 3) * 2 * am),Math.toRadians((i % 3) * -15)*am)
                     .build();
         }
         //TODO: Implement ML here
@@ -89,7 +89,6 @@ public class WearhouseAutoMaster extends LinearOpMode {
                 .splineTo(new Vector2d(36.5,endPoint.getY()),Math.toRadians(180))
                 .setReversed(true)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),Math.toRadians(180))
-                .turn(0)
                 .build();
     }
     public void intakeMineral(double power, double targetHeading, long maxTime){

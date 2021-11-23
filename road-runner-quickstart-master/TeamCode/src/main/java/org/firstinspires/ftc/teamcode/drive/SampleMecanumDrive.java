@@ -540,11 +540,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
-            case 1: if (System.currentTimeMillis() - intakeTime >= 310){intakeCase ++;} break;  // waiting for the servo to drop
+            case 1: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;}break; // wait for block in
-            case 3: if (System.currentTimeMillis() - intakeTime >= 320 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
+            case 3: if (System.currentTimeMillis() - intakeTime >= 300 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: if (System.currentTimeMillis() - intakeTime >= 450){intakeCase ++;} break;  // waiting for mineral to leave the intake
+            case 5: if (System.currentTimeMillis() - intakeTime >= 400){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
     }
 
@@ -574,7 +574,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: //wait for turret to get near to end
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
                 case 2: //wait for arm to be over area
-                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= 500){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
                 case 3: //wait for everything to get to the end and it wants to deposit
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(10) && deposit){slidesCase ++;} break;
                 case 4: //wait for the block to drop => reset the intakeCase
@@ -592,7 +592,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void setV4barOrientation(double targetV4barOrientation){
-        servos.get(4).setPosition((targetV4barOrientation * -0.1964029920) + 0.773); // 0.773 is 0 and it takes -0.329 to go 90
+        double servoPos = (targetV4barOrientation * -0.1964029920) + 0.773;
+        servoPos = Math.max(Math.min(servoPos,0.773),0.156);
+        servos.get(4).setPosition(servoPos); // 0.773 is 0 and it takes -0.329 to go 90
     }
 
     public void updateScoring(){
@@ -706,13 +708,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
             boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
             boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
-            double distance;
-            if (leftSensor){
-                distance = 0.5;
-            }
-            else{
-                distance = 0.5;
-            }
+            double distance = 0.5;
             double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
             double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
             double gain = 0.01;
@@ -728,7 +724,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 if (!isKnownY){
                     if ((leftSensor && side == m) || (rightSensor && side == -1 * m)){
                         isKnownY = true;
-                        localizer.setY((72 - Math.abs(currentXDist)) * side);
+                        localizer.setY((72 - Math.abs(currentYDist)) * side);
                     }
                 }
                 else {
@@ -765,9 +761,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateLineDetection(){
         double robotWidth = 12.5;
         boolean detectLine = false;
-        double colorX = 0.996;
+        double colorX = 0.9; //0.996
         int threshold = 200;
-        int sensorThreshold = 3;
+        int sensorThreshold = 5;
         boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
         boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
         boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
