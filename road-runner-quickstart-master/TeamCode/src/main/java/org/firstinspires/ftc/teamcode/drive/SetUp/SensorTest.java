@@ -34,7 +34,7 @@ public class SensorTest extends LinearOpMode {
             if (lockHeading){
                 double turnVal = drive.currentPose.getHeading()-lockHeadAngle;
                 if (Math.abs(turnVal) >= 0.08){
-                    turn += turnVal;
+                    //turn += turnVal;
                 }
             }
             else {lockHeadAngle = drive.currentPose.getHeading();}
@@ -64,7 +64,7 @@ public class SensorTest extends LinearOpMode {
             //telemetry.addData("volatage", drive.getBatteryVoltage());
             telemetry.addData("left Wall", val1);
             telemetry.addData("right Wall", val2);
-            telemetry.addData("rl1", rli);
+            telemetry.addData("rli", rli);
             //telemetry.addData("ReadTime", elapsedTimeRLI);
             //telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
             telemetry.update();

@@ -26,6 +26,13 @@ public class Teleop extends LinearOpMode {
 
         waitForStart();
 
+        drive.intakeCase = 0;
+        drive.lastIntakeCase = 0;
+        drive.update();
+        Pose2d startingPose = new Pose2d(12,66,0);
+        drive.localizer.setPoseEstimate(startingPose);
+        drive.update();
+
         double lockHeadAngle = 0;
 
         while (!isStopRequested()) {
@@ -50,7 +57,7 @@ public class Teleop extends LinearOpMode {
             if (lockHeading){
                 double turnVal = drive.currentPose.getHeading()-lockHeadAngle;
                 if (Math.abs(turnVal) >= 0.08){
-                    turn += turnVal + 0.04*Math.signum(turnVal);
+                    //turn += turnVal + 0.04*Math.signum(turnVal);
                 }
             }
             else {lockHeadAngle = drive.currentPose.getHeading();}

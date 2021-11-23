@@ -108,7 +108,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetSlideExtensionLength = 0;
     public double targetTurretHeading = 0;
     public double targetV4barOrientation = 0;
-    public double slideTickToInch = 71.0953 * 0.56;
+    public double slideTickToInch = 40.2196341746;
     public double turretTickToRadians = 578.3213;
 
     private boolean deposit = false;
@@ -505,6 +505,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         //Log.e("target", Math.toDegrees(targetTurretHeading) + "");
         //Log.e("target", Math.toDegrees(targetV4barOrientation) + "");
         //Log.e("target", targetSlideExtensionLength + "");
+        //targetSlideExtensionLength = 20;
         startSlides = true;
     }
     public void deposit(){
@@ -512,7 +513,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateIntake(){
-        Log.e("intakeCase", intakeCase + "");
+        //Log.e("intakeCase", intakeCase + "");
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
                 case 1: // rotate the servo down
@@ -548,7 +549,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateSlides(){
-        Log.e("slidesCase", slidesCase + "");
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
@@ -574,7 +574,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: //wait for turret to get near to end
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
                 case 2: //wait for arm to be over area
-                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 1 && System.currentTimeMillis()-slideTime >= 500){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= 500){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
                 case 3: //wait for everything to get to the end and it wants to deposit
                     if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(10) && deposit){slidesCase ++;} break;
                 case 4: //wait for the block to drop => reset the intakeCase
@@ -698,9 +698,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
     }
     public void updateWallDetection(){
-        //TODO: Get the actual value for the sensors when in idle
-        boolean leftSensor = leftWallVal <= 300;
-        boolean rightSensor = rightWallVal <= 300;
+        boolean leftSensor = leftWallVal <= 305;
+        boolean rightSensor = rightWallVal <= 305;
         double heading = clipHeading(currentPose.getHeading());
         if (leftSensor ^ rightSensor){ // this is XOR it means that this or this but not both this and this
             boolean forward = Math.abs(heading) < Math.toRadians(15);
@@ -709,10 +708,10 @@ public class SampleMecanumDrive extends MecanumDrive {
             boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
             double distance;
             if (leftSensor){
-                distance = (leftWallVal)/100.0; //TODO: Find the function for light reflectance vs distance
+                distance = 0.5;
             }
             else{
-                distance = (rightWallVal)/100.0; //TODO: Find the function for light reflectance vs distance
+                distance = 0.5;
             }
             double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
             double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
@@ -767,7 +766,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double robotWidth = 12.5;
         boolean detectLine = false;
         double colorX = 0.996;
-        int threshold = 200; //TODO: review this sensor
+        int threshold = 200;
         int sensorThreshold = 3;
         boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
         boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
