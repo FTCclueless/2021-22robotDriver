@@ -10,15 +10,15 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 @TeleOp(group = "SetUp")
 public class motorPIDTuner extends LinearOpMode {
     public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
-    public static double tP = tF * 0.1;
+    public static double tP = tF * 0.1 + 0.2;
     public static double tI = tF * 0.01;
     public static double tD = 0;
-    public static double tPP = 5;
+    public static double tPP = 15;
     public static double sF = 32767.0 / (223.0 / 60.0 * 751.83);
     public static double sP = sF * 0.1;
     public static double sI = sF * 0.01;
     public static double sD = 0;
-    public static double sPP = 5;
+    public static double sPP = 11;
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -50,7 +50,7 @@ public class motorPIDTuner extends LinearOpMode {
                 drive.slides.setPower(0);
                 drive.turret.setPower(1);
                 start = System.currentTimeMillis();
-                drive.turret.setTargetPosition((int)(Math.toRadians(-30)*drive.slideTickToInch));
+                drive.turret.setTargetPosition((int)(Math.toRadians(-30)*drive.turretTickToRadians));
             }
             double currentPos = 0;
             switch (state){
@@ -75,14 +75,14 @@ public class motorPIDTuner extends LinearOpMode {
                     currentPos = Math.toDegrees(drive.turretHeading);
                     if(Math.abs(drive.turretHeading - Math.toRadians(30)) <= 0.2 && System.currentTimeMillis() - start >= 5000){
                         drive.turret.setPower(1);
-                        drive.turret.setTargetPosition((int)(Math.toRadians(-30)*drive.slideTickToInch));
-                        targetPos = 30;
+                        drive.turret.setTargetPosition((int)(Math.toRadians(-30)*drive.turretTickToRadians));
+                        targetPos = -30;
                         start = System.currentTimeMillis();
                     }
                     if(Math.abs(drive.turretHeading - Math.toRadians(-30)) <= 0.2 && System.currentTimeMillis() - start >= 5000){
                         drive.turret.setPower(1);
-                        drive.turret.setTargetPosition((int)(Math.toRadians(30)*drive.slideTickToInch));
-                        targetPos = -30;
+                        drive.turret.setTargetPosition((int)(Math.toRadians(30)*drive.turretTickToRadians));
+                        targetPos = 30;
                         start = System.currentTimeMillis();
                     }
                     break;

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -26,11 +27,8 @@ public class Teleop extends LinearOpMode {
         waitForStart();
 
         double lockHeadAngle = 0;
-        drive.intakeTurretInterfaceHeading = 0;
 
         while (!isStopRequested()) {
-            drive.targetTurretHeading = 0;
-            drive.targetSlideExtensionLength = 0;
             drive.update();
 
             double forward = gamepad1.left_stick_y * -1;
@@ -42,9 +40,9 @@ public class Teleop extends LinearOpMode {
             }
 
             if (gamepad1.a){
-                drive.intakeCase = 0;
-                drive.lastIntakeCase = 0;
                 drive.startIntake(true);
+                drive.startDeposit(new Pose2d(12,-64,0), new Pose2d(-12,-24),20);
+                drive.deposit();
             }
 
             boolean lockHeading = true;
