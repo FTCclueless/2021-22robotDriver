@@ -526,9 +526,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 2: intake.setPower(-0.9); break; // turn on the intake (forward)
                 case 3: if(currentIntake == 1){servos.get(1).setPosition(1.0);} if(currentIntake == -1){servos.get(0).setPosition(0.157);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
-                case 5: intake.setPower(0.65); break; // rotate the servo backward 0.8 at 11v 0.55 at 14v //TODO: Test wether this is useful. We really need the transfer sequence to work before we try to time save
-                case 6: intake.setPower(0.85); break; // rotate the servo backward 1.00 at 11v 1.00 at 14v
-                case 7: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
+                case 5: intake.setPower(0.85); break; // rotate the servo backward 0.8 at 11v 0.55 at 14v
+                case 6: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                 if (sumIntakeSensor/intakeSensorLoops >= 180){
                     Log.e("Type", "cube");
@@ -546,10 +545,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;}break; // wait for block in
-            case 3: if (System.currentTimeMillis() - intakeTime >= 375 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
+            case 3: if (System.currentTimeMillis() - intakeTime >= 400 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: if (System.currentTimeMillis() - intakeTime >= 250){intakeCase ++;} break; //125 for 11 volts, 375 for 14 volts.
-            case 6: if (System.currentTimeMillis() - intakeTime >= 350){intakeCase ++;} break;  // waiting for mineral to leave the intake
+            case 5: if (System.currentTimeMillis() - intakeTime >= 250){intakeCase ++;} break;
         }
     }
 
