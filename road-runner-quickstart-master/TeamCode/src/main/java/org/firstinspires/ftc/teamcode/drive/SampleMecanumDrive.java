@@ -547,7 +547,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;}break; // wait for block in
             case 3: if (System.currentTimeMillis() - intakeTime >= 400 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: if (System.currentTimeMillis() - intakeTime >= 250){intakeCase ++;} break;
+            case 5: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;
         }
     }
 
