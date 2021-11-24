@@ -35,6 +35,7 @@ import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityCons
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -90,6 +91,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides;
     public AnalogInput rightIntake, leftIntake, rightWall, leftWall;
+    public CRServo duckSpin;
     double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal;
     long lastTouchPoll;
     long lastTiltPoll;
@@ -275,11 +277,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4: servos.add(hardwareMap.servo.get("v4bar")); break;
                 case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
                 case 6: servos.add(hardwareMap.servo.get("leftCapstone")); break;
-                //case 7: servos.add(hardwareMap.servo.get("duckSpin")); break;
-                case 8: servos.add(hardwareMap.servo.get("duckSpinSpin")); break;
+                case 7: servos.add(hardwareMap.servo.get("duckSpinSpin")); break;
             }
         }
-
+        duckSpin = hardwareMap.crservo.get("duckSpin");
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
         rightWall = hardwareMap.analogInput.get("rightWall");
@@ -506,7 +507,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         //Log.e("target", Math.toDegrees(targetTurretHeading) + "");
         //Log.e("target", Math.toDegrees(targetV4barOrientation) + "");
         //Log.e("target", targetSlideExtensionLength + "");
-        //targetSlideExtensionLength = 20;
+        targetSlideExtensionLength = Math.min(Math.abs(targetSlideExtensionLength),39);
         startSlides = true;
     }
     public void deposit(){
@@ -525,8 +526,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 2: intake.setPower(-0.9); break; // turn on the intake (forward)
                 case 3: if(currentIntake == 1){servos.get(1).setPosition(1.0);} if(currentIntake == -1){servos.get(0).setPosition(0.157);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
-                case 5: intake.setPower(0.65); break; // rotate the servo backward
-                case 6: intake.setPower(1.00); break; // rotate the servo backward
+                case 5: intake.setPower(0.65); break; // rotate the servo backward 0.8 at 11v 0.55 at 14v //TODO: Test wether this is useful. We really need the transfer sequence to work before we try to time save
+                case 6: intake.setPower(0.85); break; // rotate the servo backward 1.00 at 11v 1.00 at 14v
                 case 7: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                 if (sumIntakeSensor/intakeSensorLoops >= 180){
@@ -541,12 +542,14 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         lastIntakeCase = intakeCase;
         int a = intakeCase;
+        //TODO: Implement battery voltage into the transfer time
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;}break; // wait for block in
-            case 3: if (System.currentTimeMillis() - intakeTime >= 200 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back
+            case 3: if (System.currentTimeMillis() - intakeTime >= 375 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: case 6: if (System.currentTimeMillis() - intakeTime >= 150){intakeCase ++;} break;  // waiting for mineral to leave the intake
+            case 5: if (System.currentTimeMillis() - intakeTime >= 250){intakeCase ++;} break; //125 for 11 volts, 375 for 14 volts.
+            case 6: if (System.currentTimeMillis() - intakeTime >= 350){intakeCase ++;} break;  // waiting for mineral to leave the intake
         }
     }
 
@@ -587,7 +590,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(10)){slidesCase ++;} break;
                 case 7: //wait for the arm to be at start
                     if (Math.abs(slideExtensionLength) <= 1){slidesCase ++;} break;
-                case 9: //resets the slidesCase & officially says mineral has not been transfered
+                case 8: //resets the slidesCase & officially says mineral has not been transfered
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; break;
             }
         }
@@ -717,8 +720,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
             double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
             double gain = 0.01;
-            double detectionDist = 4.0;
-            double extraOffset = 2.0;
+            double detectionDist = 6.75;
+            double extraOffset = 3.0;
             double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
             if (forward || backward){
                 double m = 1;
