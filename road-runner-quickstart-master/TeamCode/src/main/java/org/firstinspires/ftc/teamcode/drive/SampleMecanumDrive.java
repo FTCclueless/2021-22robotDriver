@@ -171,9 +171,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double intakeTurretInterfaceHeading = 57.5;
     public static double intakePower = -0.9;
     public static int outakeLowTime = 250;
-    public static double outakeLowPower = -0.9;
+    public static double outakeLowPower = 0.65;
     public static int outakeHighTime = 350;
-    public static double outakeHighPower = -0.9;
+    public static double outakeHighPower = 0.85;
     public static int closeDepositTime = 50;
     public static int openDepositTime = 200;
     public static double returnSlideLength = 1.5;
