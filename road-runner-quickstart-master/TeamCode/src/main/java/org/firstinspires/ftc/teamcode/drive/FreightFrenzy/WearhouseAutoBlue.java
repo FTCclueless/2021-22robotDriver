@@ -30,7 +30,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         for (int i = 0; i < numIntakes; i ++) {
             intake.add(drive.trajectorySequenceBuilder(endPoint)
                     .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
-                    .splineTo(new Vector2d(40 + (i / 3) * 4,endPoint.getY() - (i / 3) * 2),Math.toRadians((i % 3) * -15))
+                    .splineTo(new Vector2d(40 + (i / 3) * 4,endPoint.getY() - (i / 3) * 2),0)
                     .build());
         }
         //TODO: Implement ML here
@@ -53,7 +53,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12,24),20);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
-            intakeMineral(0.75,drive.currentPose.getHeading(),2000); // getting a mineral
+            intakeMineral(0.75,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
             waitForDeposit(); // deposit the block when first possible
             numMinerals ++;
@@ -83,7 +83,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
     }
     public TrajectorySequence returnToScoring(Pose2d endPoint){
-        return drive.trajectorySequenceBuilder(drive.currentPose)
+        return drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(),drive.currentPose.getY(),0))
                 .setReversed(true)
                 .splineTo(new Vector2d(36.5,endPoint.getY()),Math.toRadians(180))
                 .setReversed(true)
