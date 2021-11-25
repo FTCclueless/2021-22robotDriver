@@ -100,7 +100,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int lastIntakeCase;
     private long intakeTime;
     private long slideTime;
-    boolean transferMineral = false;
+    public boolean transferMineral = false;
     boolean startIntake = false;
     public int slidesCase;
     private int lastSlidesCase;
@@ -201,7 +201,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         turnController.setInputBounds(0, 2 * Math.PI);
 
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
-                new Pose2d(1, 0.5, Math.toRadians(5.0)), 0.5);
+                new Pose2d(0.25, 0.25, Math.toRadians(5.0)), 0.5);
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
@@ -327,9 +327,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
         slides.setPositionPIDFCoefficients(sPP);
 
-
-
-        servos.get(2).setPosition(0.5);
+        servos.get(0).setPosition(0.157);
+        servos.get(1).setPosition(0.770);
+        servos.get(2).setPosition(0.367);
         servos.get(3).setPosition(0.48);
         servos.get(4).setPosition(0.773);
     }
@@ -507,7 +507,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         //Log.e("target", Math.toDegrees(targetTurretHeading) + "");
         //Log.e("target", Math.toDegrees(targetV4barOrientation) + "");
         //Log.e("target", targetSlideExtensionLength + "");
-        targetSlideExtensionLength = Math.min(Math.abs(targetSlideExtensionLength),39);
+        //targetSlideExtensionLength = Math.min(Math.abs(targetSlideExtensionLength),39);
         startSlides = true;
     }
     public void deposit(){
@@ -520,14 +520,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (intakeCase) {
                 case 1: // rotate the servo down
                     intakeSensorLoops = 1; sumIntakeSensor = 0;
-                    if(currentIntake == 1){servos.get(1).setPosition(0.068);}
+                    if(currentIntake == 1){servos.get(1).setPosition(0.162);}
                     if(currentIntake == -1){servos.get(0).setPosition(0.762);}
                     break;
                 case 2: intake.setPower(-0.9); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos.get(1).setPosition(1.0);} if(currentIntake == -1){servos.get(0).setPosition(0.157);} break; // lift up the servo
+                case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.157);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
-                case 5: intake.setPower(0.85); break; // rotate the servo backward 0.8 at 11v 0.55 at 14v
-                case 6: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
+                case 5: intake.setPower(0.65); break;
+                case 6: intake.setPower(0.85); break;
+                case 7: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                 if (sumIntakeSensor/intakeSensorLoops >= 180){
                     Log.e("Type", "cube");
@@ -545,27 +546,29 @@ public class SampleMecanumDrive extends MecanumDrive {
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;}break; // wait for block in
-            case 3: if (System.currentTimeMillis() - intakeTime >= 400 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
+            case 3: if (System.currentTimeMillis() - intakeTime >= 375 && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;} break;
+            case 5: if (System.currentTimeMillis() - intakeTime >= 250){intakeCase ++;} break;
+            case 6: if (System.currentTimeMillis() - intakeTime >= 350){intakeCase ++;} break;
         }
     }
 
     public void updateSlides(){
+        //TODO: Slides want to stay about an inch out, maybe 2
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
                     case 1: // rotate turret
-                        turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0); servos.get(2).setPosition(0.197); break;
+                        turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0); servos.get(2).setPosition(0.614); break;
                     case 2: // extend slides & v4bar & servo pre-tilt
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
                         setV4barOrientation(targetV4barOrientation); break;
                     case 4: //deposit
-                        servos.get(2).setPosition(0.829); break;
+                        servos.get(2).setPosition(0.336); break;
                     case 5: // go back to start
                         slides.setTargetPosition(0); slides.setPower(1.0);
                         setV4barOrientation(0);
-                        servos.get(2).setPosition(0.5); break;
+                        servos.get(2).setPosition(0.367); break;
                     case 6: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
                 }

@@ -53,8 +53,8 @@ public class Teleop extends LinearOpMode {
 
             boolean a1 = gamepad1.a;
             if (a1 != lastA1 && a1){
-                drive.startIntake(true);
-                drive.startDeposit(new Pose2d(12,-64,0), new Pose2d(-12,-24),20);
+                drive.startIntake(false);
+                drive.startDeposit(new Pose2d(12,64,0), new Pose2d(-12,24),20);
             }
             lastA1 = a1;
 
