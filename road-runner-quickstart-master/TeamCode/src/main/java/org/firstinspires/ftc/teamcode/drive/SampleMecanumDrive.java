@@ -170,7 +170,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static int openDepositTime = 200;
     public static double returnSlideLength = 1.5;
 
-    
+
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
     public double targetSlideExtensionLength = 0;
