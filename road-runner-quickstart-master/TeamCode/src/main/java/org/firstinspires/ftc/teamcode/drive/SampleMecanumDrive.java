@@ -106,14 +106,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     private int lastSlidesCase;
     boolean startSlides = false;
 
-    public double slideExtensionLength = 0;
-    public double turretHeading = 0;
-    public double targetSlideExtensionLength = 0;
-    public double targetTurretHeading = 0;
-    public double targetV4barOrientation = 0;
-    public double slideTickToInch = 40.2196341746;
-    public double turretTickToRadians = 578.3213;
-
     private boolean deposit = false;
 
     double v4barSpeed = 750/Math.PI; // the time it takes the v4bar to rotate 1 radian (750/pi)
@@ -177,6 +169,15 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static int closeDepositTime = 50;
     public static int openDepositTime = 200;
     public static double returnSlideLength = 1.5;
+
+    
+    public double slideExtensionLength = 0;
+    public double turretHeading = 0;
+    public double targetSlideExtensionLength = 0;
+    public double targetTurretHeading = 0;
+    public double targetV4barOrientation = 0;
+    public double slideTickToInch = 40.2196341746;
+    public double turretTickToRadians = 578.3213;
 
 
     public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
