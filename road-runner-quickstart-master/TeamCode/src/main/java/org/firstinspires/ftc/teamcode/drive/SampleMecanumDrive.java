@@ -159,13 +159,13 @@ public class SampleMecanumDrive extends MecanumDrive {
 
 
     public static int dropIntakeTime = 300;
-    public static int liftIntakeTime = 375;
+    public static int liftIntakeTime = 350;
     public static double intakeTurretInterfaceHeading = 57.5;
-    public static double intakePower = -0.9;
-    public static int outakeLowTime = 250;
-    public static double outakeLowPower = 0.65;
-    public static int outakeHighTime = 350;
-    public static double outakeHighPower = 0.85;
+    public static double intakePower = -0.95;
+    public static int outakeLowTime = 200;
+    public static double outakeLowPower = 0.6;
+    public static int outakeHighTime = 425;
+    public static double outakeHighPower = 0.9;
     public static int closeDepositTime = 50;
     public static int openDepositTime = 200;
     public static double returnSlideLength = 1.5;
@@ -190,6 +190,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double sI = sF * 0.01;
     public static double sD = 0;
     public static double sPP = 25; //was 15. If the slides are too violent, stop this.
+
+    private boolean stop = true;
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
@@ -303,7 +305,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftWallVal = 0;
 
 
-
         // reverse any motors using DcMotor.setDirection()
         // if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));
@@ -343,7 +344,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos.get(1).setPosition(0.770);
         servos.get(2).setPosition(0.367);
         servos.get(3).setPosition(0.48);
-        servos.get(4).setPosition(0.773);
+        servos.get(4).setPosition(0.8);
     }
 
     public void resetAssemblies(){
@@ -522,13 +523,20 @@ public class SampleMecanumDrive extends MecanumDrive {
         //targetSlideExtensionLength = Math.min(Math.abs(targetSlideExtensionLength),39);
         startSlides = true;
     }
+
+    // here
     public void deposit(){
         deposit = true;
     }
 
     public void updateIntake(){
-        //Log.e("intakeCase", intakeCase + "");
         if (lastIntakeCase != intakeCase) {
+            if (sumIntakeSensor/intakeSensorLoops <= 200 && sumIntakeSensor/intakeSensorLoops >= 100) { // ball
+                outakeHighPower = 0.8;
+                outakeLowPower = 0.6;
+                openDepositTime = 250;
+            }
+
             switch (intakeCase) {
                 case 1: // rotate the servo down
                     intakeSensorLoops = 1; sumIntakeSensor = 0;
@@ -543,7 +551,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 7: servos.get(2).setPosition(0.614); break;
                 case 8: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
-                if (sumIntakeSensor/intakeSensorLoops >= 180){
+                if (sumIntakeSensor/intakeSensorLoops >= 200) {
                     Log.e("Type", "cube");
                 }
                 else {
@@ -557,7 +565,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         int a = intakeCase;
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;} break;  // waiting for the servo to drop
-            case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;}break; // wait for block in
+            case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;} break; // wait for block in
             case 3: if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
             case 5: if (System.currentTimeMillis() - intakeTime >= outakeLowTime){intakeCase ++;} break;
@@ -568,7 +576,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateSlides(){
         //TODO: Slides want to stay about an inch out, maybe 2
-        if (transferMineral) { // I have deposited into the area
+        if (transferMineral && stop == false) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
                     case 1: // rotate turret
@@ -577,11 +585,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                         slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
                         setV4barOrientation(targetV4barOrientation); break;
                     case 4: //deposit
-                        servos.get(2).setPosition(0.336); break;
+                        servos.get(2).setPosition(0.2949); break; //0.336
                     case 5: // go back to start
                         slides.setTargetPosition((int)(returnSlideLength * slideTickToInch)); slides.setPower(1.0);
                         setV4barOrientation(0);
-                        servos.get(2).setPosition(0.367); break;
+                        servos.get(2).setPosition(0.7); break; //0.367
                     case 6: // rotate turret back
                         turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
                 }
@@ -611,9 +619,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void setV4barOrientation(double targetV4barOrientation){
-        double servoPos = (targetV4barOrientation * -0.1964029920) + 0.773;
-        servoPos = Math.max(Math.min(servoPos,0.773),0.156);
-        servos.get(4).setPosition(servoPos); // 0.773 is 0 and it takes -0.329 to go 90
+        double servoPos = (targetV4barOrientation * -0.1964029920) + 0.8;
+        servoPos = Math.max(Math.min(servoPos,0.8),0.156);
+        servos.get(4).setPosition(servoPos); // 0.8 is 0 and it takes -0.329 to go 90
     }
 
     public void updateScoring(){
