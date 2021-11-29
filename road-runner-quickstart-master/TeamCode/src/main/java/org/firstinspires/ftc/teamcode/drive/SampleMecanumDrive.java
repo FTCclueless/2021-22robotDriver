@@ -498,29 +498,30 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void startDeposit(Pose2d endPose, Pose2d targetPose, double height){
+        //Todo: Convert endPose to turret end pose
         Pose2d relTarget = new Pose2d(
                 Math.cos(endPose.getHeading())*(endPose.getX()-targetPose.getX()) + Math.sin(endPose.getHeading())*(endPose.getY()-targetPose.getY()),
                 Math.cos(endPose.getHeading())*(endPose.getY()-targetPose.getY()) + Math.sin(endPose.getHeading())*(endPose.getX()-targetPose.getX())
         );
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
-        height -= 8.86;
+        height -= 9.17;
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
         double v4BarLength = 8;
-        double slope = 0.1228;
+        double slope = 0.1727;
         double a = (slope*slope + 1);
         double b = -1.0*(2*length + 2*slope*height);
         double c = length*length - Math.pow(v4BarLength,2) + height * height;
         double slideExtension = (-1.0 * b - Math.sqrt(b*b - 4.0 * a * c)) / (2.0 * a);
-        targetSlideExtensionLength = slideExtension * 1.0098;
+        targetSlideExtensionLength = slideExtension * 1.015;
+        targetSlideExtensionLength -= 6.157;
         targetV4barOrientation = Math.atan2(height - slideExtension*slope,slideExtension - length);
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
-        targetV4barOrientation -= Math.toRadians(13.1);
-        //Log.e("target", Math.toDegrees(targetTurretHeading) + "");
-        //Log.e("target", Math.toDegrees(targetV4barOrientation) + "");
-        //Log.e("target", targetSlideExtensionLength + "");
-        //targetSlideExtensionLength = Math.min(Math.abs(targetSlideExtensionLength),39);
+        targetV4barOrientation += Math.toRadians(17.6);
+        if (stop){
+            targetSlideExtensionLength = 0;
+        }
         startSlides = true;
     }
 
@@ -536,6 +537,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                 outakeLowPower = 0.6;
                 openDepositTime = 250;
             }
+            else {
+
+            }
 
             switch (intakeCase) {
                 case 1: // rotate the servo down
@@ -544,7 +548,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if(currentIntake == -1){servos.get(0).setPosition(0.762);}
                     break;
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.157);} break; // lift up the servo
+                case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.153);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
                 case 5: intake.setPower(outakeLowPower); break;
                 case 6: intake.setPower(outakeHighPower); break;
@@ -576,7 +580,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateSlides(){
         //TODO: Slides want to stay about an inch out, maybe 2
-        if (transferMineral && stop == false) { // I have deposited into the area
+        if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
                     case 1: // rotate turret
