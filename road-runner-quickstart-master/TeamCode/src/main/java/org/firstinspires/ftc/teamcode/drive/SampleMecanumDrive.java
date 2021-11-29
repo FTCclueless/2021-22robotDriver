@@ -498,7 +498,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void startDeposit(Pose2d endPose, Pose2d targetPose, double height){
-        //Todo: Convert endPose to turret end pose
+        double turretX = -0.75;
+        endPose = new Pose2d(
+                endPose.getX() + Math.cos(endPose.getHeading()) * turretX,
+                endPose.getY() + Math.sin(endPose.getHeading()) * turretX,
+                endPose.getHeading()
+        );
         Pose2d relTarget = new Pose2d(
                 Math.cos(endPose.getHeading())*(endPose.getX()-targetPose.getX()) + Math.sin(endPose.getHeading())*(endPose.getY()-targetPose.getY()),
                 Math.cos(endPose.getHeading())*(endPose.getY()-targetPose.getY()) + Math.sin(endPose.getHeading())*(endPose.getX()-targetPose.getX())
@@ -506,15 +511,22 @@ public class SampleMecanumDrive extends MecanumDrive {
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
         height -= 9.17;
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
+        double effectiveSlideAngle = Math.toRadians(9.89518);
         double v4BarLength = 8;
-        double slope = 0.1727;
+        double slope = Math.tan(effectiveSlideAngle);
         double a = (slope*slope + 1);
         double b = -1.0*(2*length + 2*slope*height);
         double c = length*length - Math.pow(v4BarLength,2) + height * height;
-        double slideExtension = (-1.0 * b - Math.sqrt(b*b - 4.0 * a * c)) / (2.0 * a);
-        targetSlideExtensionLength = slideExtension * 1.015;
-        targetSlideExtensionLength -= 6.157;
-        targetV4barOrientation = Math.atan2(height - slideExtension*slope,slideExtension - length);
+        if (4.0 * a * c < b * b) {
+            double slideExtension = (-1.0 * b - Math.sqrt(b * b - 4.0 * a * c)) / (2.0 * a);
+            targetSlideExtensionLength = slideExtension * 1.0 / (Math.cos(effectiveSlideAngle));
+            targetV4barOrientation = Math.atan2(height - slideExtension * slope, slideExtension - length);
+        }
+        else{
+            targetSlideExtensionLength = length - v4BarLength;
+            targetV4barOrientation = Math.toRadians(180);
+        }
+        targetSlideExtensionLength -= 6.04370079 * 1.0 / (Math.cos(effectiveSlideAngle));
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
@@ -533,12 +545,14 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
             if (sumIntakeSensor/intakeSensorLoops <= 200 && sumIntakeSensor/intakeSensorLoops >= 100) { // ball
-                outakeHighPower = 0.8;
                 outakeLowPower = 0.6;
+                outakeHighPower = 0.8;
                 openDepositTime = 250;
             }
             else {
-
+                outakeLowPower = 0.6;
+                outakeHighPower = 0.9;
+                openDepositTime = 200;
             }
 
             switch (intakeCase) {
