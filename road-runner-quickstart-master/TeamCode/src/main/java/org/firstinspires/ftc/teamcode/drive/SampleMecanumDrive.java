@@ -193,6 +193,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean stop = true;
 
+    long intakeDelay;
+
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
     }
@@ -207,6 +209,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         tiltTime = currentTime;
         intakeTime = currentTime;
         slideTime = currentTime;
+        intakeDelay = currentTime;
 
         staticHeading = 0;
         r = new robotComponents(true);
@@ -495,6 +498,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
         startIntake = true;
+        intakeDelay = System.currentTimeMillis();
     }
 
     public void startDeposit(Pose2d endPose, Pose2d targetPose, double height){
@@ -643,6 +647,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateScoring(){
+        if (System.currentTimeMillis() - intakeDelay >= 1000){
+            startIntake = false;
+        }
         if (startIntake && intakeCase == 0){
             intakeCase = 1;
             intakeTime = System.currentTimeMillis();
