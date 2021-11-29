@@ -523,14 +523,14 @@ public class SampleMecanumDrive extends MecanumDrive {
         double c = length*length - Math.pow(v4BarLength,2) + height * height;
         if (4.0 * a * c < b * b) {
             double slideExtension = (-1.0 * b - Math.sqrt(b * b - 4.0 * a * c)) / (2.0 * a);
-            targetSlideExtensionLength = slideExtension * 1.0 / (Math.cos(effectiveSlideAngle));
+            targetSlideExtensionLength = slideExtension / (Math.cos(effectiveSlideAngle));
             targetV4barOrientation = Math.atan2(height - slideExtension * slope, slideExtension - length);
         }
         else{
             targetSlideExtensionLength = length - v4BarLength;
             targetV4barOrientation = Math.toRadians(180);
         }
-        targetSlideExtensionLength -= 6.04370079 * 1.0 / (Math.cos(effectiveSlideAngle));
+        targetSlideExtensionLength -= 6.04370079 / (Math.cos(effectiveSlideAngle));
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
