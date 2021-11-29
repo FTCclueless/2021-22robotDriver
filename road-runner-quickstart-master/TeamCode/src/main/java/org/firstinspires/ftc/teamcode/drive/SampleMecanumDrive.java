@@ -157,16 +157,17 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean display3WheelOdo;
 
+    public static double intakeTurretInterfaceHeading = 57.5;
+
 
     public static int dropIntakeTime = 300;
+    public static double intakePower = -1; //-0.95;
     public static int liftIntakeTime = 350;
-    public static double intakeTurretInterfaceHeading = 57.5;
-    public static double intakePower = -0.95;
-    public static int outakeLowTime = 200;
-    public static double outakeLowPower = 0.6;
-    public static int outakeHighTime = 425;
-    public static double outakeHighPower = 0.9;
-    public static int closeDepositTime = 50;
+    public static int       outake1Time = 150; //200
+    public static double    outake1Power = 1.0;//0.6
+    public static int       outake2Time = 400; //425
+    public static double    outake2Power = 0.6;//0.9
+    public static int closeDepositTime = 10; //50
     public static int openDepositTime = 200;
     public static double returnSlideLength = 1.5;
 
@@ -548,15 +549,28 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
+
+            /*
+            returnSlideLength = 1.5;
+
+            dropIntakeTime = 300;
+            intakePower = -1; //-0.95;
+
+            liftIntakeTime = 350;
+            outake1Time = 150;  //200
+            outake1Power = 1.0; //0.6
+            outake2Time = 400; //425
+            outake2Power = 0.6;//0.9
+             */
+
+            closeDepositTime = 20;//50
+
             if (sumIntakeSensor/intakeSensorLoops <= 200) { // ball
-                outakeLowPower = 0.6;
-                outakeHighPower = 0.8;
-                openDepositTime = 250;
+                //outake1Power = 0.6;
+                //outake2Power = 0.8;
+                //openDepositTime = 250;
             }
             else {
-                outakeLowPower = 0.6;
-                outakeHighPower = 0.9;
-                openDepositTime = 200;
             }
 
             switch (intakeCase) {
@@ -568,8 +582,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.153);} break; // lift up the servo
                 case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
-                case 5: intake.setPower(outakeLowPower); break;
-                case 6: intake.setPower(outakeHighPower); break;
+                case 5: intake.setPower(outake1Power); break;
+                case 6: intake.setPower(outake2Power); break;
                 case 7: servos.get(2).setPosition(0.614); break;
                 case 8: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
@@ -590,8 +604,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;} break; // wait for block in
             case 3: if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
-            case 5: if (System.currentTimeMillis() - intakeTime >= outakeLowTime){intakeCase ++;} break;
-            case 6: if (System.currentTimeMillis() - intakeTime >= outakeHighTime){intakeCase ++;} break;
+            case 5: if (System.currentTimeMillis() - intakeTime >= outake1Time){intakeCase ++;} break;
+            case 6: if (System.currentTimeMillis() - intakeTime >= outake2Time){intakeCase ++;} break;
             case 7: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;} break;
         }
     }
