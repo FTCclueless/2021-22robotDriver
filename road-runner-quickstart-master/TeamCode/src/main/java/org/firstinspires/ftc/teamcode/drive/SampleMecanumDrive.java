@@ -544,7 +544,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateIntake(){
         if (lastIntakeCase != intakeCase) {
-            if (sumIntakeSensor/intakeSensorLoops <= 200 && sumIntakeSensor/intakeSensorLoops >= 100) { // ball
+            if (sumIntakeSensor/intakeSensorLoops <= 200) { // ball
                 outakeLowPower = 0.6;
                 outakeHighPower = 0.8;
                 openDepositTime = 250;
