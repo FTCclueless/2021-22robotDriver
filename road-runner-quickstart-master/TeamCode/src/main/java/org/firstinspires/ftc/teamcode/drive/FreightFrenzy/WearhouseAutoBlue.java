@@ -20,7 +20,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
-        drive.intakeTurretInterfaceHeading = 0;
         Pose2d startingPose = new Pose2d(12,65.25,0);
 
         ArrayList<TrajectorySequence> intake = new ArrayList<TrajectorySequence>();
@@ -37,18 +36,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
         int capNum = 2;
         setUp(startingPose);
         drive.transferMineral = true;
-        telemetry.addData("Start", "Ready");
-        telemetry.update();
         waitForStart();
-        //The program begins
-        telemetry.addData("Start", "p1");
-        telemetry.update();
-
-        //grabCapstone(capNum,endPoint);
+        start = System.currentTimeMillis();
         depositFirst(capNum,startingPose,endPoint);
-        telemetry.addData("Start", "p2");
-        telemetry.update();
-
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12,24),20);
@@ -105,9 +95,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
     }
     public void setUp(Pose2d startingPose){
-        start = System.currentTimeMillis();
-        drive.intakeCase = 0;
-        drive.lastIntakeCase = 0;
         drive.update();
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
