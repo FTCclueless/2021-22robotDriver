@@ -37,12 +37,14 @@ public class WearhouseAutoBlue extends LinearOpMode {
         setUp(startingPose);
         drive.transferMineral = true;
         waitForStart();
+        drive.servos.get(2).setPosition(0.614);
         start = System.currentTimeMillis();
         depositFirst(capNum,startingPose,endPoint);
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12,24),20);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
+            //drive.trajectorySequenceRunner.remainingMarkers.clear(); this might kill the trajectory sequence = we can make it transition faster
             intakeMineral(0.75,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
             waitForDeposit(); // deposit the block when first possible

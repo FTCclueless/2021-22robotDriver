@@ -69,7 +69,7 @@ public class TrajectorySequenceRunner {
     private robotComponents threeWheelRobot;
     private Pose2d threeWheelPose;
 
-    List<TrajectoryMarker> remainingMarkers = new ArrayList<>();
+    public List<TrajectoryMarker> remainingMarkers = new ArrayList<>();
 
     private final FtcDashboard dashboard;
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();

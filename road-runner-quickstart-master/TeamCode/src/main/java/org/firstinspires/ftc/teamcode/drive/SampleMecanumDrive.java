@@ -344,7 +344,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
         slides.setPositionPIDFCoefficients(sPP);
 
-        servos.get(0).setPosition(0.157);
+        servos.get(0).setPosition(0.153);
         servos.get(1).setPosition(0.770);
         servos.get(2).setPosition(0.367);
         servos.get(3).setPosition(0.48);
@@ -559,14 +559,14 @@ public class SampleMecanumDrive extends MecanumDrive {
             transfer2Time = 400; //425
             transfer2Power = 0.6;//0.9
             closeDepositTime = 20;//50
-             */
             if (sumIntakeSensor/intakeSensorLoops <= 200) { //is ball
-                //transfer1Power = 0.6;
-                //transfer2Power = 0.8;
-                //openDepositTime = 250;
+                transfer1Power = 0.6;
+                transfer2Power = 0.8;
+                openDepositTime = 250;
             }
             else { //is cube
             }
+            */
 
             switch (intakeCase) {
                 case 1: // rotate the servo down
@@ -576,7 +576,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.153);} break; // lift up the servo
-                case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break; //send turret to the correct side
+                case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0);
+                slides.setTargetPosition((int)(returnSlideLength*slideTickToInch)); slides.setPower(1);
+                break; //send turret to the correct side
                 case 5: intake.setPower(transfer1Power); break;
                 case 6: intake.setPower(transfer2Power); break;
                 case 7: servos.get(2).setPosition(0.614); break;
@@ -606,7 +608,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateSlides(){
-        //TODO: Slides want to stay about an inch out, maybe 2
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
