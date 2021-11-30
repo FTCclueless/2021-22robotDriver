@@ -65,17 +65,17 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
     }
     public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
-        double height = 0;
-        double radius = 0;
+        double h = 0;
+        double r = 0;
         switch (capNum) {
-            case 0: radius = 8; height = 6.25; break;
-            case 1: radius = 7; height = 12.13; break;
-            case 2: radius = 0; height = 20; break;
+            case 0: r = 8; h = 8; break;
+            case 1: r = 7; h = 12.13; break;
+            case 2: r = 0; h = 20; break;
         }
         double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
-        double x1 = radius * (12-endPoint.getX())/d;
-        double y1 = radius * (-24-endPoint.getY())/d;
-        drive.startDeposit(endPoint, new Pose2d(-12.0 + x1, (24.0 + y1) * Math.signum(endPoint.getY())), height);
+        double x1 = r * (12-endPoint.getX())/d;
+        double y1 = r * (-24-endPoint.getY())/d;
+        drive.startDeposit(endPoint, new Pose2d(-12.0 + x1, (24.0 + y1) * Math.signum(endPoint.getY())), h);
         TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
                 .build();
