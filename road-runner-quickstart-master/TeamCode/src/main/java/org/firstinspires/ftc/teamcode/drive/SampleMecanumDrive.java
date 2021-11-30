@@ -89,7 +89,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
-    public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides;
+    public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake, rightWall, leftWall;
     public CRServo duckSpin;
     double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal;
@@ -248,6 +248,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         intake = (ExpansionHubMotor) hardwareMap.dcMotor.get("intake");
         turret = (ExpansionHubMotor) hardwareMap.dcMotor.get("turret");
         slides = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides");
+        slides2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides2");
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
@@ -277,8 +278,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         turret.setTargetPosition(0);
         slides.setTargetPosition(0);
+        slides2.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
@@ -343,6 +346,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setPositionPIDFCoefficients(tPP);
         slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
         slides.setPositionPIDFCoefficients(sPP);
+        slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
+        slides2.setPositionPIDFCoefficients(sPP);
 
         servos.get(0).setPosition(0.153);
         servos.get(1).setPosition(0.770);
@@ -354,8 +359,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void resetAssemblies(){
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void initT265(HardwareMap hardwareMap){
@@ -494,8 +501,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (currentIntake != targetIntake){
             currentIntake = targetIntake;
             if (!transferMineral || slidesCase >= 6){
-                turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians));
-                turret.setPower(1.0);
+                setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));
             }
         }
         startIntake = true;
@@ -576,9 +582,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.153);} break; // lift up the servo
-                case 4: turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0);
-                slides.setTargetPosition((int)(returnSlideLength*slideTickToInch)); slides.setPower(1);
-                break; //send turret to the correct side
+                case 4: setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));setSlidesLength(returnSlideLength);break; //send turret to the correct side
                 case 5: intake.setPower(transfer1Power); break;
                 case 6: intake.setPower(transfer2Power); break;
                 case 7: servos.get(2).setPosition(0.614); break;
@@ -612,18 +616,19 @@ public class SampleMecanumDrive extends MecanumDrive {
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
                     case 1: // rotate turret
-                        turret.setTargetPosition((int)(targetTurretHeading*turretTickToRadians)); turret.setPower(1.0); servos.get(2).setPosition(0.614); break;
+                        setTurretTarget(Math.toRadians(targetTurretHeading));
+                        servos.get(2).setPosition(0.614); break;
                     case 2: // extend slides & v4bar & servo pre-tilt
-                        slides.setTargetPosition((int)(targetSlideExtensionLength*slideTickToInch)); slides.setPower(1.0);
+                        setSlidesLength(targetSlideExtensionLength);
                         setV4barOrientation(targetV4barOrientation); break;
                     case 4: //deposit
                         servos.get(2).setPosition(0.2949); break; //0.336
                     case 5: // go back to start
-                        slides.setTargetPosition((int)(returnSlideLength * slideTickToInch)); slides.setPower(1.0);
+                        setSlidesLength(returnSlideLength);
                         setV4barOrientation(0);
                         servos.get(2).setPosition(0.7); break; //0.367
                     case 6: // rotate turret back
-                        turret.setTargetPosition((int)(Math.toRadians(intakeTurretInterfaceHeading)*currentIntake*turretTickToRadians)); turret.setPower(1.0); break;
+                        setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));break;
                 }
                 slideTime = System.currentTimeMillis();
             }
@@ -655,7 +660,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         servoPos = Math.max(Math.min(servoPos,0.8),0.156);
         servos.get(4).setPosition(servoPos); // 0.8 is 0 and it takes -0.329 to go 90
     }
-
+    public void setSlidesLength(double inches){
+        slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
+        slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
+    }
+    public void setTurretTarget(double radians){
+        turret.setTargetPosition((int)(radians*turretTickToRadians));turret.setPower(1.0);
+    }
     public void updateScoring(){
         if (System.currentTimeMillis() - intakeDelay >= 1000){
             startIntake = false;
@@ -679,7 +690,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         loops ++;
         updateEstimate();
 
-        trajectorySequenceRunner.slideCurrent = slides.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
+        //trajectorySequenceRunner.slideCurrent = slides.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
         //trajectorySequenceRunner.slideCurrent = slides.getCurrent(CurrentUnit.AMPS);
 
         if (display3WheelOdo){
