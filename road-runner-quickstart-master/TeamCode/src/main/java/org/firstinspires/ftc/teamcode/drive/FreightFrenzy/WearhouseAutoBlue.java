@@ -30,6 +30,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
             intake.add(drive.trajectorySequenceBuilder(endPoint)
                     .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
                     .splineTo(new Vector2d(40 + (i / 3) * 4,endPoint.getY() - (i / 3) * 2),0)
+                    .addTemporalMarker(0.9,0, () -> {
+                        drive.trajectorySequenceRunner.remainingMarkers.clear(); //this might kill the trajectory sequence = we can make it transition faster
+                    })
                     .build());
         }
         //TODO: Implement ML here
@@ -44,8 +47,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12,24),20);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
-            //drive.trajectorySequenceRunner.remainingMarkers.clear(); this might kill the trajectory sequence = we can make it transition faster
-            intakeMineral(0.75,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
+            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
             waitForDeposit(); // deposit the block when first possible
             numMinerals ++;
