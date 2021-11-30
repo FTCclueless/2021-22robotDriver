@@ -23,7 +23,8 @@ public class WearhouseAutoMaster extends LinearOpMode {
     int numIntakes = 11;
     int numMinerals = 0;
     ArrayList<TrajectorySequence> intake = new ArrayList<TrajectorySequence>();
-    public WearhouseAutoMaster(boolean blue, boolean red){
+    public WearhouseAutoMaster(boolean blue, boolean red, SampleMecanumDrive mecanumDrive){
+        drive = mecanumDrive;
         if (blue ^ red){
             if (blue){
                 alliance = 1;
@@ -32,7 +33,6 @@ public class WearhouseAutoMaster extends LinearOpMode {
                 alliance = -1;
             }
         }
-        drive = new SampleMecanumDrive(hardwareMap);
         startingPose = new Pose2d(12,65.25 * alliance,0);
         endPoint = new Pose2d(12,64.75 * alliance,0);
 
@@ -46,7 +46,6 @@ public class WearhouseAutoMaster extends LinearOpMode {
         setUp(startingPose);
         drive.transferMineral = true;
     }
-    @Override
     public void runOpMode() throws InterruptedException {
         waitForStart();
         depositFirst(capNum,startingPose,endPoint);
