@@ -722,6 +722,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateSensor(){
         updateLineDetection();
         updateWallDetection();
+        //TODO: Kill over barrier detection
         updateOdoOverBarrier();
     }
     public void updateOdoOverBarrier(){
@@ -730,6 +731,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if ((!isKnownX || !isKnownY) || ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100)){
             updateImuAngle();
             lastTiltPoll = System.currentTimeMillis();
+            Log.e("IMU Tilt", " " + Math.toDegrees(imuAngle.thirdAngle));
             if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>1){
                 if (!firstOffBarrier) {
                     firstTiltTime = System.currentTimeMillis();
@@ -739,7 +741,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     isKnownY = false;
                     isKnownX = false;
                     finalTiltHeading = new Vec3F((float)clipHeading(currentPose.getHeading()), imuAngle.secondAngle, imuAngle.thirdAngle);//imuAngle.firstAngle
-                    tiltForward = imuAngle.secondAngle > 0;
+                    tiltForward = imuAngle.thirdAngle > 0;
                     tiltBackward = !tiltForward;
                     firstOffBarrier = true;
                     servos.get(3).setPosition(0.668);
