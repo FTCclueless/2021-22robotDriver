@@ -194,6 +194,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean stop = true;
 
+    public boolean stopTrajectoryIntake;
+
     long intakeDelay;
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
@@ -354,6 +356,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos.get(2).setPosition(0.367);
         servos.get(3).setPosition(0.48);
         servos.get(4).setPosition(0.8);
+
+        stopTrajectoryIntake = false;
     }
 
     public void resetAssemblies(){
@@ -402,7 +406,6 @@ public class SampleMecanumDrive extends MecanumDrive {
             bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
-            //leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
         }
     }
 
@@ -581,7 +584,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if(currentIntake == -1){servos.get(0).setPosition(0.762);}
                     break;
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
-                case 3: if(currentIntake == 1){servos.get(1).setPosition(0.770);} if(currentIntake == -1){servos.get(0).setPosition(0.153);} break; // lift up the servo
+                case 3:
+                    if(currentIntake == 1){servos.get(1).setPosition(0.770);}
+                    if(currentIntake == -1){servos.get(0).setPosition(0.153);}
+                    if(stopTrajectoryIntake){trajectorySequenceRunner.remainingMarkers.clear();stopTrajectoryIntake = false;}
+                    break; // lift up the servo
                 case 4: setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));setSlidesLength(returnSlideLength);break; //send turret to the correct side
                 case 5: intake.setPower(transfer1Power); break;
                 case 6: intake.setPower(transfer2Power); break;
@@ -784,7 +791,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
             boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
             boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
-            double distance = 0.5;
+            double distance = 0.35; //0.5
             double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
             double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
             double gain = 0.01;

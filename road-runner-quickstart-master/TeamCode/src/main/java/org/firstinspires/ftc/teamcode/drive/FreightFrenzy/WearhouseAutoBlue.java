@@ -26,14 +26,27 @@ public class WearhouseAutoBlue extends LinearOpMode {
         Pose2d endPoint = new Pose2d(12,64.75,0);
         int numIntakes = 11;
         int numMinerals = 0;
+        boolean sequenceKillWorks = true;
         for (int i = 0; i < numIntakes; i ++) {
-            intake.add(drive.trajectorySequenceBuilder(endPoint)
-                    .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
-                    .splineTo(new Vector2d(40 + (i / 3) * 4,endPoint.getY() - (i / 3) * 2),0)
-                    .addTemporalMarker(0.9,0, () -> {
-                        drive.trajectorySequenceRunner.remainingMarkers.clear(); //this might kill the trajectory sequence = we can make it transition faster
-                    })
-                    .build());
+            int n = i/3;
+            if (sequenceKillWorks) {
+                intake.add(drive.trajectorySequenceBuilder(endPoint)
+                        .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
+                        .splineTo(new Vector2d(46 + i * 4, endPoint.getY()), 0)
+                        .addTemporalMarker(0.9,0, () -> {
+                            drive.trajectorySequenceRunner.remainingMarkers.clear();
+                        })
+                        .build());
+            }
+            else{
+                intake.add(drive.trajectorySequenceBuilder(endPoint)
+                        .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
+                        .splineTo(new Vector2d(40 + n * 4,endPoint.getY()),0) // + n * 4, - (i % 3) * 2
+                        .addTemporalMarker(0.9,0, () -> {
+                            drive.trajectorySequenceRunner.remainingMarkers.clear(); //this might kill the trajectory sequence = we can make it transition faster
+                        })
+                        .build());
+            }
         }
         //TODO: Implement ML here
         int capNum = 2;
@@ -45,9 +58,14 @@ public class WearhouseAutoBlue extends LinearOpMode {
         depositFirst(capNum,startingPose,endPoint);
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
+            if (sequenceKillWorks) {
+                drive.stopTrajectoryIntake = true;
+            }
             drive.startDeposit(endPoint, new Pose2d(-12,24),20);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
-            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
+            if (drive.intakeCase <= 2) {
+                intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
+            }
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
             waitForDeposit(); // deposit the block when first possible
             numMinerals ++;
