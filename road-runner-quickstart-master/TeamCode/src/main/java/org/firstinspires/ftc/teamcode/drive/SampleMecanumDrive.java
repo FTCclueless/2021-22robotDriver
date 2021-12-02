@@ -733,8 +733,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateSensor(){
         updateLineDetection();
         updateWallDetection();
-        //TODO: Kill over barrier detection
-        updateOdoOverBarrier();
+        //updateOdoOverBarrier();
     }
     public void updateOdoOverBarrier(){
         boolean overTrackForward = Math.abs(currentPose.getY()) < 72-48-(12.0/2.0) && Math.abs(currentPose.getX()-24) < 16 + 2;
