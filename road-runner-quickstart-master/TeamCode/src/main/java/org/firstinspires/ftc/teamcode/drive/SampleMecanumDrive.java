@@ -192,6 +192,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double sD = 0;
     public static double sPP = 20; //was 15. If the slides are too violent, stop this.
 
+    double leftIntakeDrop;
+    double leftIntakeRaise;
+    double rightIntakeDrop;
+    double rightIntakeRaise;
+
+
     private boolean stop = false;
 
     public boolean stopTrajectoryIntake;
@@ -352,8 +358,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
         slides2.setPositionPIDFCoefficients(sPP);
 
-        servos.get(0).setPosition(0.153);
-        servos.get(1).setPosition(0.770);
+        leftIntakeDrop = 0.162;
+        leftIntakeRaise = 0.770;
+        rightIntakeDrop = 0.762;
+        rightIntakeRaise = 0.163;
+
+        servos.get(0).setPosition(rightIntakeRaise);//0.153
+        servos.get(1).setPosition(leftIntakeRaise);//770 TODO: Must tune this value for both the left and right intakes
         servos.get(2).setPosition(0.367);
         servos.get(3).setPosition(0.48);
         servos.get(4).setPosition(0.8);
@@ -579,13 +590,13 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (intakeCase) {
                 case 1: // rotate the servo down
                     intakeSensorLoops = 1; sumIntakeSensor = 0;
-                    if(currentIntake == 1){servos.get(1).setPosition(0.162);}
-                    if(currentIntake == -1){servos.get(0).setPosition(0.762);}
+                    if(currentIntake == 1){servos.get(1).setPosition(leftIntakeDrop);}
+                    if(currentIntake == -1){servos.get(0).setPosition(rightIntakeDrop);}
                     break;
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3:
-                    if(currentIntake == 1){servos.get(1).setPosition(0.770);}
-                    if(currentIntake == -1){servos.get(0).setPosition(0.153);}
+                    if(currentIntake == 1){servos.get(1).setPosition(leftIntakeRaise);}
+                    if(currentIntake == -1){servos.get(0).setPosition(rightIntakeRaise);}
                     if(stopTrajectoryIntake){trajectorySequenceRunner.remainingMarkers.clear();stopTrajectoryIntake = false;}
                     break; // lift up the servo
                 case 4: setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));setSlidesLength(returnSlideLength);break; //send turret to the correct side
