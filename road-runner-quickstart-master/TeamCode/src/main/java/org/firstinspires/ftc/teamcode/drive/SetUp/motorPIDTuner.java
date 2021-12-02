@@ -18,7 +18,7 @@ public class motorPIDTuner extends LinearOpMode {
     public static double sP = sF * 0.1;
     public static double sI = sF * 0.01;
     public static double sD = 0;
-    public static double sPP = 11;
+    public static double sPP = 20;
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -34,20 +34,22 @@ public class motorPIDTuner extends LinearOpMode {
             drive.turret.setPositionPIDFCoefficients(tPP);
             drive.slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
             drive.slides.setPositionPIDFCoefficients(sPP);
+            drive.slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
+            drive.slides2.setPositionPIDFCoefficients(sPP);
 
             if (gamepad1.a){
                 state = "idle";
             }
             if (gamepad1.x){
                 state = "slides";
-                drive.slides.setPower(1);
                 drive.turret.setPower(0);
                 start = System.currentTimeMillis();
-                drive.slides.setTargetPosition((int)(5*drive.slideTickToInch));
+                drive.setSlidesLength(5);
             }
             if (gamepad1.y){
                 state = "turret";
                 drive.slides.setPower(0);
+                drive.slides2.setPower(0);
                 drive.turret.setPower(1);
                 start = System.currentTimeMillis();
                 drive.turret.setTargetPosition((int)(Math.toRadians(-30)*drive.turretTickToRadians));
@@ -59,14 +61,12 @@ public class motorPIDTuner extends LinearOpMode {
                 case "slides":
                     currentPos = drive.slideExtensionLength;
                     if(Math.abs(drive.slideExtensionLength - 5) <= 0.2 && System.currentTimeMillis() - start >= 5000){
-                        drive.slides.setPower(1);
-                        drive.slides.setTargetPosition((int)(20*drive.slideTickToInch));
+                        drive.setSlidesLength(20);
                         targetPos = 20;
                         start = System.currentTimeMillis();
                     }
                     if(Math.abs(drive.slideExtensionLength - 20) <= 0.2 && System.currentTimeMillis() - start >= 5000){
-                        drive.slides.setPower(1);
-                        drive.slides.setTargetPosition((int)(5*drive.slideTickToInch));
+                        drive.setSlidesLength(5);
                         targetPos = 5;
                         start = System.currentTimeMillis();
                     }

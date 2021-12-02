@@ -190,9 +190,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double sP = sF * 0.1;
     public static double sI = sF * 0.01;
     public static double sD = 0;
-    public static double sPP = 25; //was 15. If the slides are too violent, stop this.
+    public static double sPP = 20; //was 15. If the slides are too violent, stop this.
 
-    private boolean stop = true;
+    private boolean stop = false;
 
     public boolean stopTrajectoryIntake;
 
@@ -276,6 +276,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         slides.setDirection(DcMotorSimple.Direction.REVERSE);
+        slides2.setDirection(DcMotorSimple.Direction.REVERSE);
         turret.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setTargetPosition(0);
@@ -545,10 +546,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             targetV4barOrientation += Math.PI * 2;
         }
         targetV4barOrientation += Math.toRadians(17.6);
-        if (stop){
-            targetSlideExtensionLength = 0;
-        }
         startSlides = true;
+        Log.e("targetOrientation", targetTurretHeading + "");
     }
 
     // here
@@ -623,7 +622,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             if (lastSlidesCase != slidesCase) {
                 switch (slidesCase) {
                     case 1: // rotate turret
-                        setTurretTarget(Math.toRadians(targetTurretHeading));
+                        setTurretTarget(targetTurretHeading);
                         servos.get(2).setPosition(0.614); break;
                     case 2: // extend slides & v4bar & servo pre-tilt
                         setSlidesLength(targetSlideExtensionLength);
@@ -633,7 +632,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     case 5: // go back to start
                         setSlidesLength(returnSlideLength);
                         setV4barOrientation(0);
-                        servos.get(2).setPosition(0.7); break; //0.367
+                        servos.get(2).setPosition(0.367); break; //0.367
                     case 6: // rotate turret back
                         setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));break;
                 }
@@ -668,6 +667,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos.get(4).setPosition(servoPos); // 0.8 is 0 and it takes -0.329 to go 90
     }
     public void setSlidesLength(double inches){
+        slides.setPower(1.0);slides2.setPower(1.0);
         slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
         slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
     }
