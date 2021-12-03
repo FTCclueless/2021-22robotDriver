@@ -217,7 +217,7 @@ public class TrajectorySequenceRunner {
             poseHistory.removeFirst();
         }
         packet.put("loopTime", loopTime);
-        
+
         if (t265Pose != null) {
             packet.put("t265 Confidence", t265Confidence);
             packet.put("t265 velX", t265Velocity.getX());
