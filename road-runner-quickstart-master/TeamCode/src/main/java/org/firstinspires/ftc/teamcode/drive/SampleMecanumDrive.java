@@ -708,9 +708,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         loops ++;
         updateEstimate();
 
-        //trajectorySequenceRunner.slideCurrent = slides.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
-        //trajectorySequenceRunner.slideCurrent = slides.getCurrent(CurrentUnit.AMPS);
-
         if (display3WheelOdo){
             trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
         }

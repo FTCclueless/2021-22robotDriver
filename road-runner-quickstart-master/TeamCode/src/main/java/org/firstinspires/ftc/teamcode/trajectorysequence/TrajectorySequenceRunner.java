@@ -60,8 +60,6 @@ public class TrajectorySequenceRunner {
 
     public double error = 0;
 
-    public double slideCurrent = 0;
-
     private robotComponents t265Robot;
     private Pose2d t265Pose;
     public Pose2d t265Velocity;
@@ -219,12 +217,7 @@ public class TrajectorySequenceRunner {
             poseHistory.removeFirst();
         }
         packet.put("loopTime", loopTime);
-        /*
-        packet.put("xError", lastPoseError.getX());
-        packet.put("yError", lastPoseError.getY());
-        packet.put("headingError (deg)", Math.toDegrees(lastPoseError.getHeading()));
-        */
-        packet.put("Slide Motor Current",slideCurrent);
+        
         if (t265Pose != null) {
             packet.put("t265 Confidence", t265Confidence);
             packet.put("t265 velX", t265Velocity.getX());
