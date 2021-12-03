@@ -57,15 +57,13 @@ public class WearhouseAutoBlue extends LinearOpMode {
         start = System.currentTimeMillis();
         depositFirst(capNum,startingPose,endPoint);
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
-            drive.startIntake(false);
             if (sequenceKillWorks) {
                 drive.stopTrajectoryIntake = true;
             }
+            drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12,24),20);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
-            if (drive.intakeCase <= 2) {
-                intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
-            }
+            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
             waitForDeposit(); // deposit the block when first possible
             numMinerals ++;
@@ -73,6 +71,17 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.followTrajectorySequence(intake.get(0));
         //waiting out the rest of the time in auto
         while (opModeIsActive()){
+            double points = 0;
+            if (drive.currentPose.getX() >= 43.5 - 8){
+                points += 10;
+            }
+            else if (drive.currentPose.getX() >= 43.5 + 8){
+                points += 5;
+            }
+            points += 12 * (numMinerals + 1);
+            points += 20;
+            telemetry.addData("Points", points);
+            telemetry.update();
             drive.update();
         }
     }
@@ -109,6 +118,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
                 .build();
     }
     public void intakeMineral(double power, double targetHeading, long maxTime){
+        if (drive.intakeCase > 2){
+            return;
+        }
         long startingTime = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double turn = drive.currentPose.getHeading() - targetHeading;
