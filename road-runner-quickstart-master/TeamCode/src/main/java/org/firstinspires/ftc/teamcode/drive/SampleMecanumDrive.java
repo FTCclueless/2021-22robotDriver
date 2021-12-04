@@ -140,8 +140,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public long depositTime = 0;
 
-    boolean isKnownY = true;
-    boolean isKnownX = true;
+    public boolean isKnownY = true;
+    public boolean isKnownX = true;
     boolean lastLightReading = false;
 
     Orientation imuAngle;
