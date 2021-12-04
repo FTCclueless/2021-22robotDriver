@@ -28,19 +28,36 @@ public class Teleop extends LinearOpMode {
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         waitForStart();
-        boolean lastA1 = false;
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
         drive.update();
         Pose2d startingPose = new Pose2d(12,66,0);
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
-        long startDuckTime = System.currentTimeMillis();
-        double lockHeadAngle = 0;
+
+        int hub = 1;
+        Pose2d endpoint = new Pose2d();
+        Pose2d hubLocation = new Pose2d();
+        double height = 0;
+
+        boolean intake = true;
 
         ButtonToggle b = new ButtonToggle();
 
         while (!isStopRequested()) {
+            switch(hub) {
+                case 1: endpoint = new Pose2d(64, 12, Math.toRadians(90));
+                        hubLocation = new Pose2d(48, 0);
+                        height = 6;
+                        intake = true;
+                            break;
+                case 2: endpoint = new Pose2d(12, 64, Math.toRadians(0));
+                        hubLocation = new Pose2d(-12, 24);
+                        height = 20;
+                        intake = false;
+                            break;
+            }
+
             drive.update();
 
             double forward = gamepad1.left_stick_y * -1;
@@ -51,50 +68,19 @@ public class Teleop extends LinearOpMode {
                 left *= 0.5;
             }
 
-            boolean a1 = gamepad1.a;
-            if (a1 && !lastA1){
-                drive.startIntake(false);
-                drive.startDeposit(new Pose2d(12,64,0), new Pose2d(-12,24),20);
-            }
-            lastA1 = a1;
-
-            if (gamepad1.b){
-                drive.deposit();
-            }
-
-            b.update(gamepad2.b);
-
-            if (b.getToggleState()){
-                drive.servos.get(7).setPosition(0.5);
-                if (gamepad2.x && System.currentTimeMillis() - startDuckTime >= 1500 ){
-                    startDuckTime = System.currentTimeMillis();
-                }
-                if (System.currentTimeMillis() - startDuckTime <= 1500){
-                    drive.duckSpin.setPower(-1);
-                }
-                else {
-                    drive.duckSpin.setPower(0);
-                }
-            }
-            else {
-                drive.servos.get(7).setPosition(1.0);
-                drive.duckSpin.setPower(0);
-            }
-
-            boolean lockHeading = true;
-            if (Math.abs(turn) > 0.01){ lockHeading = false; }
-            if (lockHeading){
-                double turnVal = drive.currentPose.getHeading()-lockHeadAngle;
-                if (Math.abs(turnVal) >= 0.08){
-                    //turn += turnVal + 0.04*Math.signum(turnVal);
-                }
-            }
-            else {lockHeadAngle = drive.currentPose.getHeading();}
             double p1 = forward+left+turn;
             double p2 = forward-left+turn;
             double p3 = forward+left-turn;
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
+
+            if(gamepad1.right_bumper) {
+                drive.startDeposit(endpoint, hubLocation, height);
+            }
+
+            if(gamepad1.right_trigger >= 0.5) {
+                drive.startIntake(intake);
+            }
 
         }
     }
