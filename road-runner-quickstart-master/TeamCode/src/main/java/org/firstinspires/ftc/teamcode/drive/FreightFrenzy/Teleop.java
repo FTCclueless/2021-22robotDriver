@@ -66,6 +66,9 @@ public class Teleop extends LinearOpMode {
         boolean lastOut = false;
         boolean armIn = true;
 
+        int lastLocVal = 0;
+        int locVal = 0;
+
         while (!isStopRequested()) {
             drive.update();
             switch(hub) {
@@ -150,9 +153,37 @@ public class Teleop extends LinearOpMode {
             }
             resetLoc.update(gamepad2.left_bumper);
             if (resetLoc.getToggleState()){
-                //Reset Loc
+                int a = 0;
+                if (gamepad2.dpad_right){
+                    a = 1;
+                }
+                if (gamepad2.dpad_left){
+                    a = 2;
+                }
+                if (gamepad2.dpad_up){
+                    a = 3;
+                }
+                if (a != lastLocVal){
+                    if (a == 1 && locVal == 1){ //right
+                        drive.localizer.setPoseEstimate(new Pose2d(24,-65,Math.toRadians(0)));
+                    }
+                    if (a == 2 && locVal == 2){ //left
+                        drive.localizer.setPoseEstimate(new Pose2d(24,65,Math.toRadians(0)));
+                    }
+                    if ((a == 1 && locVal == 3) || (a == 3 && locVal == 1)){ //top right
+                        drive.localizer.setPoseEstimate(new Pose2d(65,-24,Math.toRadians(-90)));
+                    }
+                    if ((a == 2 && locVal == 3) || (a == 3 && locVal == 2)){ //top left
+                        drive.localizer.setPoseEstimate(new Pose2d(65,24,Math.toRadians(90)));
+                    }
+                    locVal = a;
+                    resetLoc.toggleState = false;
+                }
+                lastLocVal = a;
             }
             else{
+                locVal = 0;
+                lastLocVal = 0;
                 boolean in = gamepad2.dpad_down;
                 boolean out = gamepad2.dpad_up;
                 if (in && !lastIn){
