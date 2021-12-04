@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 import android.widget.ToggleButton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -68,6 +69,13 @@ public class Teleop extends LinearOpMode {
 
         int lastLocVal = 0;
         int locVal = 0;
+
+        boolean deposit = false;
+        int flag = 0;
+
+        double lastIntakeCase = 0;
+
+        ButtonToggle auto = new ButtonToggle();
 
         while (!isStopRequested()) {
             drive.update();
@@ -150,6 +158,7 @@ public class Teleop extends LinearOpMode {
             }
             if (gamepad2.right_trigger >= 0.5){
                 drive.deposit();
+                flag = 0;
             }
             resetLoc.update(gamepad2.left_bumper);
             if (resetLoc.getToggleState()){
@@ -227,6 +236,58 @@ public class Teleop extends LinearOpMode {
                     }
                 }
             }
+            auto.update(gamepad1.a);
+            //TODO: allow the drivers to auto cancel at any time
+            if (auto.toggleState){
+                if (deposit && flag == 0) {
+                    flag ++;
+                    deposit = false;
+                    drive.startIntake(intake);
+                    if (hub == 1) {
+                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(endPoint)
+                                .splineTo(new Vector2d(16.5, endPoint.getY()), 0)
+                                .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
+                                .addTemporalMarker(0.9, 0, () -> {
+                                    drive.trajectorySequenceRunner.remainingMarkers.clear();
+                                })
+                                .build());
+                    }
+                    if (hub == 2){
+                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(endPoint)
+                                .splineTo(new Vector2d(endPoint.getX(), 16.5), endPoint.getHeading())
+                                .splineTo(new Vector2d(endPoint.getX(), 36.5), endPoint.getHeading())
+                                .addTemporalMarker(0.9, 0, () -> {
+                                    drive.trajectorySequenceRunner.remainingMarkers.clear();
+                                })
+                                .build());
+                    }
+                }
+                else if (!deposit && flag == 0) {
+                    flag ++;
+                    deposit = true;
+                    drive.startDeposit(endPoint, hubLocation, height);
+                    if (hub == 1) {
+                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), 0))
+                                .setReversed(true)
+                                .splineTo(new Vector2d(36.5, endPoint.getY()), Math.toRadians(180))
+                                .setReversed(true)
+                                .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), Math.toRadians(180))
+                                .build());
+                    }
+                    if (hub == 0) {
+                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), 0))
+                                .setReversed(true)
+                                .splineTo(new Vector2d(endPoint.getX(), 36.5), Math.toRadians(180 * Math.signum(endPoint.getHeading())) - endPoint.getHeading())
+                                .setReversed(true)
+                                .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), Math.toRadians(180 * Math.signum(endPoint.getHeading())) - endPoint.getHeading())
+                                .build());
+                    }
+                }
+            }
+            if (drive.intakeCase == 3 && lastIntakeCase == 2){
+                flag = 0;
+            }
+            lastIntakeCase = drive.intakeCase;
 
 
             double forward = gamepad1.left_stick_y * -1;
