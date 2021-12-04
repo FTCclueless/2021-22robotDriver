@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 /**
  * This is a simple teleop routine for testing localization. Drive the robot around like a normal
@@ -20,6 +21,8 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
  */
 @TeleOp(group = "Comp Drive")
 public class Teleop extends LinearOpMode {
+
+    ButtonToggle auto = new ButtonToggle();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -74,8 +77,6 @@ public class Teleop extends LinearOpMode {
         int flag = 0;
 
         double lastIntakeCase = 0;
-
-        ButtonToggle auto = new ButtonToggle();
 
         while (!isStopRequested()) {
             drive.update();
@@ -243,24 +244,7 @@ public class Teleop extends LinearOpMode {
                     flag ++;
                     deposit = false;
                     drive.startIntake(intake);
-                    if (hub == 1) {
-                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(endPoint)
-                                .splineTo(new Vector2d(16.5, endPoint.getY()), 0)
-                                .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
-                                .addTemporalMarker(0.9, 0, () -> {
-                                    drive.trajectorySequenceRunner.remainingMarkers.clear();
-                                })
-                                .build());
-                    }
-                    if (hub == 2){
-                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(endPoint)
-                                .splineTo(new Vector2d(endPoint.getX(), 16.5), endPoint.getHeading())
-                                .splineTo(new Vector2d(endPoint.getX(), 36.5), endPoint.getHeading())
-                                .addTemporalMarker(0.9, 0, () -> {
-                                    drive.trajectorySequenceRunner.remainingMarkers.clear();
-                                })
-                                .build());
-                    }
+                    driveIn(hub,endPoint,drive);
                 }
                 else if (!deposit && flag == 0) {
                     flag ++;
@@ -303,5 +287,48 @@ public class Teleop extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
+    }
+    public void driveIn(int hub, Pose2d endPoint, SampleMecanumDrive drive){
+        Vector2d p1 = new Vector2d();
+        Vector2d p2 = new Vector2d();
+        if (hub == 1) {
+            p1 = new Vector2d(16.5, endPoint.getY());
+            p2 = new Vector2d(36.5, endPoint.getY());
+        }
+        if (hub == 2){
+            p1 = new Vector2d(endPoint.getX(), 16.5);
+            p2 = new Vector2d(endPoint.getX(), 36.5);
+        }
+        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(endPoint)
+                .splineTo(p1, endPoint.getHeading())
+                .splineTo(p2, endPoint.getHeading())
+                .addTemporalMarker(0.5, 0, () -> {
+                    if (gamepad1.a) {
+                        auto.toggleState = false;
+                        drive.trajectorySequenceRunner.remainingMarkers.clear();
+                    }
+                })
+                .addTemporalMarker(0.6, 0, () -> {
+                    if (gamepad1.a) {
+                        auto.toggleState = false;
+                        drive.trajectorySequenceRunner.remainingMarkers.clear();
+                    }
+                })
+                .addTemporalMarker(0.7, 0, () -> {
+                    if (gamepad1.a) {
+                        auto.toggleState = false;
+                        drive.trajectorySequenceRunner.remainingMarkers.clear();
+                    }
+                })
+                .addTemporalMarker(0.8, 0, () -> {
+                    if (gamepad1.a) {
+                        auto.toggleState = false;
+                        drive.trajectorySequenceRunner.remainingMarkers.clear();
+                    }
+                })
+                .addTemporalMarker(0.9, 0, () -> {
+                    drive.trajectorySequenceRunner.remainingMarkers.clear();
+                })
+                .build());
     }
 }
