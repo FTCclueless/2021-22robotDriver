@@ -176,21 +176,27 @@ public class Teleop extends LinearOpMode {
                 if (gamepad2.dpad_up){
                     a = 3;
                 }
-                if (a != lastLocVal){
-                    if (a == 1 && locVal == 1){ //right
+                if (gamepad2.dpad_down){
+                    a = 4;
+                }
+                if (a != lastLocVal && a != 0){
+                    if ((a == 1 && locVal == 1) || (a == 1 && locVal == 4) || (a == 4 && locVal == 1)){ //right
                         drive.localizer.setPoseEstimate(new Pose2d(24,-65,Math.toRadians(0)));
+                        resetLoc.toggleState = false;
                     }
-                    if (a == 2 && locVal == 2){ //left
+                    if ((a == 2 && locVal == 2) || (a == 2 && locVal == 4) || (a == 4 && locVal == 2)){ //left
                         drive.localizer.setPoseEstimate(new Pose2d(24,65,Math.toRadians(0)));
+                        resetLoc.toggleState = false;
                     }
                     if ((a == 1 && locVal == 3) || (a == 3 && locVal == 1)){ //top right
                         drive.localizer.setPoseEstimate(new Pose2d(65,-24,Math.toRadians(-90)));
+                        resetLoc.toggleState = false;
                     }
                     if ((a == 2 && locVal == 3) || (a == 3 && locVal == 2)){ //top left
                         drive.localizer.setPoseEstimate(new Pose2d(65,24,Math.toRadians(90)));
+                        resetLoc.toggleState = false;
                     }
                     locVal = a;
-                    resetLoc.toggleState = false;
                 }
                 lastLocVal = a;
             }
@@ -217,6 +223,7 @@ public class Teleop extends LinearOpMode {
                     else if (gamepad2.dpad_right){
                         armInPos -= 0.001;
                     }
+                    armInPos = Math.min(Math.max(armInPos,1.0),0);
                     drive.servos.get(5).setPosition(armInPos);
                 }
                 else {
@@ -227,6 +234,7 @@ public class Teleop extends LinearOpMode {
                         else if (gamepad2.dpad_right){
                             armOutGrabPos -= 0.001;
                         }
+                        armOutGrabPos = Math.min(Math.max(armOutGrabPos,1.0),0);
                         drive.servos.get(5).setPosition(armOutGrabPos);
                     }
                     else {
@@ -236,6 +244,7 @@ public class Teleop extends LinearOpMode {
                         else if (gamepad2.dpad_right){
                             armOutPos -= 0.001;
                         }
+                        armOutPos = Math.min(Math.max(armOutPos,1.0),0);
                         drive.servos.get(5).setPosition(armOutPos);
                     }
                 }
