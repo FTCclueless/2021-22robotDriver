@@ -561,7 +561,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         targetV4barOrientation += Math.toRadians(17.6);
         startSlides = true;
-        Log.e("targetSlideExtension", targetSlideExtensionLength + "");
+        //Log.e("targetSlideExtension", targetSlideExtensionLength + "");
         //Log.e("targetOrientation", targetTurretHeading + "");
     }
 
@@ -635,40 +635,39 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateSlides(){
         if (transferMineral) { // I have deposited into the area
             if (lastSlidesCase != slidesCase) {
-                switch (slidesCase) {
-                    case 1: // rotate turret
-                        setTurretTarget(targetTurretHeading);
-                        servos.get(2).setPosition(0.52); break;
-                    case 2: // extend slides & v4bar & servo pre-tilt
-                        setSlidesLength(targetSlideExtensionLength);
-                        setV4barOrientation(targetV4barOrientation); break;
-                    case 4: //deposit
-                        servos.get(2).setPosition(0.853); break; //0.336
-                    case 5: // go back to start
-                        setSlidesLength(returnSlideLength);
-                        setV4barOrientation(0);
-                        servos.get(2).setPosition(0.8); break; //0.367
-                    case 6: // rotate turret back
-                        setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));break;
-                }
                 slideTime = System.currentTimeMillis();
             }
             lastSlidesCase = slidesCase;
             int a = slidesCase;
             switch (a) {
-                case 1: //wait for turret to get near to end
-                    if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;} break;
-                case 2: //wait for arm to be over area
-                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;} break; //238.7 is 750/pi which means that the servo rotates 180* in 750 ms.
-                case 3: //wait for everything to get to the end and it wants to deposit
-                    if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(10) && deposit){slidesCase ++;} break;
+                case 1: case 2: case 3: //wait for turret to get near to end
+                    servos.get(2).setPosition(0.52);
+                    setTurretTarget(targetTurretHeading);
+                    setV4barOrientation(targetV4barOrientation);
+                    if (slidesCase > 1) {
+                        setSlidesLength(targetSlideExtensionLength);
+                    }
+                    if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;}
+                    if (Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;}
+                    if (Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(10) && deposit){slidesCase ++;}
                 case 4: //wait for the block to drop => reset the intakeCase
+                    servos.get(2).setPosition(0.853);
+                    setTurretTarget(targetTurretHeading);
+                    setV4barOrientation(targetV4barOrientation);
+                    setSlidesLength(targetSlideExtensionLength);
                     if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} break;
-                case 5: //wait for the arm to be at start
-                    if (Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;} break;
-                case 6: //wait for the intake to be facing correct direction
-                    if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(10)){slidesCase ++;} break;
-                case 7: //wait for the arm to be at start
+                case 5: case 6: case 7: //wait for the arm to be at start
+                    setV4barOrientation(0);
+                    servos.get(2).setPosition(0.8);
+                    setSlidesLength(returnSlideLength);
+                    if (slidesCase == 5) {
+                        setTurretTarget(targetTurretHeading);
+                    }
+                    else {
+                        setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading));
+                    }
+                    if (Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
+                    if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
                     if (Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;} break;
                 case 8: //resets the slidesCase & officially says mineral has not been transfered
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; break;
