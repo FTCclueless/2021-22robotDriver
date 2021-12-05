@@ -78,6 +78,8 @@ public class Teleop extends LinearOpMode {
 
         double lastIntakeCase = 0;
 
+        double radius = 0;
+
         while (!isStopRequested()) {
             drive.update();
             switch(hub) {
@@ -85,6 +87,7 @@ public class Teleop extends LinearOpMode {
                     hubLocation = new Pose2d(48, 0);
                     intake = true;
                     height = 6;
+                    radius = 0;
                         break;
                 case 1: case 2:
                     if (hub == 1) {
@@ -104,21 +107,19 @@ public class Teleop extends LinearOpMode {
                     lastDpadUp = dpadUp;
                     lastDpadDown = dpadDown;
                     switch (level){
-                        case 1: r = 8; height = 8; break;
-                        case 2: r = 7; height = 12.13; break;
-                        case 3: r = 0; height = 20; break;
+                        case 1: radius = 8; height = 8; break;
+                        case 2: radius = 7; height = 12.13; break;
+                        case 3: radius = 0; height = 20; break;
                     }
-                    double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
-                    double x1 = r * (12-endPoint.getX())/d;
-                    double y1 = r * (-24-endPoint.getY())/d;
-                    hubLocation = new Pose2d(-12.0 + x1, (24.0 + y1));
+                    hubLocation = new Pose2d(-12.0, 24.0);
                     intake = false;
                         break;
             }
             if(gamepad1.right_bumper) {
-                drive.startDeposit(endPoint, hubLocation, height);
+                //drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             if(gamepad1.right_trigger >= 0.5) {
+                drive.startDeposit(endPoint, hubLocation, height, radius);
                 drive.startIntake(intake);
             }
             endgame.update(gamepad1.left_bumper);
@@ -258,7 +259,7 @@ public class Teleop extends LinearOpMode {
                 else if (!deposit && flag == 0) {
                     flag ++;
                     deposit = true;
-                    drive.startDeposit(endPoint, hubLocation, height);
+                    drive.startDeposit(endPoint, hubLocation, height, radius);
                     if (hub == 1) {
                         drive.followTrajectorySequence(drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), 0))
                                 .setReversed(true)

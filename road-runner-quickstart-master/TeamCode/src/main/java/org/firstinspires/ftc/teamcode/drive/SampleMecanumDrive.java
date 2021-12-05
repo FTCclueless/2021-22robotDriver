@@ -523,16 +523,19 @@ public class SampleMecanumDrive extends MecanumDrive {
         intakeDelay = System.currentTimeMillis();
     }
 
-    public void startDeposit(Pose2d endPose, Pose2d targetPose, double height){
+    public void startDeposit(Pose2d endPose, Pose2d targetPose, double height, double radius){
         double turretX = -0.75;
         endPose = new Pose2d(
                 endPose.getX() + Math.cos(endPose.getHeading()) * turretX,
                 endPose.getY() + Math.sin(endPose.getHeading()) * turretX,
                 endPose.getHeading()
         );
+        double d = Math.sqrt(Math.pow(endPose.getX(),2) + Math.pow(endPose.getY(),2));
+        double x1 = targetPose.getX() + radius * -1.0 * (targetPose.getX()-endPose.getX())/d;
+        double y1 = targetPose.getX() + radius * -1.0 * (targetPose.getY()-endPose.getY())/d;
         Pose2d relTarget = new Pose2d(
-                Math.cos(endPose.getHeading())*(endPose.getX()-targetPose.getX()) + Math.sin(endPose.getHeading())*(endPose.getY()-targetPose.getY()),
-                Math.cos(endPose.getHeading())*(endPose.getY()-targetPose.getY()) + Math.sin(endPose.getHeading())*(endPose.getX()-targetPose.getX())
+                Math.cos(endPose.getHeading())*(endPose.getX()-x1) + Math.sin(endPose.getHeading())*(endPose.getY()-y1),
+                Math.cos(endPose.getHeading())*(endPose.getY()-y1) + Math.sin(endPose.getHeading())*(endPose.getX()-x1)
         );
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
         height -= 9.17;

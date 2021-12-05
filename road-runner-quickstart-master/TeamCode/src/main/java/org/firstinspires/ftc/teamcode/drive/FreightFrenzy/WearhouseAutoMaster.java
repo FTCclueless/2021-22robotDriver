@@ -51,7 +51,7 @@ public class WearhouseAutoMaster extends LinearOpMode {
         depositFirst(capNum,startingPose,endPoint);
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750){
             drive.startIntake(false);
-            drive.startDeposit(endPoint, new Pose2d(-12,24 * alliance),20);
+            drive.startDeposit(endPoint, new Pose2d(-12,24 * alliance),16,4);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
             intakeMineral(0.75,Math.toRadians((numMinerals % 3) * -15) * alliance,2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
@@ -71,10 +71,7 @@ public class WearhouseAutoMaster extends LinearOpMode {
             case 1: r = 7; h = 12.13; break;
             case 2: r = 0; h = 20; break;
         }
-        double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
-        double x1 = r * (12-endPoint.getX())/d;
-        double y1 = r * (-24-endPoint.getY())/d;
-        drive.startDeposit(endPoint, new Pose2d(-12.0 + x1, (24.0 + y1) * Math.signum(endPoint.getY())), h);
+        drive.startDeposit(endPoint,new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
                 .build();

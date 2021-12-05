@@ -48,7 +48,7 @@ public class DuckAutoMaster extends LinearOpMode {
         //retract the spin spin servo
         drive.startIntake(!alliance);
         Pose2d depositPoint = new Pose2d(-48,48 * Math.signum(startPos.getY()),Math.toRadians(180));
-        drive.startDeposit(depositPoint, new Pose2d(-12.0, 24.0 * Math.signum(startPos.getY())), 20);
+        drive.startDeposit(depositPoint, new Pose2d(-12.0, 24.0 * Math.signum(startPos.getY())), 16,4);
         //go forward till intake
         drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.currentPose)
                 .setReversed(true)
@@ -79,11 +79,14 @@ public class DuckAutoMaster extends LinearOpMode {
                 .build());
     }
     public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
+        double h = 16;
+        double r = 4;
         switch (capNum) {
-            case 0: drive.startDeposit(endPoint, new Pose2d(-23.3, 35.3 * Math.signum(endPoint.getY())), 6.25); break; //16
-            case 1: drive.startDeposit(endPoint, new Pose2d(-21.9, 33.9 * Math.signum(endPoint.getY())), 12.13); break; //14
-            case 2: drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())), 20); break; //0
+            case 0: r = 8; h = 6.25; break;
+            case 1: r = 7; h = 12.13; break;
+            case 2: r = 4; h = 16; break;
         }
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
                 .build();

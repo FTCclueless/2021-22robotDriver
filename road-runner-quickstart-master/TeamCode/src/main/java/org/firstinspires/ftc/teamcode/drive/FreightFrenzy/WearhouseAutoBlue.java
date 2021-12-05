@@ -89,23 +89,17 @@ public class WearhouseAutoBlue extends LinearOpMode {
     public void depo(Pose2d endPoint){
         double h = 16;
         double r = 4;
-        double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
-        double x1 = r * (12-endPoint.getX())/d;
-        double y1 = r * (-24-endPoint.getY())/d;
-        drive.startDeposit(endPoint, new Pose2d(-12.0 + x1, (24.0 + y1) * Math.signum(endPoint.getY())), h);
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
     }
     public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
-        double h = 0;
-        double r = 0;
+        double h = 16;
+        double r = 4;
         switch (capNum) {
             case 0: r = 8; h = 8; break;
             case 1: r = 7; h = 12.13; break;
             case 2: r = 4; h = 16; break;
         }
-        double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
-        double x1 = r * (12-endPoint.getX())/d;
-        double y1 = r * (-24-endPoint.getY())/d;
-        drive.startDeposit(endPoint, new Pose2d(-12.0 + x1, (24.0 + y1) * Math.signum(endPoint.getY())), h);
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
                 .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
                 .build();
