@@ -19,6 +19,7 @@ public class motorPIDTuner extends LinearOpMode {
     public static double sI = sF * 0.01;
     public static double sD = 0;
     public static double sPP = 20;
+    long time = 1000;
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -28,6 +29,7 @@ public class motorPIDTuner extends LinearOpMode {
         long start = System.currentTimeMillis();
         double targetPos = 0;
         drive.slidesCase = -1;
+        double offset = 1;
         while (!isStopRequested()) {
 
             drive.turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
@@ -44,7 +46,7 @@ public class motorPIDTuner extends LinearOpMode {
                 state = "slides";
                 drive.turret.setPower(0);
                 start = System.currentTimeMillis();
-                drive.setSlidesLength(5);
+                targetPos = 5;
             }
             if (gamepad1.y){
                 state = "turret";
@@ -60,26 +62,25 @@ public class motorPIDTuner extends LinearOpMode {
                     break;
                 case "slides":
                     currentPos = drive.slideExtensionLength;
-                    if(Math.abs(drive.slideExtensionLength - 5) <= 0.2 && System.currentTimeMillis() - start >= 5000){
-                        drive.setSlidesLength(20);
-                        targetPos = 20;
+                    if(Math.abs(drive.slideExtensionLength - 5) <= offset && System.currentTimeMillis() - start >= time){
+                        targetPos = 40.41;
                         start = System.currentTimeMillis();
                     }
-                    if(Math.abs(drive.slideExtensionLength - 20) <= 0.2 && System.currentTimeMillis() - start >= 5000){
-                        drive.setSlidesLength(5);
+                    if(Math.abs(drive.slideExtensionLength - 40.41) <= offset && System.currentTimeMillis() - start >= time){
                         targetPos = 5;
                         start = System.currentTimeMillis();
                     }
+                    drive.setSlidesLength(targetPos);
                     break;
                 case "turret":
                     currentPos = Math.toDegrees(drive.turretHeading);
-                    if(Math.abs(drive.turretHeading - Math.toRadians(30)) <= 0.2 && System.currentTimeMillis() - start >= 5000){
+                    if(Math.abs(drive.turretHeading - Math.toRadians(30)) <= 0.2 && System.currentTimeMillis() - start >= time){
                         drive.turret.setPower(1);
                         drive.turret.setTargetPosition((int)(Math.toRadians(-30)*drive.turretTickToRadians));
                         targetPos = -30;
                         start = System.currentTimeMillis();
                     }
-                    if(Math.abs(drive.turretHeading - Math.toRadians(-30)) <= 0.2 && System.currentTimeMillis() - start >= 5000){
+                    if(Math.abs(drive.turretHeading - Math.toRadians(-30)) <= 0.2 && System.currentTimeMillis() - start >= time){
                         drive.turret.setPower(1);
                         drive.turret.setTargetPosition((int)(Math.toRadians(30)*drive.turretTickToRadians));
                         targetPos = 30;
@@ -91,6 +92,7 @@ public class motorPIDTuner extends LinearOpMode {
             telemetry.addData("Motor", state);
             telemetry.addData("targetPos", targetPos);
             telemetry.addData("currentPos", currentPos);
+            telemetry.addData("pos", drive.slides.getCurrentPosition());
             telemetry.addData("error", targetPos-currentPos);
             telemetry.update();
             drive.trajectorySequenceRunner.error = targetPos-currentPos;

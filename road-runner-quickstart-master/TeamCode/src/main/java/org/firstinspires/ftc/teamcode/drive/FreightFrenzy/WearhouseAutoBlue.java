@@ -20,6 +20,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
+        drive.resetAssemblies();
         Pose2d startingPose = new Pose2d(12,65.25,0);
 
         ArrayList<TrajectorySequence> intake = new ArrayList<TrajectorySequence>();
@@ -61,7 +62,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
                 drive.stopTrajectoryIntake = true;
             }
             drive.startIntake(false);
-            drive.startDeposit(endPoint, new Pose2d(-12,24),20);
+            depo(endPoint);
             drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
             intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
             drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
@@ -85,13 +86,21 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.update();
         }
     }
+    public void depo(Pose2d endPoint){
+        double h = 16;
+        double r = 4;
+        double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
+        double x1 = r * (12-endPoint.getX())/d;
+        double y1 = r * (-24-endPoint.getY())/d;
+        drive.startDeposit(endPoint, new Pose2d(-12.0 + x1, (24.0 + y1) * Math.signum(endPoint.getY())), h);
+    }
     public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
         double h = 0;
         double r = 0;
         switch (capNum) {
             case 0: r = 8; h = 8; break;
             case 1: r = 7; h = 12.13; break;
-            case 2: r = 0; h = 20; break;
+            case 2: r = 4; h = 16; break;
         }
         double d = Math.sqrt(Math.pow(endPoint.getX(),2) + Math.pow(endPoint.getY(),2));
         double x1 = r * (12-endPoint.getX())/d;
