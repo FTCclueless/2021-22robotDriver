@@ -134,11 +134,13 @@ public class Teleop extends LinearOpMode {
                     drive.servos.get(7).setPosition(0.5);
                     if (gamepad2.b){
                         drive.duckSpin.setPower(-1);
+                        drive.duckSpin2.setPower(-1);
                     }
                 }
                 else{
                     drive.servos.get(7).setPosition(1.0);
                     drive.duckSpin.setPower(0);
+                    drive.duckSpin2.setPower(0);
                 }
             }
             boolean toggleHub = gamepad1.y;
@@ -301,12 +303,12 @@ public class Teleop extends LinearOpMode {
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) {
                 drive.setTurretTarget(drive.targetTurretHeading += gamepad2.right_stick_x * -0.1);
-                turretOffset = drive.targetTurretHeading - drive.turretHeading;
+                // turretOffset = drive.targetTurretHeading - drive.turretHeading;
             }
 
             if(Math.abs(gamepad2.right_stick_y) > 0.25) {
                 drive.setSlidesLength(drive.targetSlideExtensionLength += gamepad2.right_stick_y * -0.1);
-                slidesOffset = drive.targetSlideExtensionLength - drive.slideExtensionLength;
+                // slidesOffset = drive.targetSlideExtensionLength - drive.slideExtensionLength;
             }
         }
     }
