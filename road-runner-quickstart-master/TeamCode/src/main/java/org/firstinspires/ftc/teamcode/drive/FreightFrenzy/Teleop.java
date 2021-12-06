@@ -31,6 +31,10 @@ public class Teleop extends LinearOpMode {
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+
+
+        drive.servos.get(5).setPosition(0.237);
+
         waitForStart();
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
@@ -62,9 +66,9 @@ public class Teleop extends LinearOpMode {
 
         long start = System.currentTimeMillis();
 
-        double armInPos = 0;
-        double armOutPos = 0.5;
-        double armOutGrabPos = 1;
+        double armInPos = 0.237;
+        double armOutPos = 0.403;
+        double armOutGrabPos = 0.803;
         boolean first = true;
         boolean lastIn = false;
         boolean lastOut = false;
@@ -226,7 +230,7 @@ public class Teleop extends LinearOpMode {
                     else if (gamepad2.dpad_right){
                         armInPos -= 0.001;
                     }
-                    armInPos = Math.min(Math.max(armInPos,1.0),0);
+                    armInPos = Math.max(Math.min(armInPos,1.0),0);
                     drive.servos.get(5).setPosition(armInPos);
                 }
                 else {
@@ -237,7 +241,7 @@ public class Teleop extends LinearOpMode {
                         else if (gamepad2.dpad_right){
                             armOutGrabPos -= 0.001;
                         }
-                        armOutGrabPos = Math.min(Math.max(armOutGrabPos,1.0),0);
+                        armOutGrabPos = Math.max(Math.min(armOutGrabPos,1.0),0);
                         drive.servos.get(5).setPosition(armOutGrabPos);
                     }
                     else {
@@ -247,7 +251,7 @@ public class Teleop extends LinearOpMode {
                         else if (gamepad2.dpad_right){
                             armOutPos -= 0.001;
                         }
-                        armOutPos = Math.min(Math.max(armOutPos,1.0),0);
+                        armOutPos = Math.max(Math.min(armOutPos,1.0),0);
                         drive.servos.get(5).setPosition(armOutPos);
                     }
                 }

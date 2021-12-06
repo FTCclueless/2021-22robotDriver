@@ -23,20 +23,18 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.resetAssemblies();
         Pose2d startingPose = new Pose2d(12,65.25,0);
 
-        ArrayList<TrajectorySequence> intake = new ArrayList<TrajectorySequence>();
+        //ArrayList<TrajectorySequence> intake = new ArrayList<TrajectorySequence>();
         Pose2d endPoint = new Pose2d(12,64.75,0);
         int numIntakes = 11;
         int numMinerals = 0;
-        for (int i = 0; i < numIntakes; i ++) {
+        /*for (int i = 0; i < numIntakes; i ++) {
             int n = i/3;
             intake.add(drive.trajectorySequenceBuilder(endPoint)
                     .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
-                    .splineTo(new Vector2d(45 + i * 4, endPoint.getY() + n * 3), 0)
-                    .addTemporalMarker(0.8,0, () -> {
-                        drive.trajectorySequenceRunner.remainingMarkers.clear();
-                    })
+                    .splineTo(new Vector2d(45 - i * 4, endPoint.getY() + n * 3), 0)
                     .build());
         }
+         */
         //TODO: Implement ML here
         int capNum = 2;
         setUp(startingPose);
@@ -46,16 +44,18 @@ public class WearhouseAutoBlue extends LinearOpMode {
         start = System.currentTimeMillis();
         depositFirst(capNum,startingPose,endPoint);
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
-            drive.stopTrajectoryIntake = true;
+            //drive.stopTrajectoryIntake = true;
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),18,5);
-            drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
+            driveToPoint(new Pose2d(45 - numMinerals * 4, endPoint.getY() + (int)(numMinerals/3) * 3,0), true);
+            //drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
             intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
-            drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
+            //drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
+            driveToPoint(endPoint,false);
             waitForDeposit(); // deposit the block when first possible
             numMinerals ++;
         }
-        drive.followTrajectorySequence(intake.get(0));
+        //drive.followTrajectorySequence(intake.get(0));
         //waiting out the rest of the time in auto
         while (opModeIsActive()){
             double points = 0;
@@ -91,6 +91,23 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.deposit();
         while (drive.slidesCase <= 4 && opModeIsActive()) { //System.currentTimeMillis() - drive.depositTime <= 1500
             drive.update();
+        }
+    }
+    public void driveToPoint(Pose2d target, boolean intake){
+        while (opModeIsActive() && (drive.currentPose.getX()-target.getX() > 0.5 && drive.currentPose.getY()-target.getY() > 0.5) && (drive.intakeCase <= 2 || !intake)){
+            Pose2d relError = new Pose2d(
+                    Math.cos(target.getHeading()) * (target.getX()-drive.currentPose.getX()) - Math.sin(target.getHeading()) * (target.getY()-drive.currentPose.getY()),
+                    Math.sin(target.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.cos(target.getHeading()) * (target.getY()-drive.currentPose.getY()),
+                    target.getHeading()-drive.currentPose.getHeading()
+            );
+            double forward = Math.max(Math.min(relError.getX()*5.0/0.8,-0.8),0.8);
+            double left = Math.max(Math.min(relError.getY()*5.0/0.8,-0.8),0.8);
+            double turn = Math.max(Math.min(relError.getHeading()*Math.toRadians(5)/0.4,-0.4),0.4);
+            double p1 = forward-left+turn;
+            double p2 = forward+left+turn;
+            double p3 = forward-left-turn;
+            double p4 = forward+left-turn;
+            drive.pinMotorPowers(p1, p2, p3, p4);
         }
     }
     public TrajectorySequence returnToScoring(Pose2d endPoint){

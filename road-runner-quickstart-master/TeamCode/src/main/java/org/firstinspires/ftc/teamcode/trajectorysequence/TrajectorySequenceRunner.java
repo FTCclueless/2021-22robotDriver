@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.trajectorysequence;
 
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -104,7 +106,6 @@ public class TrajectorySequenceRunner {
     public @Nullable DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity){
         return update(poseEstimate,poseVelocity, null);
     }
-
     public @Nullable
     DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity, robotComponents r) {
         long currentTime = System.nanoTime();
@@ -162,7 +163,6 @@ public class TrajectorySequenceRunner {
 
                 if (!follower.isFollowing()) {
                     currentSegmentIndex++;
-
                     driveSignal = new DriveSignal();
                 } else {
                     driveSignal = follower.update(poseEstimate, poseVelocity);
@@ -204,7 +204,6 @@ public class TrajectorySequenceRunner {
                     currentSegmentIndex++;
                 }
             }
-
             while (remainingMarkers.size() > 0 && deltaTime > remainingMarkers.get(0).getTime()) {
                 remainingMarkers.get(0).getCallback().onMarkerReached();
                 remainingMarkers.remove(0);

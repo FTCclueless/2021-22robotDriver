@@ -93,6 +93,7 @@ public class motorPIDTuner extends LinearOpMode {
             telemetry.addData("targetPos", targetPos);
             telemetry.addData("currentPos", currentPos);
             telemetry.addData("pos", drive.slides.getCurrentPosition());
+            telemetry.addData("pos2", drive.slides2.getCurrentPosition());
             telemetry.addData("error", targetPos-currentPos);
             telemetry.update();
             drive.trajectorySequenceRunner.error = targetPos-currentPos;
