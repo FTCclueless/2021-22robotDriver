@@ -200,8 +200,6 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean stop = false;
 
-    public boolean stopTrajectoryIntake;
-
     long intakeDelay;
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
@@ -372,7 +370,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         // servos.get(5).setPosition();
         // servos.get(7).setPosition();
 
-        stopTrajectoryIntake = false;
     }
 
     public void resetAssemblies(){
@@ -619,10 +616,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;} break;  // waiting for the servo to drop
             case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){
-                if(stopTrajectoryIntake){
-                    trajectorySequenceRunner.end();
-                    stopTrajectoryIntake = false;
-                }
                 intakeCase ++;
             } break; // wait for block in
             case 3: if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before

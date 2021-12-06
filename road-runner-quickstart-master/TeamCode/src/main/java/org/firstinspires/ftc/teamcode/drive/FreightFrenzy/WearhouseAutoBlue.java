@@ -20,43 +20,39 @@ public class WearhouseAutoBlue extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
-        drive.resetAssemblies();
-        Pose2d startingPose = new Pose2d(12,65.25,0);
 
-        //ArrayList<TrajectorySequence> intake = new ArrayList<TrajectorySequence>();
+        drive.resetAssemblies();
+
+        Pose2d startingPose = new Pose2d(12,65.25,0);
         Pose2d endPoint = new Pose2d(12,64.75,0);
-        int numIntakes = 11;
-        int numMinerals = 0;
-        /*for (int i = 0; i < numIntakes; i ++) {
-            int n = i/3;
-            intake.add(drive.trajectorySequenceBuilder(endPoint)
-                    .splineTo(new Vector2d(36.5, endPoint.getY()), 0)
-                    .splineTo(new Vector2d(45 - i * 4, endPoint.getY() + n * 3), 0)
-                    .build());
-        }
-         */
+
         //TODO: Implement ML here
+
         int capNum = 2;
         setUp(startingPose);
         drive.transferMineral = true;
+
         waitForStart();
+
         drive.servos.get(2).setPosition(0.614);
         start = System.currentTimeMillis();
+
         depositFirst(capNum,startingPose,endPoint);
+
+        int numIntakes = 11;
+        int numMinerals = 0;
+
         while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
-            //drive.stopTrajectoryIntake = true;
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),18,5);
             driveToPoint(new Pose2d(45 - numMinerals * 4, endPoint.getY() + (int)(numMinerals/3) * 3,0), true);
-            //drive.followTrajectorySequence(intake.get(numMinerals)); //going into the wearhouse
-            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000); // getting a mineral
-            //drive.followTrajectorySequence(returnToScoring(endPoint)); //going to an area to drop off the mineral
+            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000);
             driveToPoint(endPoint,false);
-            waitForDeposit(); // deposit the block when first possible
+            waitForDeposit();
             numMinerals ++;
         }
-        //drive.followTrajectorySequence(intake.get(0));
-        //waiting out the rest of the time in auto
+
+        driveToPoint(new Pose2d(45, endPoint.getY(),0), false);
         while (opModeIsActive()){
             double points = 0;
             if (drive.currentPose.getX() >= 43.5 - 8){
@@ -81,15 +77,12 @@ public class WearhouseAutoBlue extends LinearOpMode {
             case 2: r = 5; h = 18; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
-        TrajectorySequence c = drive.trajectorySequenceBuilder(startingPose)
-                .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), endPoint.getHeading())
-                .build();
-        drive.followTrajectorySequence(c);
+        driveToPoint(endPoint,false);
         waitForDeposit();
     }
     public void waitForDeposit(){
         drive.deposit();
-        while (drive.slidesCase <= 4 && opModeIsActive()) { //System.currentTimeMillis() - drive.depositTime <= 1500
+        while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
         }
     }
@@ -109,14 +102,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
             double p4 = forward+left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
-    }
-    public TrajectorySequence returnToScoring(Pose2d endPoint){
-        return drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(),drive.currentPose.getY(),0))
-                .setReversed(true)
-                .splineTo(new Vector2d(36.5,endPoint.getY()),Math.toRadians(180))
-                .setReversed(true)
-                .splineToConstantHeading(new Vector2d(endPoint.getX(),endPoint.getY()),Math.toRadians(180))
-                .build();
     }
     public void intakeMineral(double power, double targetHeading, long maxTime){
         if (drive.intakeCase > 2){
