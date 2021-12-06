@@ -76,6 +76,9 @@ public class Teleop extends LinearOpMode {
         boolean deposit = false;
         int flag = 0;
 
+        int turretOffset = 0;
+        int slidesOffset = 0;
+
         double lastIntakeCase = 0;
 
         double radius = 0;
@@ -132,11 +135,13 @@ public class Teleop extends LinearOpMode {
                     drive.servos.get(7).setPosition(0.5);
                     if (gamepad2.b){
                         drive.duckSpin.setPower(-1);
+                        drive.duckSpin2.setPower(-1);
                     }
                 }
                 else{
                     drive.servos.get(7).setPosition(1.0);
                     drive.duckSpin.setPower(0);
+                    drive.duckSpin2.setPower(0);
                 }
             }
             boolean toggleHub = gamepad1.y;
@@ -296,6 +301,16 @@ public class Teleop extends LinearOpMode {
             double p3 = forward+left-turn;
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
+
+            if(Math.abs(gamepad2.left_stick_x) > 0.25) {
+                drive.setTurretTarget(drive.targetTurretHeading += gamepad2.right_stick_x * -0.1);
+                // turretOffset = drive.targetTurretHeading - drive.turretHeading;
+            }
+
+            if(Math.abs(gamepad2.right_stick_y) > 0.25) {
+                drive.setSlidesLength(drive.targetSlideExtensionLength += gamepad2.right_stick_y * -0.1);
+                // slidesOffset = drive.targetSlideExtensionLength - drive.slideExtensionLength;
+            }
         }
     }
     public void driveIn(int hub, Pose2d endPoint, SampleMecanumDrive drive){

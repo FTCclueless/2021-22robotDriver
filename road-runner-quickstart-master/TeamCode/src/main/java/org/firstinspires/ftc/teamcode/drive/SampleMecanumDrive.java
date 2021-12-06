@@ -91,7 +91,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake, rightWall, leftWall;
-    public CRServo duckSpin;
+    public CRServo duckSpin, duckSpin2;
     double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal;
     long lastTouchPoll;
     long lastTiltPoll;
@@ -311,6 +311,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
         duckSpin = hardwareMap.crservo.get("duckSpin");
+        duckSpin2 = hardwareMap.crservo.get("duckSpin2");
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
         rightWall = hardwareMap.analogInput.get("rightWall");
@@ -368,6 +369,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos.get(2).setPosition(0.8);
         servos.get(3).setPosition(0.48);
         servos.get(4).setPosition(0.8);
+        // servos.get(5).setPosition();
+        // servos.get(7).setPosition();
 
         stopTrajectoryIntake = false;
     }
