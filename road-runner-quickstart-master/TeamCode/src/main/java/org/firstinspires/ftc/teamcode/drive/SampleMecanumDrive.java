@@ -552,7 +552,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         height -= 9.17;
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
         double effectiveSlideAngle = Math.toRadians(8.92130165444);//9.89518
-        double v4BarLength = 8;
+        double v4BarLength = 9;
         double slope = Math.tan(effectiveSlideAngle);
         double a = (slope*slope + 1);
         double b = -1.0*(2*length + 2*slope*height);
@@ -637,9 +637,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     servos.get(2).setPosition(0.52);
                     setTurretTarget(targetTurretHeading);
-                    setV4barOrientation(targetV4barOrientation);
                     if (slidesCase > 1) {
                         setSlidesLength(targetSlideExtensionLength);
+                    }
+                    if (slideExtensionLength > Math.min(5,slideExtensionLength - 5)){
+                        setV4barOrientation(targetV4barOrientation);
                     }
                     if (slidesCase == 1 && Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;}
                     if (slidesCase == 2 && Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;}
