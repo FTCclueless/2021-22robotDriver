@@ -601,7 +601,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 3:
                     if(currentIntake == 1){servos.get(1).setPosition(leftIntakeRaise);}
                     if(currentIntake == -1){servos.get(0).setPosition(rightIntakeRaise);}
-                    if(stopTrajectoryIntake){trajectorySequenceRunner.remainingMarkers.clear();stopTrajectoryIntake = false;}
                     break; // lift up the servo
                 case 4: setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading * currentIntake));setSlidesLength(returnSlideLength);break; //send turret to the correct side
                 case 5: intake.setPower(transfer1Power); break;
@@ -623,7 +622,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         int a = intakeCase;
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;} break;  // waiting for the servo to drop
-            case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){intakeCase ++;} break; // wait for block in
+            case 2: if ((currentIntake == -1 && rightIntakeVal <= 300) || (currentIntake == 1 && leftIntakeVal <= 300)){
+                if(stopTrajectoryIntake){
+                    trajectorySequenceRunner.remainingMarkers.clear();stopTrajectoryIntake = false;
+                }
+                intakeCase ++;
+            } break; // wait for block in
             case 3: if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
             case 5: if (System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;} break;
