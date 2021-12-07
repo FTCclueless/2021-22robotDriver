@@ -37,7 +37,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.servos.get(2).setPosition(0.614);
         start = System.currentTimeMillis();
 
-        depositFirst(capNum,startingPose,endPoint);
+        depositFirst(capNum, endPoint);
 
         int numIntakes = 11;
         int numMinerals = 0;
@@ -68,7 +68,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.update();
         }
     }
-    public void depositFirst(int capNum, Pose2d startingPose, Pose2d endPoint){
+    public void depositFirst(int capNum, Pose2d endPoint){
         double h = 18;
         double r = 5;
         switch (capNum) {
