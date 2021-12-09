@@ -77,13 +77,14 @@ public class Teleop extends LinearOpMode {
         int lastLocVal = 0;
         int locVal = 0;
 
-        boolean deposit = false;
+        boolean done = false;
         int flag = 0;
 
         int turretOffset = 0;
         int slidesOffset = 0;
 
         double lastIntakeCase = 0;
+        double lastSlidesCase = 0;
 
         double radius = 0;
 
@@ -169,7 +170,6 @@ public class Teleop extends LinearOpMode {
             }
             if (gamepad2.right_trigger >= 0.5){
                 drive.deposit();
-                flag = 0;
             }
             resetLoc.update(gamepad2.left_bumper);
             if (resetLoc.getToggleState()){
@@ -259,23 +259,24 @@ public class Teleop extends LinearOpMode {
             auto.update(gamepad1.a);
             //TODO: allow the drivers to auto cancel at any time
             if (auto.toggleState){
-                if (deposit && flag == 0) {
-                    flag ++;
-                    deposit = false;
+                if (!done && flag == 0) {
+                    done = true;
                     drive.startIntake(intake);
                     drive.startDeposit(endPoint,hubLocation,height,radius);
-                    if (hub == 1) {
-                        driveToPoint(new Pose2d(16.5,endPoint.getY(),endPoint.getHeading()));
-                        driveToPoint(new Pose2d(36.5,endPoint.getY(),endPoint.getHeading()));
-                    }
-                    if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(),16.5,endPoint.getHeading()));
-                        driveToPoint(new Pose2d(endPoint.getX(),36.5,endPoint.getHeading()));
+                    boolean inside = Math.abs(drive.currentPose.getY()) > 43.5 && drive.currentPose.getX() > 43.5;
+                    if (! inside) {
+                        if (hub == 1) {
+                            driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()));
+                            driveToPoint(new Pose2d(36.5, endPoint.getY(), endPoint.getHeading()));
+                        }
+                        if (hub == 0) {
+                            driveToPoint(new Pose2d(endPoint.getX(), 16.5, endPoint.getHeading()));
+                            driveToPoint(new Pose2d(endPoint.getX(), 36.5, endPoint.getHeading()));
+                        }
                     }
                 }
-                else if (!deposit && flag == 0) {
-                    flag ++;
-                    deposit = true;
+                else if (!done && flag == 1) {
+                    done = true;
                     drive.startDeposit(endPoint, hubLocation, height, radius);
                     if (hub == 1) {
                         driveToPoint(new Pose2d(36.5,endPoint.getY(),endPoint.getHeading()));
@@ -288,9 +289,15 @@ public class Teleop extends LinearOpMode {
                 }
             }
             if (drive.intakeCase == 3 && lastIntakeCase == 2){
+                flag = 1;
+                done = false;
+            }
+            if (drive.slidesCase == 5 && lastSlidesCase == 4){
                 flag = 0;
+                done = false;
             }
             lastIntakeCase = drive.intakeCase;
+            lastSlidesCase = drive.slidesCase;
 
 
             double forward = gamepad1.left_stick_y * -1;
