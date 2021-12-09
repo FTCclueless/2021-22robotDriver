@@ -265,12 +265,12 @@ public class Teleop extends LinearOpMode {
                     drive.startIntake(intake);
                     drive.startDeposit(endPoint,hubLocation,height,radius);
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(16.5,endPoint.getY(),0));
-                        driveToPoint(new Pose2d(36.5,endPoint.getY(),0));
+                        driveToPoint(new Pose2d(16.5,endPoint.getY(),endPoint.getHeading()));
+                        driveToPoint(new Pose2d(36.5,endPoint.getY(),endPoint.getHeading()));
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(),16.5,0));
-                        driveToPoint(new Pose2d(endPoint.getX(),36.5,0));
+                        driveToPoint(new Pose2d(endPoint.getX(),16.5,endPoint.getHeading()));
+                        driveToPoint(new Pose2d(endPoint.getX(),36.5,endPoint.getHeading()));
                     }
                 }
                 else if (!deposit && flag == 0) {
@@ -278,11 +278,11 @@ public class Teleop extends LinearOpMode {
                     deposit = true;
                     drive.startDeposit(endPoint, hubLocation, height, radius);
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(36.5,endPoint.getY(),0));
+                        driveToPoint(new Pose2d(36.5,endPoint.getY(),endPoint.getHeading()));
                         driveToPoint(endPoint);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(),36.5,0));
+                        driveToPoint(new Pose2d(endPoint.getX(),36.5,endPoint.getHeading()));
                         driveToPoint(endPoint);
                     }
                 }
