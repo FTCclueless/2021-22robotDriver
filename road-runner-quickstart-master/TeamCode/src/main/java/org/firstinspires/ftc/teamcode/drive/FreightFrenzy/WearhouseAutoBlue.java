@@ -94,7 +94,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double maxPowerSide = 0.8;
         double maxPowerTurn = 0.4;
         double slowDownDist = 4;
-        double slowTurnDist = 8;
+        double slowTurnAngle = 8;
         while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake)){
             drive.update();
             Pose2d relError = new Pose2d(
@@ -104,18 +104,12 @@ public class WearhouseAutoBlue extends LinearOpMode {
             );
             double forward = Math.min(Math.max(relError.getX()*maxPowerForward/slowDownDist,-maxPowerForward),maxPowerForward);
             double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-maxPowerSide),maxPowerSide);
-            double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnDist),-maxPowerTurn),maxPowerTurn);
+            double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnAngle),-maxPowerTurn),maxPowerTurn);
             double p1 = forward-left-turn;
             double p2 = forward+left-turn;
             double p3 = forward-left+turn;
             double p4 = forward+left+turn;
             double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
-            /*
-            p1 /= max;
-            p2 /= max;
-            p3 /= max;
-            p4 /= max;
-             */
             max *= 1.0/(1.0 - DriveConstants.kStatic);
             p1 /= max;
             p2 /= max;

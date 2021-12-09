@@ -333,7 +333,7 @@ public class Teleop extends LinearOpMode {
         double maxPowerSide = 0.8;
         double maxPowerTurn = 0.4;
         double slowDownDist = 4;
-        double slowTurnDist = 8;
+        double slowTurnAngle = 8;
         while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5) && auto.getToggleState()){
             auto.update(gamepad1.a);
             drive.update();
@@ -344,7 +344,7 @@ public class Teleop extends LinearOpMode {
             );
             double forward = Math.min(Math.max(relError.getX()*maxPowerForward/slowDownDist,-maxPowerForward),maxPowerForward);
             double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-maxPowerSide),maxPowerSide);
-            double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnDist),-maxPowerTurn),maxPowerTurn);
+            double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnAngle),-maxPowerTurn),maxPowerTurn);
             double p1 = forward-left-turn;
             double p2 = forward+left-turn;
             double p3 = forward-left+turn;
