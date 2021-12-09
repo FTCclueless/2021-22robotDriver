@@ -90,16 +90,21 @@ public class WearhouseAutoBlue extends LinearOpMode {
     }
     public void driveToPoint(Pose2d target, boolean intake){
         //while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5)){ //&& (drive.intakeCase <= 2 || !intake)){
-        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5) && (drive.intakeCase <= 2 || !intake)){
+        double maxPowerForward = 0.8;
+        double maxPowerSide = 0.8;
+        double maxPowerTurn = 0.4;
+        double slowDownDist = 4;
+        double slowTurnDist = 8;
+        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake)){
             drive.update();
             Pose2d relError = new Pose2d(
                     Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
                     Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
                     target.getHeading()-drive.currentPose.getHeading()
             );
-            double forward = Math.min(Math.max(relError.getX()*0.8/2,-0.8),0.8);
-            double left = Math.min(Math.max(relError.getY()*0.8/2,-0.8),0.8);
-            double turn = Math.min(Math.max(relError.getHeading()*0.4/Math.toRadians(5),-0.4),0.4);
+            double forward = Math.min(Math.max(relError.getX()*maxPowerForward/slowDownDist,-maxPowerForward),maxPowerForward);
+            double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-maxPowerSide),maxPowerSide);
+            double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnDist),-maxPowerTurn),maxPowerTurn);
             double p1 = forward-left-turn;
             double p2 = forward+left-turn;
             double p3 = forward-left+turn;
