@@ -107,10 +107,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
             p2 /= max;
             p3 /= max;
             p4 /= max;
-            telemetry.addData("max", max);
-            telemetry.addData("relError X", relError.getX());
-            telemetry.addData("relError Y", relError.getY());
-            telemetry.update();
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
         drive.setMotorPowers(0,0,0,0);
