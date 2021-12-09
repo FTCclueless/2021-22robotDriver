@@ -334,10 +334,15 @@ public class Teleop extends LinearOpMode {
             double p3 = forward-left+turn;
             double p4 = forward+left+turn;
             double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
+            max *= 1.0/0.93;
             p1 /= max;
             p2 /= max;
             p3 /= max;
             p4 /= max;
+            p1 += 0.07 * Math.signum(p1);
+            p2 += 0.07 * Math.signum(p2);
+            p3 += 0.07 * Math.signum(p3);
+            p4 += 0.07 * Math.signum(p4);
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
         drive.setMotorPowers(0,0,0,0);

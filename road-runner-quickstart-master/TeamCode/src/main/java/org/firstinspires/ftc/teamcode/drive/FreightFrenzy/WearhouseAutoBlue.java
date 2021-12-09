@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
@@ -88,7 +89,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
     }
     public void driveToPoint(Pose2d target, boolean intake){
-        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5)){ //&& (drive.intakeCase <= 2 || !intake)){
+        //while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5)){ //&& (drive.intakeCase <= 2 || !intake)){
+        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5) && (drive.intakeCase <= 2 || !intake)){
             drive.update();
             Pose2d relError = new Pose2d(
                     Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
@@ -103,10 +105,21 @@ public class WearhouseAutoBlue extends LinearOpMode {
             double p3 = forward-left+turn;
             double p4 = forward+left+turn;
             double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
+            /*
             p1 /= max;
             p2 /= max;
             p3 /= max;
             p4 /= max;
+             */
+            max *= 1.0/(1.0 - DriveConstants.kStatic);
+            p1 /= max;
+            p2 /= max;
+            p3 /= max;
+            p4 /= max;
+            p1 += DriveConstants.kStatic * Math.signum(p1);
+            p2 += DriveConstants.kStatic * Math.signum(p2);
+            p3 += DriveConstants.kStatic * Math.signum(p3);
+            p4 += DriveConstants.kStatic * Math.signum(p4);
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
         drive.setMotorPowers(0,0,0,0);
