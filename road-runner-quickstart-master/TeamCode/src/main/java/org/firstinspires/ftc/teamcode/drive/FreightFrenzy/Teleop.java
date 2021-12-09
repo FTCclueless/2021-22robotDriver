@@ -23,11 +23,11 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 public class Teleop extends LinearOpMode {
 
     ButtonToggle auto = new ButtonToggle();
-
+    SampleMecanumDrive drive;
     @Override
     public void runOpMode() throws InterruptedException {
 
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        drive = new SampleMecanumDrive(hardwareMap);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -263,27 +263,27 @@ public class Teleop extends LinearOpMode {
                     flag ++;
                     deposit = false;
                     drive.startIntake(intake);
-                    driveIn(hub,endPoint,drive);
+                    drive.startDeposit(endPoint,hubLocation,height,radius);
+                    if (hub == 1) {
+                        driveToPoint(new Pose2d(16.5,endPoint.getY(),0));
+                        driveToPoint(new Pose2d(36.5,endPoint.getY(),0));
+                    }
+                    if (hub == 0) {
+                        driveToPoint(new Pose2d(endPoint.getX(),16.5,0));
+                        driveToPoint(new Pose2d(endPoint.getX(),36.5,0));
+                    }
                 }
                 else if (!deposit && flag == 0) {
                     flag ++;
                     deposit = true;
                     drive.startDeposit(endPoint, hubLocation, height, radius);
                     if (hub == 1) {
-                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), 0))
-                                .setReversed(true)
-                                .splineTo(new Vector2d(36.5, endPoint.getY()), Math.toRadians(180))
-                                .setReversed(true)
-                                .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), Math.toRadians(180))
-                                .build());
+                        driveToPoint(new Pose2d(36.5,endPoint.getY(),0));
+                        driveToPoint(endPoint);
                     }
                     if (hub == 0) {
-                        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), 0))
-                                .setReversed(true)
-                                .splineTo(new Vector2d(endPoint.getX(), 36.5), Math.toRadians(180 * Math.signum(endPoint.getHeading())) - endPoint.getHeading())
-                                .setReversed(true)
-                                .splineToConstantHeading(new Vector2d(endPoint.getX(), endPoint.getY()), Math.toRadians(180 * Math.signum(endPoint.getHeading())) - endPoint.getHeading())
-                                .build());
+                        driveToPoint(new Pose2d(endPoint.getX(),36.5,0));
+                        driveToPoint(endPoint);
                     }
                 }
             }
@@ -317,47 +317,29 @@ public class Teleop extends LinearOpMode {
             }
         }
     }
-    public void driveIn(int hub, Pose2d endPoint, SampleMecanumDrive drive){
-        Vector2d p1 = new Vector2d();
-        Vector2d p2 = new Vector2d();
-        if (hub == 1) {
-            p1 = new Vector2d(16.5, endPoint.getY());
-            p2 = new Vector2d(36.5, endPoint.getY());
+    public void driveToPoint(Pose2d target){
+        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5) && auto.getToggleState()){
+            auto.update(gamepad1.a);
+            drive.update();
+            Pose2d relError = new Pose2d(
+                    Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
+                    Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
+                    target.getHeading()-drive.currentPose.getHeading()
+            );
+            double forward = Math.min(Math.max(relError.getX()*0.8/2,-0.8),0.8);
+            double left = Math.min(Math.max(relError.getY()*0.8/2,-0.8),0.8);
+            double turn = Math.min(Math.max(relError.getHeading()*0.4/Math.toRadians(5),-0.4),0.4);
+            double p1 = forward-left-turn;
+            double p2 = forward+left-turn;
+            double p3 = forward-left+turn;
+            double p4 = forward+left+turn;
+            double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
+            p1 /= max;
+            p2 /= max;
+            p3 /= max;
+            p4 /= max;
+            drive.pinMotorPowers(p1, p2, p3, p4);
         }
-        if (hub == 2){
-            p1 = new Vector2d(endPoint.getX(), 16.5);
-            p2 = new Vector2d(endPoint.getX(), 36.5);
-        }
-        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(endPoint)
-                .splineTo(p1, endPoint.getHeading())
-                .splineTo(p2, endPoint.getHeading())
-                .addTemporalMarker(0.5, 0, () -> {
-                    if (gamepad1.a) {
-                        auto.toggleState = false;
-                        drive.trajectorySequenceRunner.remainingMarkers.clear();
-                    }
-                })
-                .addTemporalMarker(0.6, 0, () -> {
-                    if (gamepad1.a) {
-                        auto.toggleState = false;
-                        drive.trajectorySequenceRunner.remainingMarkers.clear();
-                    }
-                })
-                .addTemporalMarker(0.7, 0, () -> {
-                    if (gamepad1.a) {
-                        auto.toggleState = false;
-                        drive.trajectorySequenceRunner.remainingMarkers.clear();
-                    }
-                })
-                .addTemporalMarker(0.8, 0, () -> {
-                    if (gamepad1.a) {
-                        auto.toggleState = false;
-                        drive.trajectorySequenceRunner.remainingMarkers.clear();
-                    }
-                })
-                .addTemporalMarker(0.9, 0, () -> {
-                    drive.trajectorySequenceRunner.remainingMarkers.clear();
-                })
-                .build());
+        drive.setMotorPowers(0,0,0,0);
     }
 }
