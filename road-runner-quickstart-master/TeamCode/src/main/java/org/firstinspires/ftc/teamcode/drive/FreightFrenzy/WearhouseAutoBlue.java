@@ -34,18 +34,19 @@ public class WearhouseAutoBlue extends LinearOpMode {
 
         waitForStart();
 
+        drive.update();
+
         drive.servos.get(2).setPosition(0.614);
         start = System.currentTimeMillis();
 
         depositFirst(capNum, endPoint);
 
-        int numIntakes = 11;
         int numMinerals = 0;
 
-        while (numMinerals < numIntakes && System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
+        while (System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
             drive.startIntake(false);
             drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),18,5);
-            driveToPoint(new Pose2d(45 - numMinerals * 4, endPoint.getY() + (int)(numMinerals/3) * 3,0), true);
+            driveToPoint(new Pose2d(45 - numMinerals * 4, endPoint.getY() - (int)(numMinerals/3) * 3,0), true);
             intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000);
             driveToPoint(endPoint,false);
             waitForDeposit();
@@ -87,20 +88,29 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
     }
     public void driveToPoint(Pose2d target, boolean intake){
-        while (opModeIsActive() && (drive.currentPose.getX()-target.getX() > 0.5 && drive.currentPose.getY()-target.getY() > 0.5) && (drive.intakeCase <= 2 || !intake)){
+        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5)){ //&& (drive.intakeCase <= 2 || !intake)){
             drive.update();
             Pose2d relError = new Pose2d(
-                    Math.cos(target.getHeading()) * (target.getX()-drive.currentPose.getX()) - Math.sin(target.getHeading()) * (target.getY()-drive.currentPose.getY()),
-                    Math.sin(target.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.cos(target.getHeading()) * (target.getY()-drive.currentPose.getY()),
+                    Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
+                    Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
                     target.getHeading()-drive.currentPose.getHeading()
             );
-            double forward = Math.max(Math.min(relError.getX()*5.0/0.8,-0.8),0.8);
-            double left = Math.max(Math.min(relError.getY()*5.0/0.8,-0.8),0.8);
-            double turn = Math.max(Math.min(relError.getHeading()*Math.toRadians(5)/0.4,-0.4),0.4);
-            double p1 = forward-left+turn;
-            double p2 = forward+left+turn;
-            double p3 = forward-left-turn;
-            double p4 = forward+left-turn;
+            double forward = Math.min(Math.max(relError.getX()*0.8/2,-0.8),0.8);
+            double left = Math.min(Math.max(relError.getY()*0.8/2,-0.8),0.8);
+            double turn = Math.min(Math.max(relError.getHeading()*0.4/Math.toRadians(5),-0.4),0.4);
+            double p1 = forward-left-turn;
+            double p2 = forward+left-turn;
+            double p3 = forward-left+turn;
+            double p4 = forward+left+turn;
+            double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
+            p1 /= max;
+            p2 /= max;
+            p3 /= max;
+            p4 /= max;
+            telemetry.addData("max", max);
+            telemetry.addData("relError X", relError.getX());
+            telemetry.addData("relError Y", relError.getY());
+            telemetry.update();
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
         drive.setMotorPowers(0,0,0,0);
