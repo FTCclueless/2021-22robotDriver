@@ -277,7 +277,9 @@ public class Teleop extends LinearOpMode {
                 }
                 else if (!done && flag == 1) {
                     done = true;
-                    drive.startDeposit(endPoint, hubLocation, height, radius);
+                    if (drive.slidesCase == 0) {
+                        drive.startDeposit(endPoint, hubLocation, height, radius);
+                    }
                     if (hub == 1) {
                         driveToPoint(new Pose2d(36.5,endPoint.getY(),endPoint.getHeading()));
                         driveToPoint(endPoint);
