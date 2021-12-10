@@ -30,6 +30,7 @@ public class motorPIDTuner extends LinearOpMode {
         double targetPos = 0;
         drive.slidesCase = -1;
         double offset = 1;
+        drive.expansion2 = true;
         while (!isStopRequested()) {
 
             drive.turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
