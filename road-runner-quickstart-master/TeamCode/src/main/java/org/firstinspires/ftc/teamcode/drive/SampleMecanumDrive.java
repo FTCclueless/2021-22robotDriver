@@ -197,6 +197,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     double rightIntakeDrop;
     double rightIntakeRaise;
 
+    public double turretOffset;
+    public double slidesOffset;
+
 
     private boolean stop = false;
 
@@ -349,6 +352,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastIntakeCase = 0;
         slidesCase = 0;
         lastSlidesCase = 0;
+
+        turretOffset = 0;
+        slidesOffset = 0;
 
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
@@ -636,22 +642,22 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (a) {
                 case 1: case 2: case 3:
                     servos.get(2).setPosition(0.52);
-                    setTurretTarget(targetTurretHeading);
+                    setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase > 1) {
-                        setSlidesLength(targetSlideExtensionLength);
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     }
                     if (slideExtensionLength > Math.min(5,slideExtensionLength - 5)){
                         setV4barOrientation(targetV4barOrientation);
                     }
-                    if (slidesCase == 1 && Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(15)){slidesCase ++;}
-                    if (slidesCase == 2 && Math.abs(slideExtensionLength - targetSlideExtensionLength) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;}
-                    if (slidesCase == 3 && Math.abs(turretHeading - targetTurretHeading) <= Math.toRadians(10) && deposit){slidesCase ++;}
+                    if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
+                    if (slidesCase == 2 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;}
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(10) && deposit){slidesCase ++;}
                     break;
                 case 4:
                     servos.get(2).setPosition(0.853);
-                    setTurretTarget(targetTurretHeading);
+                    setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
-                    setSlidesLength(targetSlideExtensionLength);
+                    setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
                 case 5: case 6: case 7:
@@ -659,7 +665,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     servos.get(2).setPosition(0.8);
                     setSlidesLength(returnSlideLength);
                     if (slidesCase == 5) {
-                        setTurretTarget(targetTurretHeading);
+                        setTurretTarget(targetTurretHeading + turretOffset);
                     }
                     else {
                         setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading * currentIntake));

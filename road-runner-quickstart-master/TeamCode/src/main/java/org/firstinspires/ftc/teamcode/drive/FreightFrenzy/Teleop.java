@@ -318,13 +318,11 @@ public class Teleop extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) {
-                drive.setTurretTarget(drive.targetTurretHeading += gamepad2.right_stick_x * -0.1);
-                // turretOffset = drive.targetTurretHeading - drive.turretHeading;
+                drive.turretOffset -= gamepad2.left_stick_y;
             }
 
             if(Math.abs(gamepad2.right_stick_y) > 0.25) {
-                drive.setSlidesLength(drive.targetSlideExtensionLength += gamepad2.right_stick_y * -0.1);
-                // slidesOffset = drive.targetSlideExtensionLength - drive.slideExtensionLength;
+                drive.slidesOffset -= gamepad2.right_stick_y;
             }
         }
     }
