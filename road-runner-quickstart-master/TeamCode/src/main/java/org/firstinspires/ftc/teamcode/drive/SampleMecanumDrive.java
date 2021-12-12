@@ -862,6 +862,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double robotWidth = 12.5;
         boolean detectLine = false;
         double colorX = 0.996;
+        double detectionDist = 1.5;
         int threshold = 200;
         int sensorThreshold = 5;
         boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
@@ -879,7 +880,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             double heading = clipHeading(currentPose.getHeading());
             double var = Math.abs(heading)-Math.toRadians(90);
             if (leftRight || (!isKnownX && Math.abs(var) > Math.toRadians(85))) {
-                double speed = Math.signum(currentVelocity.getX()) * multiplier * 1.5;
+                double speed = Math.signum(currentVelocity.getX()) * multiplier * detectionDist;
                 double m1 = Math.cos(heading)*colorX;
                 localizer.setX(72 - 43.5 + 1 - speed - m1);
                 isKnownX = true;
@@ -887,7 +888,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             else if (topLeft || topRight || (!isKnownY && Math.abs(var) < Math.toRadians(15))) {
                 double m1 = Math.signum(currentPose.getY());
                 double m2 = Math.sin(heading)*colorX;
-                double speed = Math.signum(currentVelocity.getY()) * multiplier * 1.5;
+                double speed = Math.signum(currentVelocity.getY()) * multiplier * detectionDist;
                 localizer.setY((72 - 43.5 + 1) * m1 - speed - m2);
                 isKnownY = true;
             }
