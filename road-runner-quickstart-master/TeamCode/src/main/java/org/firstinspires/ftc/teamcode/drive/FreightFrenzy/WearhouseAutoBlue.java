@@ -45,16 +45,19 @@ public class WearhouseAutoBlue extends LinearOpMode {
         int numMinerals = 0;
 
         while (System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
+            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),20,6);
             drive.startIntake(false);
-            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),18,5);
-            driveToPoint(new Pose2d(45 - numMinerals * 4, endPoint.getY() - (int)(numMinerals/3) * 3,0), true);
+            driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.8);
+            driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.6);
+            driveToPoint(new Pose2d(40 + numMinerals * 4, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.45);
             intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000);
-            driveToPoint(endPoint,false);
+            driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,2, 0.8);
+            driveToPoint(endPoint,false, 0.5, 0.6);
             waitForDeposit();
             numMinerals ++;
         }
 
-        driveToPoint(new Pose2d(45, endPoint.getY(),0), false);
+        driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 0.8);
         while (opModeIsActive()){
             double points = 0;
             if (drive.currentPose.getX() >= 43.5 - 8){
@@ -76,10 +79,10 @@ public class WearhouseAutoBlue extends LinearOpMode {
         switch (capNum) {
             case 0: r = 8; h = 8; break;
             case 1: r = 7; h = 12.13; break;
-            case 2: r = 5; h = 18; break;
+            case 2: r = 6; h = 20; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
-        driveToPoint(endPoint,false);
+        //driveToPoint(endPoint,false, 0.25, 0.8);
         waitForDeposit();
     }
     public void waitForDeposit(){
@@ -88,14 +91,15 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.update();
         }
     }
-    public void driveToPoint(Pose2d target, boolean intake){
+    public void driveToPoint(Pose2d target, boolean intake, double error, double power){
         //while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5)){ //&& (drive.intakeCase <= 2 || !intake)){
-        double maxPowerForward = 0.8;
-        double maxPowerSide = 0.8;
-        double maxPowerTurn = 0.4;
-        double slowDownDist = 4;
+        double maxPowerForward = power;
+        double maxPowerSide = power;
+        double maxPowerTurn = power/2.0;
+        double slowDownDist = 6;
         double slowTurnAngle = 8;
-        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake)){
+        double numLeft = 0;
+        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > error || Math.abs(drive.currentPose.getY()-target.getY()) > error || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake)){
             drive.update();
             Pose2d relError = new Pose2d(
                     Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
@@ -110,6 +114,18 @@ public class WearhouseAutoBlue extends LinearOpMode {
             double p3 = forward-left+turn;
             double p4 = forward+left+turn;
             double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
+            if (Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 && Math.abs(drive.relCurrentVelocity.getY()) <= 1){
+                numLeft ++;
+            }
+            else {
+                numLeft = 0;
+            }
+            if (numLeft >= 30) {
+                numLeft = 0;
+                drive.localizer.setPoseEstimate(new Pose2d(drive.currentPose.getX(),65.25 * Math.signum(drive.currentPose.getY()),0));
+                telemetry.addData("trigger", "wall trigger");
+                telemetry.update();
+            }
             max *= 1.0/(1.0 - DriveConstants.kStatic);
             p1 /= max;
             p2 /= max;
