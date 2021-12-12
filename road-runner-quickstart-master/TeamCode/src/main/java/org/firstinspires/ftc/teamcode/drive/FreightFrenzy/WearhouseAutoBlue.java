@@ -114,7 +114,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             double p3 = forward-left+turn;
             double p4 = forward+left+turn;
             double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
-            if (Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 && Math.abs(drive.relCurrentVelocity.getY()) <= 1){
+            if (Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 && Math.abs(drive.relCurrentVelocity.getY()) <= 1 && Math.signum(drive.relCurrentVelocity.getY()) == Math.signum(drive.currentPose.getY()) * -1){
                 numLeft ++;
             }
             else {
