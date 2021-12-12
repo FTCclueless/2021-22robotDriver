@@ -882,14 +882,22 @@ public class SampleMecanumDrive extends MecanumDrive {
             if (leftRight || (!isKnownX && Math.abs(var) > Math.toRadians(85))) {
                 double speed = Math.signum(currentVelocity.getX()) * multiplier * detectionDist;
                 double m1 = Math.cos(heading)*colorX;
-                localizer.setX(72 - 43.5 + 1 - speed - m1);
+                double gain = 1.0;
+                if (isKnownX){
+                    gain = 0.05;
+                }
+                localizer.setX(currentPose.getX() * (1.0) - gain + (72 - 43.5 + 1 - speed - m1) * gain);
                 isKnownX = true;
             }
             else if (topLeft || topRight || (!isKnownY && Math.abs(var) < Math.toRadians(15))) {
                 double m1 = Math.signum(currentPose.getY());
                 double m2 = Math.sin(heading)*colorX;
                 double speed = Math.signum(currentVelocity.getY()) * multiplier * detectionDist;
-                localizer.setY((72 - 43.5 + 1) * m1 - speed - m2);
+                double gain = 1.0;
+                if (isKnownY){
+                    gain = 0.05;
+                }
+                localizer.setY(currentPose.getY() * (1.0 - gain) + ((72 - 43.5 + 1) * m1 - speed - m2) * gain);
                 isKnownY = true;
             }
         }
