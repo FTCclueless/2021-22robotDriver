@@ -161,7 +161,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
 
     public static int dropIntakeTime = 300;
-    public static double intakePower = -1; //-0.95;
+    public static double intakePower = -1;
     public static int liftIntakeTime = 450; //400
     public static int       transfer1Time = 300;
     public static double    transfer1Power = 1.0;
