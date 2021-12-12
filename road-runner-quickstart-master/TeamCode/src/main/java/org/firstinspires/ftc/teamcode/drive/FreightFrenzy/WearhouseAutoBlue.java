@@ -48,9 +48,10 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),20,6);
             drive.startIntake(false);
             driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.8);
-            driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.6);
-            driveToPoint(new Pose2d(40 + numMinerals * 4, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.45);
-            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),2000);
+            driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.7);
+            driveToPoint(new Pose2d(40, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.5);
+            driveToPoint(new Pose2d(40 + numMinerals * 4, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.25);
+            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),1000);
             driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,2, 0.8);
             driveToPoint(endPoint,false, 0.5, 0.6);
             waitForDeposit();
