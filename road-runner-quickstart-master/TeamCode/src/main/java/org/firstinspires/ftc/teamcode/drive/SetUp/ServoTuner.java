@@ -47,6 +47,19 @@ public class ServoTuner extends LinearOpMode {
             }
             lastY = y;
             servoIndex = servoIndex % drive.servos.size();
+            if (gamepad1.left_bumper){
+                drive.duckSpin.setPower(1.0);
+                drive.duckSpin2.setPower(-1.0);
+            }
+            else if (gamepad1.right_bumper){
+                drive.duckSpin.setPower(-1.0);
+                drive.duckSpin2.setPower(1.0);
+            }
+            else {
+                drive.duckSpin.setPower(0.0);
+                drive.duckSpin2.setPower(0.0);
+            }
+
 
             telemetry.addData("servoNum", servoIndex);
             telemetry.addData("servoPos", servoPos[servoIndex]);

@@ -16,7 +16,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
@@ -52,6 +55,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceRunner;
+import org.firstinspires.ftc.teamcode.util.DashboardUtil;
 import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
@@ -200,6 +204,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double turretOffset;
     public double slidesOffset;
 
+    ArrayList<Pose2d> poseHistory;
+    private final FtcDashboard dashboard;
 
     private boolean stop = false;
 
@@ -375,6 +381,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         setV4barOrientation(0);
         servos.get(3).setPosition(0.48);
 
+        poseHistory = new ArrayList<Pose2d>();
+
+        dashboard = FtcDashboard.getInstance();
+        dashboard.setTelemetryTransmissionInterval(25);
     }
 
     public void resetAssemblies(){
@@ -727,14 +737,72 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         updateSensor();
         updateVisualizer();
+        /*
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);
         }
+         */
+
+
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+
+        poseHistory.add(currentPose);
+
+        if (poseHistory.size() > 100) {
+            poseHistory.remove(0);
+        }
+
+        packet.put("x", currentPose.getX());
+        packet.put("y", currentPose.getY());
+        packet.put("heading (deg)", Math.toDegrees(currentPose.getHeading()));
+        packet.put("velX", relCurrentVelocity.getX());
+        packet.put("velY", relCurrentVelocity.getY());
+        packet.put("velHeading (deg)", Math.toDegrees(relCurrentVelocity.getHeading()));
+
+        fieldOverlay.setStroke("#3F51B5");
+        DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
+
+        drawRobot(fieldOverlay,r,currentPose);
+
+        dashboard.sendTelemetryPacket(packet);
 
         updateScoring();
         updateIMU = false;
     }
+    public void drawRobot(Canvas fieldOverlay, robotComponents r, Pose2d poseEstimate){
+        for (Component c : r.components){
+            fieldOverlay.setStrokeWidth(c.lineRadius);
+            fieldOverlay.setStroke(c.color);
+            if (c.p.size() == 1){
+                drawPoint(fieldOverlay,c.p.get(0),c.radius,poseEstimate);
+            }
+            else {
+                for (int i = 1; i < c.p.size() + 1; i++) {
+                    drawPoint(fieldOverlay, c.p.get(i % c.p.size()), c.radius, poseEstimate);
+                    drawLine(fieldOverlay, c.p.get(i % c.p.size()), c.p.get((i - 1)%c.p.size()), poseEstimate);
+                }
+            }
+        }
+    }
+    public void drawLine(Canvas c, Point p, Point p2, Pose2d pose){
+        double x1 = Math.cos(pose.getHeading())*(p.x+Math.signum(p.x-p2.x)*0.5) - Math.sin(pose.getHeading())*(p.y+Math.signum(p.y-p2.y)*0.5) + pose.getX();
+        double y1 = Math.cos(pose.getHeading())*(p.y+Math.signum(p.y-p2.y)*0.5) + Math.sin(pose.getHeading())*(p.x+Math.signum(p.x-p2.x)*0.5) + pose.getY();
+        double x2 = Math.cos(pose.getHeading())*(p2.x+Math.signum(p2.x-p.x)*0.5) - Math.sin(pose.getHeading())*(p2.y+Math.signum(p2.y-p.y)*0.5) + pose.getX();
+        double y2 = Math.cos(pose.getHeading())*(p2.y+Math.signum(p2.y-p.y)*0.5) + Math.sin(pose.getHeading())*(p2.x+Math.signum(p2.x-p.x)*0.5) + pose.getY();
+        c.strokeLine(x1,y1,x2,y2);
+    }
+    public void drawPoint(Canvas c, Point p, double radius, Pose2d pose){
+        if (radius != 0){
+            double x = Math.cos(pose.getHeading())*p.x - Math.sin(pose.getHeading())*p.y + pose.getX();
+            double y = Math.cos(pose.getHeading())*p.y + Math.sin(pose.getHeading())*p.x + pose.getY();
+            c.strokeCircle(x,y,radius);
+        }
+    }
+
+
+
     public void updateSensor(){
         updateLineDetection();
         //updateWallDetection();
@@ -861,8 +929,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateLineDetection(){
         double robotWidth = 12.5;
         boolean detectLine = false;
-        double colorX = 0.996;
-        double detectionDist = 1.5;
+        double colorX = 1.25;//0.996
+        double detectionDist = 1.25;
         int threshold = 200;
         int sensorThreshold = 5;
         boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
@@ -884,9 +952,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                 double m1 = Math.cos(heading)*colorX;
                 double gain = 1.0;
                 if (isKnownX){
-                    gain = 0.05;
+                    gain = 0.5;
                 }
-                localizer.setX(currentPose.getX() * (1.0) - gain + (72 - 43.5 + 1 - speed - m1) * gain);
+                localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - 43.5 + 1 - speed - m1) * gain);
                 isKnownX = true;
             }
             else if (topLeft || topRight || (!isKnownY && Math.abs(var) < Math.toRadians(15))) {
@@ -895,7 +963,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 double speed = Math.signum(currentVelocity.getY()) * multiplier * detectionDist;
                 double gain = 1.0;
                 if (isKnownY){
-                    gain = 0.05;
+                    gain = 0.5;
                 }
                 localizer.setY(currentPose.getY() * (1.0 - gain) + ((72 - 43.5 + 1) * m1 - speed - m2) * gain);
                 isKnownY = true;

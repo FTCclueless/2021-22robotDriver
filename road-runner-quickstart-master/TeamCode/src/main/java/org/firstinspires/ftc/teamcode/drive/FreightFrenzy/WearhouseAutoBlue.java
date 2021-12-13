@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
+import android.util.Log;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -25,7 +27,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.resetAssemblies();
 
         Pose2d startingPose = new Pose2d(12,65.25,0);
-        Pose2d endPoint = new Pose2d(12,64.75,0);
+        Pose2d endPoint = new Pose2d(12,65.25,0);
 
         //TODO: Implement ML here
 
@@ -40,6 +42,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.servos.get(2).setPosition(0.614);
         start = System.currentTimeMillis();
 
+        intakeMineral(0.25, 0, 5000);
+
+
         depositFirst(capNum, endPoint);
 
         int numMinerals = 0;
@@ -50,10 +55,11 @@ public class WearhouseAutoBlue extends LinearOpMode {
             driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.8);
             driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.7);
             driveToPoint(new Pose2d(40, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.5);
-            driveToPoint(new Pose2d(40 + numMinerals * 4, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.25);
-            intakeMineral(0.25,Math.toRadians((numMinerals % 3) * -15),1000);
+            driveToPoint(new Pose2d(40 + numMinerals * 4, endPoint.getY() - (numMinerals % 3) * 3,Math.toRadians(-15)), true,2, 0.5);
+            intakeMineral(0.25,Math.toRadians(-15),3000);//(numMinerals % 3) *
             driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,2, 0.8);
-            driveToPoint(endPoint,false, 0.5, 0.6);
+            driveToPoint(new Pose2d(endPoint.getX() + 3, endPoint.getY(),0), true,2, 0.6);
+            driveToPoint(endPoint,false, 0.25, 0.25);
             waitForDeposit();
             numMinerals ++;
         }
@@ -107,23 +113,24 @@ public class WearhouseAutoBlue extends LinearOpMode {
                     Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
                     target.getHeading()-drive.currentPose.getHeading()
             );
-            double forward = Math.min(Math.max(relError.getX()*maxPowerForward/slowDownDist,-maxPowerForward),maxPowerForward);
-            double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-maxPowerSide),maxPowerSide);
+            double forward = Math.min(Math.max(relError.getX()*maxPowerForward/slowDownDist,-maxPowerForward),maxPowerForward) + Math.signum(relError.getX()) * 0.15;
+            double left =    Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-maxPowerSide),maxPowerSide)          + Math.signum(relError.getY()) * 0.15;
             double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnAngle),-maxPowerTurn),maxPowerTurn);
             double p1 = forward-left-turn;
             double p2 = forward+left-turn;
             double p3 = forward-left+turn;
             double p4 = forward+left+turn;
             double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
-            if (Math.abs(drive.currentPose.getY()-target.getY()) > 0.5 && Math.abs(drive.relCurrentVelocity.getY()) <= 1 && Math.signum(drive.relCurrentVelocity.getY()) == Math.signum(drive.currentPose.getY()) * -1){
-                numLeft ++;
+
+            if (Math.abs(left) > 0 && Math.abs(drive.relCurrentVelocity.getY()) < 0.01 && Math.abs(Math.abs(drive.currentPose.getY())-(72-6)) < 3) {
+                numLeft++;
             }
             else {
                 numLeft = 0;
             }
-            if (numLeft >= 30) {
+            if (numLeft >= 25) {
                 numLeft = 0;
-                drive.localizer.setPoseEstimate(new Pose2d(drive.currentPose.getX(),65.25 * Math.signum(drive.currentPose.getY()),0));
+                drive.localizer.setPoseEstimate(new Pose2d(drive.currentPose.getX(),65.25 * Math.signum(drive.currentPose.getY()),drive.currentPose.getHeading()));
                 telemetry.addData("trigger", "wall trigger");
                 telemetry.update();
             }
@@ -146,7 +153,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
         long startingTime = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
-            double turn = drive.currentPose.getHeading() - targetHeading;
+            double turn = (drive.currentPose.getHeading() - (targetHeading + Math.sin(startingTime * Math.PI/500.0) * Math.toRadians(15))) * 0.4/Math.toRadians(15);
             drive.pinMotorPowers(power+turn,power+turn,power-turn,power-turn);
             drive.update();
         }
