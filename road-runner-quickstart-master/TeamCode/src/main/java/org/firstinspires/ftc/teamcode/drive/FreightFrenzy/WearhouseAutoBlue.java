@@ -148,9 +148,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.setMotorPowers(0,0,0,0);
     }
     public void intakeMineral(double power, double targetHeading, long maxTime){
-        if (drive.intakeCase > 2){
-            return;
-        }
         long startingTime = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double turn = (drive.currentPose.getHeading() - (targetHeading + Math.signum(Math.sin(startingTime * Math.PI/500.0)) * Math.toRadians(40))) * 0.4/Math.toRadians(7.5);
