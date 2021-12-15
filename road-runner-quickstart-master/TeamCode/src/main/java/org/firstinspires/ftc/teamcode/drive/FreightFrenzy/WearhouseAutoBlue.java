@@ -153,8 +153,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
         long startingTime = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
-            double turn = (drive.currentPose.getHeading() - (targetHeading + Math.sin(startingTime * Math.PI/500.0) * Math.toRadians(15))) * 0.4/Math.toRadians(15);
-            drive.pinMotorPowers(power+turn,power+turn,power-turn,power-turn);
+            double turn = (drive.currentPose.getHeading() - (targetHeading + Math.signum(Math.sin(startingTime * Math.PI/500.0)) * Math.toRadians(40))) * 0.4/Math.toRadians(7.5);
+            double multiplier = 1.0/(Math.abs(power) + Math.abs(turn));
+            drive.pinMotorPowers((power+turn)*multiplier,(power+turn)*multiplier,(power-turn)*multiplier,(power-turn)*multiplier);
             drive.update();
         }
     }
