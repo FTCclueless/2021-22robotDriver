@@ -134,6 +134,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double intakeSensorLoops;
 
     public Pose2d currentPose = new Pose2d(0,0,0);
+    public Pose2d targetPose = null;
+    public double targetRadius = 0;
     public Pose2d currentVelocity = new Pose2d(0,0,0);
     public Pose2d relCurrentVelocity = new Pose2d(0,0,0);
 
@@ -763,6 +765,11 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
+
+        if (targetPose != null){
+            drawRobot(fieldOverlay, r, targetPose);
+            fieldOverlay.strokeCircle(targetPose.getX(),targetPose.getY(),targetRadius);
+        }
 
         drawRobot(fieldOverlay,r,currentPose);
 

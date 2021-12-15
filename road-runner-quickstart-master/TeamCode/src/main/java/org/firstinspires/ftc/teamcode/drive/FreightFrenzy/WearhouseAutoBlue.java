@@ -106,6 +106,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double slowDownDist = 6;
         double slowTurnAngle = 8;
         double numLeft = 0;
+        drive.targetPose = target;
+        drive.targetRadius = error;
         while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > error || Math.abs(drive.currentPose.getY()-target.getY()) > error || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake)){
             drive.update();
             Pose2d relError = new Pose2d(
@@ -145,6 +147,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
             p4 += DriveConstants.kStatic * Math.signum(p4);
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
+        drive.targetPose = null;
+        drive.targetRadius = 1;
         drive.setMotorPowers(0,0,0,0);
     }
     public void intakeMineral(double power, double targetHeading, long maxTime){
