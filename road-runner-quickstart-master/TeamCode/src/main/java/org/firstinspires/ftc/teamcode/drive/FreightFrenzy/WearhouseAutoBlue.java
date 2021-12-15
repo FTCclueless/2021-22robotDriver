@@ -55,7 +55,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.8);
             driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.7);
             driveToPoint(new Pose2d(40, endPoint.getY() - (numMinerals % 3) * 3,0), true,2, 0.5);
-            driveToPoint(new Pose2d(40 + numMinerals * 4, endPoint.getY() - (numMinerals % 3) * 3,Math.toRadians(-15)), true,2, 0.5);
+            driveToPoint(new Pose2d(Math.min(40 + numMinerals * 2,59), endPoint.getY() - (numMinerals % 3) * 3,Math.toRadians(-15)), true,2, 0.5);
             intakeMineral(0.25,Math.toRadians(-15),3000);//(numMinerals % 3) *
             driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,2, 0.8);
             driveToPoint(new Pose2d(endPoint.getX() + 3, endPoint.getY(),0), true,2, 0.6);
@@ -130,7 +130,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             }
             if (numLeft >= 25) {
                 numLeft = 0;
-                drive.localizer.setPoseEstimate(new Pose2d(drive.currentPose.getX(),65.25 * Math.signum(drive.currentPose.getY()),drive.currentPose.getHeading()));
+                drive.localizer.setY(65.25);
                 telemetry.addData("trigger", "wall trigger");
                 telemetry.update();
             }
