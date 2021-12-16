@@ -159,6 +159,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             drive.pinMotorPowers((power+turn)*multiplier,(power+turn)*multiplier,(power-turn)*multiplier,(power-turn)*multiplier);
             drive.update();
         }
+        drive.setMotorPowers(0,0,0,0);
     }
     public void setUp(Pose2d startingPose){
         drive.update();
