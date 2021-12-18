@@ -198,10 +198,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double sD = 0;
     public static double sPP = 20; //was 15. If the slides are too violent, stop this.
 
-    double leftIntakeDrop;
-    double leftIntakeRaise;
-    double rightIntakeDrop;
-    double rightIntakeRaise;
+    public double leftIntakeDrop;
+    public double leftIntakeRaise;
+    public double rightIntakeDrop;
+    public double rightIntakeRaise;
 
     public double turretOffset;
     public double slidesOffset;
