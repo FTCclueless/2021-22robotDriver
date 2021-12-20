@@ -164,16 +164,18 @@ public class SampleMecanumDrive extends MecanumDrive {
     private boolean display3WheelOdo;
 
     public static double intakeTurretInterfaceHeading = 57.5;
-    double v4barInterfaceAngle = 0;
+    public static double v4barInterfaceAngle = 0;
+    public static double depositAngle = Math.toRadians(-45);
+    public static double depositInterfaceAngle = Math.toRadians(0);
 
 
     public static int dropIntakeTime = 300;
     public static double intakePower = -1;
     public static int liftIntakeTime = 450; //400
-    public static int       transfer1Time = 300;
-    public static double    transfer1Power = 1.0;
-    public static int       transfer2Time = 400;
-    public static double    transfer2Power = 0.6;
+    public static int transfer1Time = 300;
+    public static int transfer2Time = 400;
+    public static double transfer1Power = 1.0;
+    public static double transfer2Power = 0.6;
     public static int closeDepositTime = 10;
     public static int openDepositTime = 500;
     public static double returnSlideLength = 0;
@@ -186,21 +188,20 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetV4barOrientation = 0;
     public double slideTickToInch = 25.1372713591;
     public double turretTickToRadians = 578.3213;
-    double depositAngle = Math.toRadians(-45);
 
     double currentV4barAngle = 0;
     double targetV4barAngle = 0;
 
-    public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
-    public static double tP = tF * 0.1 + 0.2;
-    public static double tI = tF * 0.01;
-    public static double tD = 0;
-    public static double tPP = 15;
-    public static double sF = 32767.0 / (223.0 / 60.0 * 751.83);
-    public static double sP = sF * 0.1;
-    public static double sI = sF * 0.01;
-    public static double sD = 0;
-    public static double sPP = 20; //was 15. If the slides are too violent, stop this.
+    double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
+    double tP = tF * 0.1 + 0.2;
+    double tI = tF * 0.01;
+    double tD = 0;
+    double tPP = 15;
+    double sF = 32767.0 / (223.0 / 60.0 * 751.83);
+    double sP = sF * 0.1;
+    double sI = sF * 0.01;
+    double sD = 0;
+    double sPP = 20; //was 15. If the slides are too violent, stop this.
 
     public double leftIntakeDrop;
     public double leftIntakeRaise;
@@ -385,7 +386,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
-        servos.get(2).setPosition(0.452);
+        setDepositAngle(depositInterfaceAngle); //TODO:
         setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
         servos.get(3).setPosition(0.48);
 
@@ -582,13 +583,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
-        //targetV4barOrientation += Math.toRadians(17.6);
         startSlides = true;
     }
 
-    // here
     public void deposit(){
         deposit = true;
+    }
+
+    public void setDepositAngle(double targetAngle){
+        double angle = targetAngle - currentV4barAngle;
+        double targetPos = angle * -0.201172; //TODO: Add an offset
+        targetPos = Math.min(Math.max(targetPos,0.0),1.0); //TODO: Find values that are limits
+        servos.get(2).setPosition(targetPos);
     }
 
     public void updateIntake(){
@@ -607,7 +613,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4: setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading * currentIntake));setSlidesLength(returnSlideLength);break; //send turret to the correct side
                 case 5: intake.setPower(transfer1Power); break;
                 case 6: intake.setPower(transfer2Power); break;
-                case 7: servos.get(2).setPosition(0.52); break;
+                case 7: setDepositAngle(depositInterfaceAngle); break; //TODO:
                 case 8: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                 if (sumIntakeSensor/intakeSensorLoops >= 200) {
@@ -644,7 +650,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    servos.get(2).setPosition(0.932);
+                    setDepositAngle(Math.toRadians(90)); //TODO:
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase > 1) {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset);
@@ -657,7 +663,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(10) && deposit){slidesCase ++;}
                     break;
                 case 4:
-                    servos.get(2).setPosition(0);
+                    setDepositAngle(Math.toRadians(180) - depositAngle); //TODO:
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
@@ -665,7 +671,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 5: case 6: case 7:
                     setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
-                    servos.get(2).setPosition(0.452);
+                    setDepositAngle(depositInterfaceAngle); //TODO:
                     setSlidesLength(returnSlideLength);
                     if (slidesCase == 5) {
                         setTurretTarget(targetTurretHeading + turretOffset);
