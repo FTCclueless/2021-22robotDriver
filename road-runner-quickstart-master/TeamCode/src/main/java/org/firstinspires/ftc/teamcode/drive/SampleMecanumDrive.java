@@ -185,6 +185,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetV4barOrientation = 0;
     public double slideTickToInch = 25.1372713591;
     public double turretTickToRadians = 578.3213;
+    double depositAngle = Math.toRadians(-45);
 
 
     public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
@@ -541,34 +542,24 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void startDeposit(Pose2d endPose, Pose2d targetPose, double height, double radius){
         double turretX = -0.75;
-        Log.e("endPoseX1",endPose.getX()+"");
-        Log.e("endPoseY1",endPose.getY()+"");
+        double depositLength = 4.0;
         endPose = new Pose2d(
                 endPose.getX() + Math.cos(endPose.getHeading()) * turretX,
                 endPose.getY() + Math.sin(endPose.getHeading()) * turretX,
                 endPose.getHeading()
         );
-        Log.e("endPoseX2",endPose.getX()+"");
-        Log.e("endPoseY2",endPose.getY()+"");
-        Log.e("targetPoseX1",targetPose.getX()+"");
-        Log.e("targetPoseY1",targetPose.getY()+"");
         double d = Math.sqrt(Math.pow(targetPose.getX() - endPose.getX(),2) + Math.pow(targetPose.getY() - endPose.getY(),2));
-        Log.e("distance", d + "");
         double x1 = targetPose.getX() + radius * -1.0 * (targetPose.getX()-endPose.getX())/d;
         double y1 = targetPose.getY() + radius * -1.0 * (targetPose.getY()-endPose.getY())/d;
-        Log.e("targetPoseX2",x1+"");
-        Log.e("targetPoseY2",y1+"");
         Pose2d relTarget = new Pose2d(
                 Math.cos(endPose.getHeading())*(endPose.getX()-x1) + Math.sin(endPose.getHeading())*(endPose.getY()-y1),
                 Math.cos(endPose.getHeading())*(endPose.getY()-y1) + Math.sin(endPose.getHeading())*(endPose.getX()-x1)
         );
-        Log.e("relPoseX",relTarget.getX()+"");
-        Log.e("relPoseX",relTarget.getY()+"");
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
-        height -= 9.17;
-        double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2));
+        height -= (9.44882 + Math.sin(depositAngle) * depositLength);
+        double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2)) - Math.cos(depositAngle) * depositLength;
         double effectiveSlideAngle = Math.toRadians(8.92130165444);//9.89518
-        double v4BarLength = 9;
+        double v4BarLength = 7;
         double slope = Math.tan(effectiveSlideAngle);
         double a = (slope*slope + 1);
         double b = -1.0*(2*length + 2*slope*height);
@@ -579,18 +570,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             targetV4barOrientation = Math.atan2(height - slideExtension * slope, slideExtension - length);
         }
         else{
-            Log.e("here", "1");
             targetSlideExtensionLength = length - v4BarLength;
             targetV4barOrientation = Math.toRadians(180);
         }
-        targetSlideExtensionLength -= 6.04370079;
+        targetSlideExtensionLength -= 7.9503937;
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
-        targetV4barOrientation += Math.toRadians(17.6);
+        targetV4barOrientation += Math.toRadians(17.6); //TODO: need to look at this value (maybe should the same as the slope)
         startSlides = true;
-        Log.e("targetSlideExtension", targetSlideExtensionLength + "");
-        Log.e("targetOrientation", Math.toDegrees(targetTurretHeading) + "");
     }
 
     // here

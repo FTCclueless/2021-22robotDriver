@@ -82,9 +82,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double h = 20;
         double r = 6;
         switch (capNum) {
-            case 0: r = 8; h = 8; break;
+            case 0: r = 8.5; h = 6; break;
             case 1: r = 7; h = 12.125; break;
-            case 2: r = 6; h = 20; break;
+            case 2: r = 4; h = 18; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         waitForDeposit();
