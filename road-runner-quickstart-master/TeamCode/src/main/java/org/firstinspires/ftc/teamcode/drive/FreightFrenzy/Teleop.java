@@ -303,9 +303,15 @@ public class Teleop extends LinearOpMode {
             lastIntakeCase = drive.intakeCase;
             lastSlidesCase = drive.slidesCase;
 
-
-            double forward = gamepad1.left_stick_y * -1;
-            double left = gamepad1.left_stick_x;
+            double lY1 = gamepad1.left_stick_y * -1;
+            double lX1 = gamepad1.left_stick_x;
+            double forward = lY1;
+            double left = lX1;
+            if (true){
+                //Field-centric-controls
+                forward = lY1 * Math.cos(drive.currentPose.getHeading()) + lX1 * Math.sin(drive.currentPose.getHeading());
+                left = lX1 * Math.cos(drive.currentPose.getHeading()) - lY1 * Math.sin(drive.currentPose.getHeading());
+            }
             double turn = gamepad1.right_stick_x * 0.35;
             if (!gamepad1.left_stick_button){
                 forward *= 0.4;
@@ -318,11 +324,11 @@ public class Teleop extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) {
-                drive.turretOffset -= gamepad2.left_stick_y;
+                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_y) * 0.1;
             }
 
             if(Math.abs(gamepad2.right_stick_y) > 0.25) {
-                drive.slidesOffset -= gamepad2.right_stick_y;
+                drive.slidesOffset -= gamepad2.right_stick_y * 0.01;
             }
         }
     }
