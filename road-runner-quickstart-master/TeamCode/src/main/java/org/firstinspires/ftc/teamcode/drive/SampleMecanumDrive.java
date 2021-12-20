@@ -164,6 +164,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private boolean display3WheelOdo;
 
     public static double intakeTurretInterfaceHeading = 57.5;
+    double v4barInterfaceAngle = 0;
 
 
     public static int dropIntakeTime = 300;
@@ -187,6 +188,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double turretTickToRadians = 578.3213;
     double depositAngle = Math.toRadians(-45);
 
+    double currentV4barAngle = 0;
+    double targetV4barAngle = 0;
 
     public static double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
     public static double tP = tF * 0.1 + 0.2;
@@ -215,6 +218,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     long intakeDelay;
 
     public boolean expansion2 = false;
+
+    long lastLoopTime = System.nanoTime();
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
@@ -314,7 +319,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (i){
                 case 0: servos.add(hardwareMap.servo.get("rightIntake")); break;
                 case 1: servos.add(hardwareMap.servo.get("leftIntake")); break;
-                case 2: servos.add(hardwareMap.servo.get("deposit")); break;
+                case 2: servos.add(hardwareMap.servo.get("deposit")); break; //TODO: change algorithm for the deposit (need to make sure that it stays upright etc)
                 case 3: servos.add(hardwareMap.servo.get("odoLift")); break;
                 case 4: servos.add(hardwareMap.servo.get("v4bar")); break;
                 case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
@@ -381,7 +386,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
         servos.get(2).setPosition(0.452);
-        setV4barOrientation(0);
+        setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
         servos.get(3).setPosition(0.48);
 
         poseHistory = new ArrayList<Pose2d>();
@@ -577,7 +582,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
-        targetV4barOrientation += Math.toRadians(17.6); //TODO: need to look at this value (maybe should the same as the slope)
+        //targetV4barOrientation += Math.toRadians(17.6);
         startSlides = true;
     }
 
@@ -659,7 +664,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
                 case 5: case 6: case 7:
-                    setV4barOrientation(0);
+                    setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
                     servos.get(2).setPosition(0.452);
                     setSlidesLength(returnSlideLength);
                     if (slidesCase == 5) {
@@ -680,6 +685,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void setV4barOrientation(double targetV4barOrientation){
+        targetV4barAngle = targetV4barOrientation;
         double servoPos = (targetV4barOrientation * -0.201172) + 0.969;
         servoPos = Math.max(Math.min(servoPos,0.969),0.159);
         servos.get(4).setPosition(servoPos);
@@ -715,6 +721,14 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void update() {
         loops ++;
         updateEstimate();
+
+        long currentTime = System.nanoTime();
+        double loopSpeed = (currentTime - lastLoopTime)/1000000000.0;
+        lastLoopTime = currentTime;
+        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI/0.75 * loopSpeed;
+        if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(10)){
+            currentV4barAngle = targetV4barAngle;
+        }
 
         if (display3WheelOdo){
             trajectorySequenceRunner.updateThreeWheelPose(localizer.currentThreeWheelPose);
