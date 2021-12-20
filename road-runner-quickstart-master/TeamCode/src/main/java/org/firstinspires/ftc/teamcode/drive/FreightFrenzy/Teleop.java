@@ -118,7 +118,7 @@ public class Teleop extends LinearOpMode {
                     switch (level){
                         case 1: radius = 8.5; height = 6; break;
                         case 2: radius = 7; height = 12.13; break;
-                        case 3: radius = 4; height = 18; break;
+                        case 3: radius = 5; height = 17; break;
                     }
                     hubLocation = new Pose2d(-12.0, 24.0);
                     intake = false;

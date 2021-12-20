@@ -47,7 +47,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         int numMinerals = 0;
 
         while (System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
-            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),20,6);
+            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),17,5);
             drive.startIntake(false);
             driveIn(endPoint,numMinerals);
             driveOut(endPoint);
@@ -84,7 +84,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         switch (capNum) {
             case 0: r = 8.5; h = 6; break;
             case 1: r = 7; h = 12.125; break;
-            case 2: r = 4; h = 18; break;
+            case 2: r = 5; h = 17; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         waitForDeposit();
