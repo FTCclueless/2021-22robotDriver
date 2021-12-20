@@ -338,7 +338,9 @@ public class Teleop extends LinearOpMode {
         double maxPowerTurn = 0.4;
         double slowDownDist = 4;
         double slowTurnAngle = 8;
-        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 0.5 || Math.abs(drive.currentPose.getY()-target.getY()) > 0.5) && auto.getToggleState()){
+        drive.targetPose = target;
+        drive.targetRadius = 2;
+        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 2 || Math.abs(drive.currentPose.getY()-target.getY()) > 2) && auto.getToggleState()){
             auto.update(gamepad1.a);
             drive.update();
             Pose2d relError = new Pose2d(
@@ -365,6 +367,8 @@ public class Teleop extends LinearOpMode {
             p4 += DriveConstants.kStatic * Math.signum(p4);
             drive.pinMotorPowers(p1, p2, p3, p4);
         }
+        drive.targetPose = null;
+        drive.targetRadius = 1;
         drive.setMotorPowers(0,0,0,0);
     }
 }
