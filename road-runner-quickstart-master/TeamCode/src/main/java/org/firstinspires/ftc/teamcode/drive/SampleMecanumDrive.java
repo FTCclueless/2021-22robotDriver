@@ -50,7 +50,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.vuforia.Vec3F;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
@@ -213,8 +212,6 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     ArrayList<Pose2d> poseHistory;
     private final FtcDashboard dashboard;
-
-    private boolean stop = false;
 
     long intakeDelay;
 
@@ -390,7 +387,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
         servos.get(3).setPosition(0.48);
 
-        poseHistory = new ArrayList<Pose2d>();
+        poseHistory = new ArrayList<>();
 
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
