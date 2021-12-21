@@ -95,7 +95,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake;//, depositSensor;
     public CRServo duckSpin, duckSpin2;
-    double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal;//, depositVal;
+    double rightIntakeVal, leftIntakeVal;//, depositVal;
+    public static ColorSensor color, leftWall, rightWall;
     long lastTouchPoll;
     long lastTiltPoll;
 
@@ -116,8 +117,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public ArrayList<Servo> servos;
 
     double currentIntake = 0;
-
-    public static ColorSensor color;
 
     public BNO055IMU imu;
 
@@ -258,6 +257,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         imu.initialize(parameters);
 
         color = hardwareMap.colorSensor.get("cs");
+        leftWall = hardwareMap.colorSensor.get("leftWall");
+        rightWall = hardwareMap.colorSensor.get("rightWall");
         color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
@@ -332,8 +333,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         //depositSensor = hardwareMap.analogInput.get("depositSensor");
         rightIntakeVal = 0;
         leftIntakeVal = 0;
-        rightWallVal = 0;
-        leftWallVal = 0;
 
 
         // reverse any motors using DcMotor.setDirection()
@@ -817,7 +816,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateSensor(){
         updateLineDetection();
-        //updateWallDetection();
+        updateWallDetection();
         //updateOdoOverBarrier();
     }
     public void updateOdoOverBarrier(){
@@ -879,64 +878,65 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
     }
-    public void updateWallDetection(){
-        boolean leftSensor = leftWallVal <= 305;
-        boolean rightSensor = rightWallVal <= 305;
-        double heading = clipHeading(currentPose.getHeading());
-        if (leftSensor ^ rightSensor){ // this is XOR it means that this or this but not both this and this
-            boolean forward = Math.abs(heading) < Math.toRadians(15);
-            boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
-            boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
-            boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
-            double distance = 0.35; //0.5
-            double currentXDist = Math.cos(heading)*(5.0) - Math.sin(heading)*(6.25 + distance);
-            double currentYDist = Math.cos(heading)*(6.25 + distance) + Math.sin(heading)*(5.0);
-            double gain = 0.01;
-            double detectionDist = 6.75;
-            double extraOffset = 3.0;
-            double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
-            if (forward || backward){
-                double m = 1;
-                if (backward){
-                    m = -1;
-                }
-                double side = Math.signum(currentPose.getY());
-                if (!isKnownY){
-                    if ((leftSensor && side == m) || (rightSensor && side == -1 * m)){
-                        isKnownY = true;
-                        localizer.setY((72 - Math.abs(currentYDist)) * side);
+    public void updateWallDetection() {
+        long currentTime = System.currentTimeMillis();
+        double detectionDist = 6.75;
+        double extraOffset = 3.0;
+        double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
+        if ((lastTouchPoll - currentTime >= 500 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
+            boolean leftSensor = leftWall.alpha() <= 305;
+            boolean rightSensor = rightWall.alpha() <= 305;
+            double heading = clipHeading(currentPose.getHeading());
+            if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
+                boolean forward = Math.abs(heading) < Math.toRadians(15);
+                boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
+                boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
+                boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
+                double distance = 0.35; //0.5
+                double currentXDist = Math.cos(heading) * (5.0) - Math.sin(heading) * (6.25 + distance);
+                double currentYDist = Math.cos(heading) * (6.25 + distance) + Math.sin(heading) * (5.0);
+                double gain = 0.01;
+                if (forward || backward) {
+                    double m = 1;
+                    if (backward) {
+                        m = -1;
+                    }
+                    double side = Math.signum(currentPose.getY());
+                    if (!isKnownY) {
+                        if ((leftSensor && side == m) || (rightSensor && side == -1 * m)) {
+                            isKnownY = true;
+                            localizer.setY((72 - Math.abs(currentYDist)) * side);
+                        }
+                    } else {
+                        if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getY()) > maxDetectionLocation) {
+                            isKnownY = true;
+                            localizer.setY(currentPose.getY() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
+                        }
                     }
                 }
-                else {
-                    if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getY()) > maxDetectionLocation){
-                        isKnownY = true;
-                        localizer.setY(currentPose.getY() * (1.0 - gain) + (72 - Math.abs(currentYDist))*side * gain);
+                if (right || left) {
+                    double m = 1;
+                    if (left) {
+                        m = -1;
+                    }
+                    double side = Math.signum(currentPose.getX());
+                    if (!isKnownX) {
+                        if ((leftSensor && side == m) || (rightSensor && side == -1 * m)) {
+                            isKnownX = true;
+                            localizer.setX((72 - Math.abs(currentXDist)) * side);
+                        }
+                    } else {
+                        // if ((left sensor and facing wall) or (right sensor and facing opposite of wall)) and (near wall)
+                        if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getX()) > maxDetectionLocation) {
+                            isKnownX = true;
+                            //teleports the robot to the wall closest to where it currently is
+                            localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
+                        }
                     }
                 }
             }
-            if (right || left){
-                double m = 1;
-                if (left){
-                    m = -1;
-                }
-                double side = Math.signum(currentPose.getX());
-                if (!isKnownX){
-                    if ((leftSensor && side == m) || (rightSensor && side == -1 * m)){
-                        isKnownX = true;
-                        localizer.setX((72 - Math.abs(currentXDist)) * side);
-                    }
-                }
-                else {
-                    // if ((left sensor and facing wall) or (right sensor and facing opposite of wall)) and (near wall)
-                    if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getX()) > maxDetectionLocation){
-                        isKnownX = true;
-                        //teleports the robot to the wall closest to where it currently is
-                        localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentYDist))*side * gain);
-                    }
-                }
-            }
+            lastTouchPoll = currentTime;
         }
-        lastTouchPoll = System.currentTimeMillis();
     }
     public void updateLineDetection(){
         double robotWidth = 12.5;

@@ -51,8 +51,8 @@ public class SensorTest extends LinearOpMode {
             //double angle = drive.imu.getAngularOrientation().secondAngle;
             //double current = drive.rightRear.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
            // double voltage = drive.getBatteryVoltage();
-            double val1 = drive.depositSensor.getVoltage();
-            double val2 = drive.depositSensor.getVoltage();
+            double val1 = drive.leftWall.alpha();
+            double val2 = drive.rightWall.alpha();
             double elapsedTimeRLI = (System.nanoTime() - startTime)/1000000.0;
             totalElapsedRLITime += elapsedTimeRLI;
             loops ++;
