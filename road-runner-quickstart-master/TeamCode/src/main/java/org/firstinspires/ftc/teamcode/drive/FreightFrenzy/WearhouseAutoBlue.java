@@ -64,7 +64,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
     public void driveIn(Pose2d endPoint, int numMinerals){
         int a = 4;
         int b = numMinerals/a;
-        double angle = b * Math.toRadians(10);
+        double angle = b * Math.toRadians(-10);
         double x = 42 + (numMinerals % a) * 4;
         double y = 71.25 - Math.sin(angle) * 8.0 - Math.cos(angle) * 6.0 - b * 5;
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.5,1000);
