@@ -560,10 +560,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         );
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
         height -= (9.44882 + Math.sin(depositAngle) * depositLength);
-        double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2)) - Math.cos(depositAngle) * depositLength;
-        double effectiveSlideAngle = Math.toRadians(8.92130165444);//9.89518
+        double effectiveSlideAngle = Math.toRadians(8.92130165444);
         double v4BarLength = 7;
         double slope = Math.tan(effectiveSlideAngle);
+        double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2)) - Math.cos(depositAngle) * depositLength - 7.9503937/Math.cos(effectiveSlideAngle);
         double a = (slope*slope + 1);
         double b = -1.0*(2*length + 2*slope*height);
         double c = length*length - Math.pow(v4BarLength,2) + height * height;
@@ -576,10 +576,10 @@ public class SampleMecanumDrive extends MecanumDrive {
             targetSlideExtensionLength = length - v4BarLength;
             targetV4barOrientation = Math.toRadians(180);
         }
-        targetSlideExtensionLength -= 7.9503937;
         while (targetV4barOrientation < 0){
             targetV4barOrientation += Math.PI * 2;
         }
+        targetSlideExtensionLength = Math.max(0,targetSlideExtensionLength);
         startSlides = true;
     }
 

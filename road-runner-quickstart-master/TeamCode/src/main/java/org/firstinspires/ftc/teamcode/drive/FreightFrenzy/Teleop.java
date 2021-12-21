@@ -40,7 +40,7 @@ public class Teleop extends LinearOpMode {
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
         drive.update();
-        Pose2d startingPose = new Pose2d(12,66,0);
+        Pose2d startingPose = new Pose2d(12,65.25,0);
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
 
@@ -92,15 +92,15 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             drive.update();
             switch(hub) {
-                case 0: endPoint = new Pose2d(64, 12, Math.toRadians(90));
+                case 0: endPoint = new Pose2d(65.25, 16, Math.toRadians(90));
                     hubLocation = new Pose2d(48, 0);
                     intake = true;
                     height = 6;
-                    radius = 0;
+                    radius = 2;
                         break;
                 case 1: case 2:
                     if (hub == 1) {
-                        endPoint = new Pose2d(12, 64, Math.toRadians(0));
+                        endPoint = new Pose2d(12, 65.25, Math.toRadians(0));
                     }
                     else {
                         endPoint = new Pose2d(-56, 60, Math.toRadians(180));
@@ -189,19 +189,19 @@ public class Teleop extends LinearOpMode {
                 }
                 if (a != lastLocVal && a != 0){
                     if ((a == 1 && locVal == 1) || (a == 1 && locVal == 4) || (a == 4 && locVal == 1)){ //right
-                        drive.localizer.setPoseEstimate(new Pose2d(24,-65,Math.toRadians(0)));
+                        drive.localizer.setPoseEstimate(new Pose2d(24,-65.25,Math.toRadians(0)));
                         resetLoc.toggleState = false;
                     }
                     if ((a == 2 && locVal == 2) || (a == 2 && locVal == 4) || (a == 4 && locVal == 2)){ //left
-                        drive.localizer.setPoseEstimate(new Pose2d(24,65,Math.toRadians(0)));
+                        drive.localizer.setPoseEstimate(new Pose2d(24,65.25,Math.toRadians(0)));
                         resetLoc.toggleState = false;
                     }
                     if ((a == 1 && locVal == 3) || (a == 3 && locVal == 1)){ //top right
-                        drive.localizer.setPoseEstimate(new Pose2d(65,-24,Math.toRadians(-90)));
+                        drive.localizer.setPoseEstimate(new Pose2d(65.25,-24,Math.toRadians(-90)));
                         resetLoc.toggleState = false;
                     }
                     if ((a == 2 && locVal == 3) || (a == 3 && locVal == 2)){ //top left
-                        drive.localizer.setPoseEstimate(new Pose2d(65,24,Math.toRadians(90)));
+                        drive.localizer.setPoseEstimate(new Pose2d(65.25,24,Math.toRadians(90)));
                         resetLoc.toggleState = false;
                     }
                     locVal = a;
