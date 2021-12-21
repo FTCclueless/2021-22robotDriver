@@ -609,7 +609,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4: setTurretTarget(Math.toRadians(intakeTurretInterfaceHeading * currentIntake));setSlidesLength(returnSlideLength);break; //send turret to the correct side
                 case 5: intake.setPower(transfer1Power); break;
                 case 6: intake.setPower(transfer2Power); break;
-                case 7: setDepositAngle(depositInterfaceAngle); break; //TODO:
+                case 7: setDepositAngle(90); break;
                 case 8: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
                 Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                 if (sumIntakeSensor/intakeSensorLoops >= 200) {
