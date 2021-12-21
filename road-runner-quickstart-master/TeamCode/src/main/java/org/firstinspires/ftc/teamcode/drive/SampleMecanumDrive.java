@@ -317,7 +317,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (i){
                 case 0: servos.add(hardwareMap.servo.get("rightIntake")); break;
                 case 1: servos.add(hardwareMap.servo.get("leftIntake")); break;
-                case 2: servos.add(hardwareMap.servo.get("deposit")); break; //TODO: change algorithm for the deposit (need to make sure that it stays upright etc)
+                case 2: servos.add(hardwareMap.servo.get("deposit")); break;
                 case 3: servos.add(hardwareMap.servo.get("odoLift")); break;
                 case 4: servos.add(hardwareMap.servo.get("v4bar")); break;
                 case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
@@ -383,7 +383,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
-        setDepositAngle(depositInterfaceAngle); //TODO:
+        setDepositAngle(depositInterfaceAngle);
         setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
         servos.get(3).setPosition(0.48);
 
@@ -647,7 +647,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    setDepositAngle(Math.toRadians(90)); //TODO:
+                    setDepositAngle(Math.toRadians(90));
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase > 1) {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset);
@@ -660,7 +660,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(10) && deposit){slidesCase ++;}
                     break;
                 case 4:
-                    setDepositAngle(Math.toRadians(180) - depositAngle); //TODO:
+                    setDepositAngle(Math.toRadians(180) - depositAngle);
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
@@ -668,7 +668,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 5: case 6: case 7:
                     setV4barOrientation(Math.toRadians(v4barInterfaceAngle));
-                    setDepositAngle(depositInterfaceAngle); //TODO:
+                    setDepositAngle(depositInterfaceAngle);
                     setSlidesLength(returnSlideLength);
                     if (slidesCase == 5) {
                         setTurretTarget(targetTurretHeading + turretOffset);
