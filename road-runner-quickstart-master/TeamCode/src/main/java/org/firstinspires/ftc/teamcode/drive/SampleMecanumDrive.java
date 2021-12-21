@@ -93,9 +93,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
-    public AnalogInput rightIntake, leftIntake, depositSensor;
+    public AnalogInput rightIntake, leftIntake;//, depositSensor;
     public CRServo duckSpin, duckSpin2;
-    double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal, depositVal;
+    double rightIntakeVal, leftIntakeVal, rightWallVal, leftWallVal;//, depositVal;
     long lastTouchPoll;
     long lastTiltPoll;
 
@@ -329,7 +329,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         duckSpin2 = hardwareMap.crservo.get("duckSpin2");
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
-        depositSensor = hardwareMap.analogInput.get("depositSensor");
+        //depositSensor = hardwareMap.analogInput.get("depositSensor");
         rightIntakeVal = 0;
         leftIntakeVal = 0;
         rightWallVal = 0;
@@ -420,7 +420,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
         leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
-        depositVal = bulkData.getAnalogInputValue(depositSensor);
+        //depositVal = bulkData.getAnalogInputValue(depositSensor);
 
         if (intakeCase >= 1 && intakeCase <= 4){
             if(currentIntake == 1 && leftIntakeVal <= 300){
@@ -633,7 +633,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 3: if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;} break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(5)){intakeCase ++;} break;//wait for the slides to be in the correct orientation
             case 5: if (System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;} break;
-            case 6: if (System.currentTimeMillis() - intakeTime >= transfer2Time || depositVal < 300){intakeCase ++;} break;
+            case 6: if (System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;} break; // || depositVal < 300
             case 7: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;} break;
         }
     }
