@@ -888,13 +888,14 @@ public class SampleMecanumDrive extends MecanumDrive {
             boolean rightSensor = rightWall.alpha() <= 305;
             double heading = clipHeading(currentPose.getHeading());
             if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
-                boolean forward = Math.abs(heading) < Math.toRadians(15);
-                boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
-                boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
-                boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
-                double distance = 0.35; //0.5
-                double currentXDist = Math.cos(heading) * (5.0) - Math.sin(heading) * (6.25 + distance);
-                double currentYDist = Math.cos(heading) * (6.25 + distance) + Math.sin(heading) * (5.0);
+                double angleOffset = 15;
+                boolean forward = Math.abs(heading) < Math.toRadians(angleOffset);
+                boolean backward = Math.abs(heading) > Math.toRadians(180 - angleOffset);
+                boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(angleOffset);
+                boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(angleOffset);
+                double distance = 0.5;
+                double currentXDist = Math.cos(heading) * (6.25) - Math.sin(heading) * (5.0 + distance);
+                double currentYDist = Math.cos(heading) * (5.0 + distance) + Math.sin(heading) * (6.25);
                 double gain = 0.01;
                 if (forward || backward) {
                     double m = 1;
