@@ -671,7 +671,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
                     break;
                 case 6: case 7: case 8:
-                    setSlidesLength(returnSlideLength);
+                    setSlidesLength(returnSlideLength, 0.5);
                     if (slidesCase == 6) {
                         setTurretTarget(targetTurretHeading + turretOffset);
                         setV4barDeposit(depositInterfaceAngle + Math.toRadians(10),v4barInterfaceAngle + Math.toRadians(10));
