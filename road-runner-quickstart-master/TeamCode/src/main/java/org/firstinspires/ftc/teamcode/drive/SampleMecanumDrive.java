@@ -666,13 +666,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
-                case 5:
-                    setV4barDeposit(depositInterfaceAngle + Math.toRadians(10),v4barInterfaceAngle + Math.toRadians(10));
-                    if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
-                    break;
-                case 6: case 7: case 8:
-                    setSlidesLength(returnSlideLength, 0.5);
-                    if (slidesCase == 6) {
+                case 5 : case 6: case 7: case 8:
+                    if (slidesCase >= 6) {
+                        setSlidesLength(returnSlideLength, 0.5);
+                    }
+                    if (slidesCase <= 6) {
                         setTurretTarget(targetTurretHeading + turretOffset);
                         setV4barDeposit(depositInterfaceAngle + Math.toRadians(10),v4barInterfaceAngle + Math.toRadians(10));
                     }
@@ -681,9 +679,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setV4barOrientation(v4barInterfaceAngle);
                         setDepositAngle(depositInterfaceAngle);
                     }
+                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
                     if (slidesCase == 6 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
-                    if (slidesCase == 7 &&Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
-                    if (slidesCase == 8 &&Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
+                    if (slidesCase == 7 && Math.abs(turretHeading - Math.toRadians(intakeTurretInterfaceHeading)*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
+                    if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
                     break;
                 case 9: //resets the slidesCase & officially says mineral has not been transfered
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false;
