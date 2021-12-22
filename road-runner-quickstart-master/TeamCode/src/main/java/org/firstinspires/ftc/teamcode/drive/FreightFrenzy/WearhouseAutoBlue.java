@@ -35,6 +35,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         setUp(startingPose);
         drive.transferMineral = true;
 
+        drive.setTurretTarget(Math.toRadians(drive.intakeTurretInterfaceHeading));
         waitForStart();
 
         drive.update();
@@ -70,7 +71,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.5,1000);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.5,1000);
         driveToPoint(new Pose2d(x,y,angle), true,2, 0.35,1000);
-        sleep(2000);
         intakeMineral(0.25,3000);
     }
     public void driveOut(Pose2d endPoint){
