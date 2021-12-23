@@ -125,10 +125,10 @@ public class Teleop extends LinearOpMode {
                         break;
             }
             if(gamepad1.right_bumper) {
-                //drive.startDeposit(endPoint, hubLocation, height, radius);
+                drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             if(gamepad1.right_trigger >= 0.5) {
-                drive.startDeposit(endPoint, hubLocation, height, radius);
+                //drive.startDeposit(endPoint, hubLocation, height, radius);
                 drive.startIntake(intake);
             }
             endgame.update(gamepad1.left_bumper);
@@ -138,14 +138,14 @@ public class Teleop extends LinearOpMode {
             if (endgame.getToggleState()){
                 spin.update(gamepad2.y);
                 if (spin.getToggleState()){
-                    drive.servos.get(7).setPosition(0.5);
+                    //drive.servos.get(7).setPosition(0.5);
                     if (gamepad2.b){
                         drive.duckSpin.setPower(-1);
                         drive.duckSpin2.setPower(-1);
                     }
                 }
                 else{
-                    drive.servos.get(7).setPosition(1.0);
+                    //drive.servos.get(7).setPosition(1.0);
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
                 }

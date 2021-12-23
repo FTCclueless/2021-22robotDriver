@@ -18,9 +18,11 @@ public class DuckSpinTest extends LinearOpMode {
         ButtonToggle d = new ButtonToggle();
         double power = 0;
         boolean last = false;
-        double startingSpeed = 0.18;
+        double startingSpeed = 0.27;
         long start = System.currentTimeMillis();
         long timer = 950;
+        long totalTime = 0;
+        boolean last1 = false;
         while (!isStopRequested()) {
             if (gamepad1.dpad_up){
                 startingSpeed += 0.0001;
@@ -45,7 +47,11 @@ public class DuckSpinTest extends LinearOpMode {
                 power = startingSpeed;
                 start = System.currentTimeMillis();
             }
+            if (!running && !a.getToggleState() && last1){
+                totalTime = System.currentTimeMillis() - start;
+            }
             last = update;
+            last1 = running || a.getToggleState();
             if (a.getToggleState()){
                power = startingSpeed;
             }
@@ -60,7 +66,7 @@ public class DuckSpinTest extends LinearOpMode {
                     } else if (d.getToggleState()) {
                         power += 0.000075;
                     }
-                    power = Math.min(power,0.25);
+                    power = Math.min(power,0.4);
                 }
                 else {
                     power = 1.0;
@@ -75,6 +81,7 @@ public class DuckSpinTest extends LinearOpMode {
             telemetry.addData("speed", power);
             telemetry.addData("startingSpeed", startingSpeed);
             telemetry.addData("time", timer);
+            telemetry.addData("time to deposit", totalTime);
             telemetry.update();
         }
     }

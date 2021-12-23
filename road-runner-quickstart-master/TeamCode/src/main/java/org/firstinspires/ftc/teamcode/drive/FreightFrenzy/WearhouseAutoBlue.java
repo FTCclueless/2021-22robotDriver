@@ -36,6 +36,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.transferMineral = true;
 
         drive.setTurretTarget(Math.toRadians(drive.intakeTurretInterfaceHeading));
+        drive.setDepositAngle(drive.depositTransferAngle);
+        drive.setV4barOrientation(Math.toRadians(-5));
         waitForStart();
 
         drive.update();

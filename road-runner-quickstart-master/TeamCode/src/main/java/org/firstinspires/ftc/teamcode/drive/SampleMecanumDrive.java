@@ -175,7 +175,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static int transfer2Time = 400;
     public static double transfer1Power = 1.0;
     public static double transfer2Power = 0.6;
-    public static int closeDepositTime = 10;
+    public static int closeDepositTime = 300;
     public static int openDepositTime = 500;
     public static double returnSlideLength = 0;
 
@@ -383,10 +383,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
-        //setV4barOrientation(v4barInterfaceAngle);
-        //setDepositAngle(depositInterfaceAngle);
-        setDepositAngle(depositTransferAngle);
-        setV4barOrientation(Math.toRadians(-5));
+        setV4barOrientation(v4barInterfaceAngle);
+        setDepositAngle(depositInterfaceAngle);
+        //setDepositAngle(depositTransferAngle);
+        //setV4barOrientation(Math.toRadians(-5));
         servos.get(3).setPosition(0.48);
 
         poseHistory = new ArrayList<>();
@@ -563,7 +563,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
         height -= (9.44882 + Math.sin(depositAngle) * depositLength);
         double effectiveSlideAngle = Math.toRadians(8.92130165444);
-        double v4BarLength = 7;
+        double v4BarLength = 8.75;
         double slope = Math.tan(effectiveSlideAngle);
         double length = Math.sqrt(Math.pow(relTarget.getY(),2) + Math.pow(relTarget.getX(),2)) - Math.cos(depositAngle) * depositLength - 7.9503937/Math.cos(effectiveSlideAngle);
         double a = (slope*slope + 1);
@@ -647,7 +647,12 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    setDepositAngle(depositTransferAngle);
+                    if (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 10){
+                        setDepositAngle(depositTransferAngle);
+                    }
+                    else {
+                        setDepositAngleNoV4bar(Math.toRadians(85));
+                    }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase > 1) {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset);
@@ -701,6 +706,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
     public void setDepositAngle(double targetAngle){
         double angle = targetAngle - currentV4barAngle;
+        double targetPos = angle * 0.215820468 + 0.5;
+        targetPos = Math.min(Math.max(targetPos,0.246),1.0);
+        servos.get(2).setPosition(targetPos);
+    }
+    public void setDepositAngleNoV4bar(double targetAngle){
+        double angle = targetAngle;
         double targetPos = angle * 0.215820468 + 0.5;
         targetPos = Math.min(Math.max(targetPos,0.246),1.0);
         servos.get(2).setPosition(targetPos);
