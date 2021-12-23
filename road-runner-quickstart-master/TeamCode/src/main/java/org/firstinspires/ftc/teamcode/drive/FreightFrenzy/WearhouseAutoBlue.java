@@ -70,15 +70,15 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double angle = b * Math.toRadians(-10);
         double x = 42 + (numMinerals % a) * 4;
         double y = 71.25 - Math.sin(angle) * 8.0 - Math.cos(angle) * 6.0 - b * 5;
-        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.5,1000);
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.5,1000);
-        driveToPoint(new Pose2d(x,y,angle), true,2, 0.35,1000);
+        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.8,1000); //0.5
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.6,1000); //0.5
+        driveToPoint(new Pose2d(x,y,angle), true,2, 0.25,1000); //0.35
         intakeMineral(0.25,3000);
     }
     public void driveOut(Pose2d endPoint){
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,2, 0.5,1000);
-        driveToPoint(endPoint, false,2, 0.6,1000);
-        driveToPoint(endPoint,false, 1, 0.4,1000);
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,2, 0.8,1000); //0.5
+        driveToPoint(endPoint, false,2, 0.8,1000); //0.6
+        driveToPoint(endPoint,false, 0.25, 0.4,1000); //1,0.4
     }
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
@@ -98,7 +98,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
         }
     }
     public void driveToPoint(Pose2d target, boolean intake, double error, double power, long maxTime){
-        double maxPowerTurn = power/2.0;
+        double kStatic = DriveConstants.kStatic;
+        double maxPowerTurn = Math.max(power/2.0,kStatic * 1.5);
         double slowDownDist = 3;
         double slowTurnAngle = 8;
         drive.targetPose = target;
@@ -111,7 +112,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
                     Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
                     target.getHeading()-drive.currentPose.getHeading()
             );
-            double kStatic = DriveConstants.kStatic;
             double powerAdjust = power-kStatic;
             double turnAdjust = maxPowerTurn-kStatic;
             double forward = Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
