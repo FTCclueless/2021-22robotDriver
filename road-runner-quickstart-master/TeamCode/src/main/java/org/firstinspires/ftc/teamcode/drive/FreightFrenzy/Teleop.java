@@ -307,7 +307,7 @@ public class Teleop extends LinearOpMode {
             double lX1 = gamepad1.left_stick_x;
             double forward = lY1;
             double left = lX1;
-            if (true){
+            if (false){
                 //Field-centric-controls
                 forward = lY1 * Math.cos(drive.currentPose.getHeading()) + lX1 * Math.sin(drive.currentPose.getHeading());
                 left = lX1 * Math.cos(drive.currentPose.getHeading()) - lY1 * Math.sin(drive.currentPose.getHeading());
