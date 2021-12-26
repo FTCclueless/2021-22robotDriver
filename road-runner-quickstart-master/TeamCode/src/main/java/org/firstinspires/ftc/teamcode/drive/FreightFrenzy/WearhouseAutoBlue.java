@@ -76,7 +76,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         intakeMineral(0.25,3000);
     }
     public void driveOut(Pose2d endPoint){
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,2, 0.8,1000,1); //0.5
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,2, 0.8,1000,2); //0.5
         driveToPoint(endPoint, false,2, 0.8,1000,6); //0.6
         //driveToPoint(endPoint,false, 0.25, 0.2,1000); //1,0.4
     }
@@ -135,7 +135,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double turnAdjust = maxPowerTurn-kStatic;
         double forward = Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
         double left = Math.min(Math.max(relError.getY()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getY()) * kStatic * Math.max(Math.signum(Math.abs(relError.getY()) - error),0);
-        double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(5)),0);
+        double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - slowTurnAngle),0);
         double [] p = new double[4];
         p[0] = forward-left-turn;
         p[1] = forward+left-turn;
