@@ -45,13 +45,15 @@ public class DuckSpinTest extends LinearOpMode {
             boolean running = b.getToggleState() || c.getToggleState() || d.getToggleState();
             if (update && !last){
                 power = startingSpeed;
+            }
+            if (!last1 && running){
                 start = System.currentTimeMillis();
             }
-            if (!running && !a.getToggleState() && last1){
+            if (!running && last1){
                 totalTime = System.currentTimeMillis() - start;
             }
             last = update;
-            last1 = running || a.getToggleState();
+            last1 = running;
             if (a.getToggleState()){
                power = startingSpeed;
             }
