@@ -68,7 +68,7 @@ public class DuckSpinTest extends LinearOpMode {
                     } else if (d.getToggleState()) {
                         power += 0.000075;
                     }
-                    power = Math.min(power,0.4);
+                    power = Math.min(power,0.45);
                 }
                 else {
                     power = 1.0;
