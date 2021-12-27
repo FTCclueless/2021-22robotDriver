@@ -18,9 +18,9 @@ public class DuckSpinTest extends LinearOpMode {
         ButtonToggle d = new ButtonToggle();
         double power = 0;
         boolean last = false;
-        double startingSpeed = 0.27;
+        double startingSpeed = 0.35;
         long start = System.currentTimeMillis();
-        long timer = 950;
+        long timer = 900;
         long totalTime = 0;
         boolean last1 = false;
         while (!isStopRequested()) {
