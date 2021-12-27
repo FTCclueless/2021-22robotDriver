@@ -78,7 +78,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
     public void driveOut(Pose2d endPoint){
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,2, 0.8,1000,2); //0.5
         driveToPoint(endPoint, false,2, 0.8,1000,6); //0.6
-        //driveToPoint(endPoint,false, 0.25, 0.2,1000); //1,0.4
     }
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
