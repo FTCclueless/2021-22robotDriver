@@ -381,13 +381,12 @@ public class Teleop extends LinearOpMode {
         p[1] = forward+left-turn;
         p[2] = forward-left+turn;
         p[3] = forward+left+turn;
-        double max = 1;
+        double max = (1.0 - kStatic);
         for (int i = 0; i < p.length; i ++){
-            max = Math.max(Math.abs(p[i]),max);
+            max = Math.max(Math.abs(p[i]),max) * (1.0 - kStatic);
         }
-        max *= 1.0/(1.0 - kStatic);
         for (int i = 0; i < p.length; i ++){
-            p[i] /= max;
+            p[i] *= max;
             p[i] += kStatic * Math.signum(p[i]);
         }
         drive.pinMotorPowers(p[0], p[1], p[2], p[3]);
