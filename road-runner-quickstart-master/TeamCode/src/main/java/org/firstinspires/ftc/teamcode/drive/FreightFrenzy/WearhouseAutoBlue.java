@@ -35,9 +35,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
         setUp(startingPose);
         drive.transferMineral = true;
 
-        drive.setTurretTarget(Math.toRadians(drive.intakeTurretInterfaceHeading));
-        drive.setDepositAngle(drive.depositTransferAngle);
-        drive.setV4barOrientation(Math.toRadians(-5));
+        drive.setTurretTarget(drive.intakeTurretInterfaceHeading);
+        drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
         waitForStart();
 
         drive.update();
@@ -50,34 +49,34 @@ public class WearhouseAutoBlue extends LinearOpMode {
         int numMinerals = 0;
 
         while (System.currentTimeMillis() - start <= 30000 - 3150 - 750 && opModeIsActive()){
-            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),17,5);
             drive.startIntake(false);
             driveIn(endPoint,numMinerals);
+            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),17,5);
             driveOut(endPoint);
             waitForDeposit(endPoint);
             numMinerals ++;
         }
 
-        driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 0.8, 1000, 3);
+        driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 0.5, 1000, 3);
 
         while (opModeIsActive()){
             drive.update();
         }
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
-        int a = 4;
+        int a = 3;
         int b = numMinerals/a;
-        double angle = b * Math.toRadians(-10);
-        double x = 42 + (numMinerals % a) * 4;
-        double y = 71.25 - Math.sin(angle) * 8.0 - Math.cos(angle) * 6.0 - b * 5;
+        double angle = (numMinerals % a) * Math.toRadians(-20);//b
+        double x = 42 + (numMinerals * b) * 4;//% a
+        double y = 71.25 - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0;
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), true,1, 0.8,1000,1); //0.5
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.6,1000,1); //0.5
-        driveToPoint(new Pose2d(x,y,angle), true,2, 0.25,1000,5); //0.35
-        intakeMineral(0.25,3000);
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,1000,1); //0.5
+        driveToPoint(new Pose2d(x,y,angle), true,1, 0.5,1000,3); //0.35
+        intakeMineral(0.45,3000);
     }
     public void driveOut(Pose2d endPoint){
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,2, 0.8,1000,2); //0.5
-        driveToPoint(endPoint, false,2, 0.8,1000,6); //0.6
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), false,1, 0.8,1000,1); //0.5
+        driveToPoint(endPoint, false,2, 0.5,1000,3); //0.6
     }
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
@@ -102,7 +101,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.targetRadius = 0.25;
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
-            updateMotors(getRelError(target),DriveConstants.kStatic,0.25,0.25,2,Math.toRadians(8),0.25);
+            updateMotors(getRelError(target),DriveConstants.kStatic,0.25,0.25,4,Math.toRadians(8),1);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
@@ -155,7 +154,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         long startingTime = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double turn = 0;//Math.signum(Math.sin(startingTime * Math.PI/500.0)) * 0.5;
-            double multiplier = 1.0/(Math.abs(power) + Math.abs(turn));
+            double multiplier = Math.min(1.0/(Math.abs(power) + Math.abs(turn)),1);
             drive.pinMotorPowers((power+turn)*multiplier,(power+turn)*multiplier,(power-turn)*multiplier,(power-turn)*multiplier);
             drive.update();
         }
