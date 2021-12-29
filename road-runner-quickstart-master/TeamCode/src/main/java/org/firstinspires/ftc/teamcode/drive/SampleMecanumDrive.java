@@ -170,14 +170,14 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public static int dropIntakeTime = 300;
     public static double intakePower = -1;
-    public static int liftIntakeTime = 450; //400
-    public static int transfer1Time = 400;
-    public static int transfer2Time = 250;
+    public static int liftIntakeTime = 450;
+    public static int transfer1Time = 350; //400
+    public static int transfer2Time = 250; //400
     public static double transfer1Power = 1.0;
     public static double transfer2Power = 0.85;
-    public static int closeDepositTime = 300;
-    public static int openDepositTime = 500;
-    public static double returnSlideLength = -0.25;
+    public static int closeDepositTime = 100; // 300
+    public static int openDepositTime = 320;
+    public static double returnSlideLength = -0.5; //0,-0.25
 
 
     public double slideExtensionLength = 0;
@@ -676,7 +676,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (slidesCase >= 6) {
-                        setSlidesLength(returnSlideLength, 0.5);
+                        setSlidesLength(returnSlideLength, 0.7); //TODO: changed from 0.5
                     }
                     if (slidesCase <= 6) {
                         setTurretTarget(targetTurretHeading + turretOffset);
@@ -812,8 +812,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("v4bar Actual (deg)", Math.toDegrees(currentV4barAngle));
         packet.put("intakeCase", intakeCase);
         packet.put("slidesCase", slidesCase);
-        packet.put("turretHeading", turret.getCurrentPosition());//Math.toRadians(turretHeading));
-        packet.put("slideExtensionLength", slideExtensionLength);
+        //packet.put("turretHeading", turret.getCurrentPosition());//Math.toRadians(turretHeading));
+        //packet.put("slideExtensionLength", slideExtensionLength);
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
