@@ -101,7 +101,14 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.targetRadius = 0.25;
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
-            updateMotors(getRelError(target),DriveConstants.kStatic,0.25,0.25,4,Math.toRadians(8),1);
+            Pose2d error = getRelError(target);
+            double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
+            if (dist > 1) {
+                updateMotors(error, DriveConstants.kStatic, 0.25, 0.25, 4, Math.toRadians(8), 1);
+            }
+            else {
+                drive.setMotorPowers(0,0,0,0);
+            }
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
