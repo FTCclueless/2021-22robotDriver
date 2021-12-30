@@ -72,8 +72,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(7, 0.075,0.5);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(100, 10, 0);
 
-    private PIDFController turnController;
-
     public static double LATERAL_MULTIPLIER = 1.75;
 
     public static double VX_WEIGHT = 1;
@@ -86,9 +84,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
-    private TrajectoryFollower follower;
-
-    private List<DcMotorEx> motors;
+    private final List<DcMotorEx> motors;
 
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
@@ -112,15 +108,13 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean deposit = false;
 
-    double v4barSpeed = 750/Math.PI; // the time it takes the v4bar to rotate 1 radian (750/pi)
-
     public ArrayList<Servo> servos;
 
     double currentIntake = 0;
 
     public BNO055IMU imu;
 
-    private VoltageSensor batteryVoltageSensor;
+    private final VoltageSensor batteryVoltageSensor;
 
     public Localizer localizer;
 
@@ -225,6 +219,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
     }
+
     public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265){ this(hardwareMap, threeWheel, t265,false);}
 
     public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265, boolean mergeT265Odo) {
@@ -241,10 +236,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         staticHeading = 0;
         r = new robotComponents(true);
 
-        turnController = new PIDFController(HEADING_PID);
+        PIDFController turnController = new PIDFController(HEADING_PID);
         turnController.setInputBounds(0, 2 * Math.PI);
 
-        follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
+        TrajectoryFollower follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
                 new Pose2d(0.25, 0.25, Math.toRadians(5.0)), 0.5);
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
@@ -463,14 +458,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         return new TrajectoryBuilder(startPose, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
     }
 
-    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, boolean reversed) {
-        return new TrajectoryBuilder(startPose, reversed, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
-    }
-
-    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, double startHeading) {
-        return new TrajectoryBuilder(startPose, startHeading, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
-    }
-
     public TrajectorySequenceBuilder trajectorySequenceBuilder(Pose2d startPose) {
         return new TrajectorySequenceBuilder(
                 startPose,
@@ -508,8 +495,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         waitForIdle();
     }
 
-    public Pose2d getLastError() {return trajectorySequenceRunner.getLastPoseError();}
-
     public void updateEstimate(){
         getEncoders();
         if (!isKnownX || !isKnownY){
@@ -523,12 +508,14 @@ public class SampleMecanumDrive extends MecanumDrive {
         currentVelocity = getPoseVelocity();
         relCurrentVelocity = localizer.getRelPoseVelocity();
     }
+
     public void updateImuAngle(){
         if (!updateIMU) {
             updateIMU = true;
             imuAngle = imu.getAngularOrientation();
         }
     }
+
     public void updateVisualizer(){
         r.setOdoColor(isKnownX && isKnownY);
     }
@@ -688,8 +675,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setV4barOrientation(targetV4barOrientation);
                     }
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
-                    if (slidesCase == 2 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 && System.currentTimeMillis()-slideTime >= targetV4barOrientation * v4barSpeed){slidesCase ++;}
-                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(10) && deposit){slidesCase ++;}
+                    if (slidesCase == 2 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3){slidesCase ++;}
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(10) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;}
                     break;
                 case 4:
                     setDepositAngle(Math.toRadians(180) - depositAngle);
@@ -722,43 +709,52 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
     }
+
     public void setV4barDeposit(double targetDepositAngle, double targetV4barOrientation){
         targetV4barAngle = targetV4barOrientation;
         currentV4barAngle = targetV4barOrientation;
         this.targetDepositAngle = targetDepositAngle;
     }
+
     public void updateDepositAngle(){
         double angle = targetDepositAngle - currentV4barAngle;
         double targetPos = angle * 0.215820468 + 0.5;
         targetPos = Math.min(Math.max(targetPos,0.246),1.0);
         servos.get(2).setPosition(targetPos);
     }
+
     public void updateV4barAngle(double loopSpeed){
         currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI/0.75 * loopSpeed;
         if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(10)){
             currentV4barAngle = targetV4barAngle;
         }
     }
+
     public void setDepositAngle(double targetAngle){
         targetDepositAngle = targetAngle;
     }
+
     public void setV4barOrientation(double targetV4barOrientation){
         targetV4barAngle = targetV4barOrientation;
     }
+
     public void setSlidesLength(double inches){
         slides.setPower(1.0);slides2.setPower(1.0);
         slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
         slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
     }
+
     public void setSlidesLength(double inches, double power){
         slides.setPower(power);slides2.setPower(power);
         slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
         slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
     }
+
     public void setTurretTarget(double radians){
         turret.setPower(1.0);
         turret.setTargetPosition((int)(radians*turretTickToRadians));turret.setPower(1.0);
     }
+
     public void updateScoring(){
         if (System.currentTimeMillis() - intakeDelay >= 1000){
             startIntake = false;
@@ -804,7 +800,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateDepositAngle();
         updateV4barAngle(loopSpeed);
 
-        /*
+        /* This is code use to active roadrunner it is commented out in order to allow our own packets
         DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
         if (signal != null) {
             updateDriveMotors(signal);
@@ -831,8 +827,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("v4bar Actual (deg)", Math.toDegrees(currentV4barAngle));
         packet.put("intakeCase", intakeCase);
         packet.put("slidesCase", slidesCase);
-        //packet.put("turretHeading", turret.getCurrentPosition());//Math.toRadians(turretHeading));
-        //packet.put("slideExtensionLength", slideExtensionLength);
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
@@ -849,6 +843,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateScoring();
         updateIMU = false;
     }
+
     public void drawRobot(Canvas fieldOverlay, robotComponents r, Pose2d poseEstimate){
         for (Component c : r.components){
             fieldOverlay.setStrokeWidth(c.lineRadius);
@@ -864,6 +859,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
     }
+
     public void drawLine(Canvas c, Point p, Point p2, Pose2d pose){
         double x1 = Math.cos(pose.getHeading())*(p.x+Math.signum(p.x-p2.x)*0.5) - Math.sin(pose.getHeading())*(p.y+Math.signum(p.y-p2.y)*0.5) + pose.getX();
         double y1 = Math.cos(pose.getHeading())*(p.y+Math.signum(p.y-p2.y)*0.5) + Math.sin(pose.getHeading())*(p.x+Math.signum(p.x-p2.x)*0.5) + pose.getY();
@@ -871,6 +867,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double y2 = Math.cos(pose.getHeading())*(p2.y+Math.signum(p2.y-p.y)*0.5) + Math.sin(pose.getHeading())*(p2.x+Math.signum(p2.x-p.x)*0.5) + pose.getY();
         c.strokeLine(x1,y1,x2,y2);
     }
+
     public void drawPoint(Canvas c, Point p, double radius, Pose2d pose){
         if (radius != 0){
             double x = Math.cos(pose.getHeading())*p.x - Math.sin(pose.getHeading())*p.y + pose.getX();
@@ -879,178 +876,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
     }
 
-
-
-    public void updateSensor(){
-        //updateLineDetection();
-        updateWallDetection();
-        //updateOdoOverBarrier();
-    }
-    public void updateOdoOverBarrier(){
-        boolean overTrackForward = Math.abs(currentPose.getY()) < 72-48-(12.0/2.0) && Math.abs(currentPose.getX()-24) < 16 + 2;
-        boolean overTrackLR = Math.abs(Math.abs(currentPose.getY())-24) < 16 + 2 && Math.abs(currentPose.getX()-(72-43.5/2.0)) < 43.5/2.0 - 12.0/2.0;
-        if ((!isKnownX || !isKnownY) || ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100)){
-            updateImuAngle();
-            lastTiltPoll = System.currentTimeMillis();
-            Log.e("IMU Tilt", " " + Math.toDegrees(imuAngle.thirdAngle));
-            if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>1){
-                if (!firstOffBarrier) {
-                    firstTiltTime = System.currentTimeMillis();
-                }
-                if (System.currentTimeMillis() - firstTiltTime > 50) {
-                    tiltTime = System.currentTimeMillis();
-                    isKnownY = false;
-                    isKnownX = false;
-                    finalTiltHeading = new Vec3F((float)clipHeading(currentPose.getHeading()), imuAngle.secondAngle, imuAngle.thirdAngle);//imuAngle.firstAngle
-                    tiltForward = imuAngle.thirdAngle > 0;
-                    tiltBackward = !tiltForward;
-                    firstOffBarrier = true;
-                    servos.get(3).setPosition(0.668);
-                }
-            }
-            else{
-                firstTiltTime = System.currentTimeMillis();
-                if (System.currentTimeMillis()-tiltTime > 50){
-                    //when this is first true then we update the pose
-                    if (firstOffBarrier){
-                        firstOffBarrier = false;
-                        double heading = clipHeading(currentPose.getHeading());//finalTiltHeading.getData()[0];
-                        double m1 = 1.0;
-                        if (finalTiltHeading.getData()[2] < 0){
-                            m1 = -1.0; // facing upward ==> when you face upward at the end it means you went over backward
-                        }
-                        boolean forward = Math.abs(heading) < Math.toRadians(15);
-                        boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
-                        boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
-                        boolean right =  Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
-                        if (forward || backward){
-                            double m2 = 1.0;
-                            if (backward){
-                                m2 = -1.0;
-                            }
-                            localizer.setX(24 + (10)*m1*m2);
-                        }
-                        if (left || right){
-                            double m2 = 1.0;
-                            if (right){
-                                m2 = -1.0;
-                            }
-                            localizer.setY((24 + (10)*m1*m2) * Math.signum(currentPose.getY()));
-                        }
-                    }
-                    tiltForward = false;
-                    tiltBackward = false;
-                    servos.get(3).setPosition(0.48);
-                }
-            }
-        }
-    }
-    public void updateWallDetection() {
-        long currentTime = System.currentTimeMillis();
-        double detectionDist = 6.75;
-        double extraOffset = 5.0;
-        double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
-        if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.alpha() >= 120;
-            boolean rightSensor = rightWall.alpha() >= 200;
-            double heading = clipHeading(currentPose.getHeading());
-            if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
-                double angleOffset = 15;
-                boolean forward = Math.abs(heading) < Math.toRadians(angleOffset);
-                boolean backward = Math.abs(heading) > Math.toRadians(180 - angleOffset);
-                boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(angleOffset);
-                boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(angleOffset);
-                double distance = 0.5;
-                double currentXDist = Math.cos(heading) * (5.0) - Math.sin(heading) * (6.25 + distance);
-                double currentYDist = Math.cos(heading) * (6.25 + distance) + Math.sin(heading) * (5.0);
-                double gain = 0.6;
-                if (forward || backward) {
-                    double m = 1;
-                    if (backward) {
-                        m = -1;
-                    }
-                    double side = Math.signum(currentPose.getY());
-                    if (!isKnownY) {
-                        if ((leftSensor && side == m) || (rightSensor && side == -1 * m)) {
-                            isKnownY = true;
-                            localizer.setY((72 - Math.abs(currentYDist)) * side);
-                        }
-                    } else {
-                        if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getY()) > maxDetectionLocation) {
-                            isKnownY = true;
-                            localizer.setY(currentPose.getY() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
-                        }
-                    }
-                }
-                if (right || left) {
-                    double m = 1;
-                    if (left) {
-                        m = -1;
-                    }
-                    double side = Math.signum(currentPose.getX());
-                    if (!isKnownX) {
-                        if ((leftSensor && side == m) || (rightSensor && side == -1 * m)) {
-                            isKnownX = true;
-                            localizer.setX((72 - Math.abs(currentXDist)) * side);
-                        }
-                    } else {
-                        // if ((left sensor and facing wall) or (right sensor and facing opposite of wall)) and (near wall)
-                        if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getX()) > maxDetectionLocation) {
-                            isKnownX = true;
-                            //teleports the robot to the wall closest to where it currently is
-                            localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
-                        }
-                    }
-                }
-            }
-            lastTouchPoll = currentTime;
-        }
-    }
-    public void updateLineDetection(){
-        double robotWidth = 12.5;
-        boolean detectLine = false;
-        double colorX = 1.25;//0.996
-        double detectionDist = 1.25;
-        int threshold = 200;
-        int sensorThreshold = 5;
-        boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
-        boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
-        boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
-        if ((!isKnownX || !isKnownY) || leftRight || topLeft || topRight){
-            detectLine = color.alpha() > threshold;
-        }
-        boolean updatePose = lastLightReading != detectLine;
-        double multiplier = -1;
-        if (detectLine){
-            multiplier = 1;
-        }
-        if (updatePose) {
-            double heading = clipHeading(currentPose.getHeading());
-            double var = Math.abs(heading)-Math.toRadians(90);
-            if (leftRight || (!isKnownX && Math.abs(var) > Math.toRadians(85))) {
-                double speed = Math.signum(currentVelocity.getX()) * multiplier * detectionDist;
-                double m1 = Math.cos(heading)*colorX;
-                double gain = 1.0;
-                if (isKnownX){
-                    gain = 0.1;
-                }
-                localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - 43.5 + 1 - speed - m1) * gain);
-                isKnownX = true;
-            }
-            else if (topLeft || topRight || (!isKnownY && Math.abs(var) < Math.toRadians(15))) {
-                double m1 = Math.signum(currentPose.getY());
-                double m2 = Math.sin(heading)*colorX;
-                double speed = Math.signum(currentVelocity.getY()) * multiplier * detectionDist;
-                double gain = 1.0;
-                if (isKnownY){
-                    gain = 0.1;
-                }
-                localizer.setY(currentPose.getY() * (1.0 - gain) + ((72 - 43.5 + 1) * m1 - speed - m2) * gain);
-                isKnownY = true;
-            }
-        }
-        lastLightReading = detectLine;
-    }
     public double clipHeading (double heading){
         while (heading > Math.PI) {
             heading -= Math.PI * 2.0;
@@ -1060,32 +885,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         return heading;
     }
-    public void updateDriveMotors(DriveSignal signal){
-        double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
-        double left =       ((signal.component1().component2() * kV) + (signal.component2().component2() * kA)) * LATERAL_MULTIPLIER;
-        double turn =       (signal.component1().component3() * kV) + (signal.component2().component3() * kA);
-        double p1 = forward-left-turn;
-        double p2 = forward+left-turn;
-        double p3 = forward-left+turn;
-        double p4 = forward+left+turn;
-        double maxPow = getMax(p1,p2,p3,p4);
-        if(maxPow >= 1.0 - kStatic) {
-            p1 /=maxPow; p1 *= 1.0 - kStatic;
-            p2 /=maxPow; p2 *= 1.0 - kStatic;
-            p3 /=maxPow; p3 *= 1.0 - kStatic;
-            p4 /=maxPow; p4 *= 1.0 - kStatic;
-        }
-        p1 += kStatic*Math.signum(p1);
-        p2 += kStatic*Math.signum(p2);
-        p3 += kStatic*Math.signum(p3);
-        p4 += kStatic*Math.signum(p4);
-        switch (loops % 4) {
-            case 0: leftFront.setPower(p1);break;
-            case 1: leftRear.setPower(p2);break;
-            case 2: rightRear.setPower(p3);break;
-            case 3: rightFront.setPower(p4);break;
-        }
-    }
+
     public double getMax(double d1, double d2, double d3, double d4){
         double absD1 = Math.abs(d1);
         double absD2 = Math.abs(d2);
@@ -1228,7 +1028,218 @@ public class SampleMecanumDrive extends MecanumDrive {
         return new ProfileAccelerationConstraint(maxAccel);
     }
 
+    public void updateSensor(){
+        updateWallDetection();
+        //updateLineDetection(); not working currently (decreases accuracy)
+        //updateOdoOverBarrier(); not working currently
+    }
+
+    public void updateWallDetection() {
+        long currentTime = System.currentTimeMillis();
+        double detectionDist = 6.75;
+        double extraOffset = 5.0;
+        double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
+        if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
+            boolean leftSensor = leftWall.alpha() >= 120;
+            boolean rightSensor = rightWall.alpha() >= 200;
+            double heading = clipHeading(currentPose.getHeading());
+            if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
+                double angleOffset = 15;
+                boolean forward = Math.abs(heading) < Math.toRadians(angleOffset);
+                boolean backward = Math.abs(heading) > Math.toRadians(180 - angleOffset);
+                boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(angleOffset);
+                boolean right = Math.abs(heading + Math.toRadians(90)) < Math.toRadians(angleOffset);
+                double distance = 0.5;
+                double currentXDist = Math.cos(heading) * (5.0) - Math.sin(heading) * (6.25 + distance);
+                double currentYDist = Math.cos(heading) * (6.25 + distance) + Math.sin(heading) * (5.0);
+                double gain = 0.6;
+                if (forward || backward) {
+                    double m = 1;
+                    if (backward) {
+                        m = -1;
+                    }
+                    double side = Math.signum(currentPose.getY());
+                    if (!isKnownY) {
+                        if ((leftSensor && side == m) || (rightSensor && side == -1 * m)) {
+                            isKnownY = true;
+                            localizer.setY((72 - Math.abs(currentYDist)) * side);
+                        }
+                    } else {
+                        if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getY()) > maxDetectionLocation) {
+                            isKnownY = true;
+                            localizer.setY(currentPose.getY() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
+                        }
+                    }
+                }
+                if (right || left) {
+                    double m = 1;
+                    if (left) {
+                        m = -1;
+                    }
+                    double side = Math.signum(currentPose.getX());
+                    if (!isKnownX) {
+                        if ((leftSensor && side == m) || (rightSensor && side == -1 * m)) {
+                            isKnownX = true;
+                            localizer.setX((72 - Math.abs(currentXDist)) * side);
+                        }
+                    } else {
+                        // if ((left sensor and facing wall) or (right sensor and facing opposite of wall)) and (near wall)
+                        if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getX()) > maxDetectionLocation) {
+                            isKnownX = true;
+                            //teleports the robot to the wall closest to where it currently is
+                            localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
+                        }
+                    }
+                }
+            }
+            lastTouchPoll = currentTime;
+        }
+    }
+
+    public void updateOdoOverBarrier(){
+        boolean overTrackForward = Math.abs(currentPose.getY()) < 72-48-(12.0/2.0) && Math.abs(currentPose.getX()-24) < 16 + 2;
+        boolean overTrackLR = Math.abs(Math.abs(currentPose.getY())-24) < 16 + 2 && Math.abs(currentPose.getX()-(72-43.5/2.0)) < 43.5/2.0 - 12.0/2.0;
+        if ((!isKnownX || !isKnownY) || ((overTrackForward || overTrackLR) && System.currentTimeMillis() - lastTiltPoll > 100)){
+            updateImuAngle();
+            lastTiltPoll = System.currentTimeMillis();
+            Log.e("IMU Tilt", " " + Math.toDegrees(imuAngle.thirdAngle));
+            if (Math.abs(Math.toDegrees(imuAngle.thirdAngle))>1){
+                if (!firstOffBarrier) {
+                    firstTiltTime = System.currentTimeMillis();
+                }
+                if (System.currentTimeMillis() - firstTiltTime > 50) {
+                    tiltTime = System.currentTimeMillis();
+                    isKnownY = false;
+                    isKnownX = false;
+                    finalTiltHeading = new Vec3F((float)clipHeading(currentPose.getHeading()), imuAngle.secondAngle, imuAngle.thirdAngle);//imuAngle.firstAngle
+                    tiltForward = imuAngle.thirdAngle > 0;
+                    tiltBackward = !tiltForward;
+                    firstOffBarrier = true;
+                    servos.get(3).setPosition(0.668);
+                }
+            }
+            else{
+                firstTiltTime = System.currentTimeMillis();
+                if (System.currentTimeMillis()-tiltTime > 50){
+                    //when this is first true then we update the pose
+                    if (firstOffBarrier){
+                        firstOffBarrier = false;
+                        double heading = clipHeading(currentPose.getHeading());//finalTiltHeading.getData()[0];
+                        double m1 = 1.0;
+                        if (finalTiltHeading.getData()[2] < 0){
+                            m1 = -1.0; // facing upward ==> when you face upward at the end it means you went over backward
+                        }
+                        boolean forward = Math.abs(heading) < Math.toRadians(15);
+                        boolean backward = Math.abs(heading) > Math.toRadians(180 - 15);
+                        boolean left = Math.abs(heading - Math.toRadians(90)) < Math.toRadians(15);
+                        boolean right =  Math.abs(heading + Math.toRadians(90)) < Math.toRadians(15);
+                        if (forward || backward){
+                            double m2 = 1.0;
+                            if (backward){
+                                m2 = -1.0;
+                            }
+                            localizer.setX(24 + (10)*m1*m2);
+                        }
+                        if (left || right){
+                            double m2 = 1.0;
+                            if (right){
+                                m2 = -1.0;
+                            }
+                            localizer.setY((24 + (10)*m1*m2) * Math.signum(currentPose.getY()));
+                        }
+                    }
+                    tiltForward = false;
+                    tiltBackward = false;
+                    servos.get(3).setPosition(0.48);
+                }
+            }
+        }
+    }
+
+    public void updateLineDetection(){
+        double robotWidth = 12.5;
+        boolean detectLine = false;
+        double colorX = 1.25;//0.996
+        double detectionDist = 1.25;
+        int threshold = 200;
+        int sensorThreshold = 5;
+        boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
+        boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
+        boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
+        if ((!isKnownX || !isKnownY) || leftRight || topLeft || topRight){
+            detectLine = color.alpha() > threshold;
+        }
+        boolean updatePose = lastLightReading != detectLine;
+        double multiplier = -1;
+        if (detectLine){
+            multiplier = 1;
+        }
+        if (updatePose) {
+            double heading = clipHeading(currentPose.getHeading());
+            double var = Math.abs(heading)-Math.toRadians(90);
+            if (leftRight || (!isKnownX && Math.abs(var) > Math.toRadians(85))) {
+                double speed = Math.signum(currentVelocity.getX()) * multiplier * detectionDist;
+                double m1 = Math.cos(heading)*colorX;
+                double gain = 1.0;
+                if (isKnownX){
+                    gain = 0.1;
+                }
+                localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - 43.5 + 1 - speed - m1) * gain);
+                isKnownX = true;
+            }
+            else if (topLeft || topRight || (!isKnownY && Math.abs(var) < Math.toRadians(15))) {
+                double m1 = Math.signum(currentPose.getY());
+                double m2 = Math.sin(heading)*colorX;
+                double speed = Math.signum(currentVelocity.getY()) * multiplier * detectionDist;
+                double gain = 1.0;
+                if (isKnownY){
+                    gain = 0.1;
+                }
+                localizer.setY(currentPose.getY() * (1.0 - gain) + ((72 - 43.5 + 1) * m1 - speed - m2) * gain);
+                isKnownY = true;
+            }
+        }
+        lastLightReading = detectLine;
+    }
+
+    public void updateDriveMotors(DriveSignal signal){
+        double forward =    (signal.component1().component1() * kV) + (signal.component2().component1() * kA);
+        double left =       ((signal.component1().component2() * kV) + (signal.component2().component2() * kA)) * LATERAL_MULTIPLIER;
+        double turn =       (signal.component1().component3() * kV) + (signal.component2().component3() * kA);
+        double p1 = forward-left-turn;
+        double p2 = forward+left-turn;
+        double p3 = forward-left+turn;
+        double p4 = forward+left+turn;
+        double maxPow = getMax(p1,p2,p3,p4);
+        if(maxPow >= 1.0 - kStatic) {
+            p1 /=maxPow; p1 *= 1.0 - kStatic;
+            p2 /=maxPow; p2 *= 1.0 - kStatic;
+            p3 /=maxPow; p3 *= 1.0 - kStatic;
+            p4 /=maxPow; p4 *= 1.0 - kStatic;
+        }
+        p1 += kStatic*Math.signum(p1);
+        p2 += kStatic*Math.signum(p2);
+        p3 += kStatic*Math.signum(p3);
+        p4 += kStatic*Math.signum(p4);
+        switch (loops % 4) {
+            case 0: leftFront.setPower(p1);break;
+            case 1: leftRear.setPower(p2);break;
+            case 2: rightRear.setPower(p3);break;
+            case 3: rightFront.setPower(p4);break;
+        }
+    }
+
     public double getBatteryVoltage() {
         return batteryVoltageSensor.getVoltage();
     }
+
+    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, boolean reversed) {
+        return new TrajectoryBuilder(startPose, reversed, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
+    }
+
+    public TrajectoryBuilder trajectoryBuilder(Pose2d startPose, double startHeading) {
+        return new TrajectoryBuilder(startPose, startHeading, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
+    }
+
+    public Pose2d getLastError() {return trajectorySequenceRunner.getLastPoseError();}
 }
