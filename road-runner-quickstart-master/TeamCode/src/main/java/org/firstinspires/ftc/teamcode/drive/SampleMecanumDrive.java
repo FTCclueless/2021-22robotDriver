@@ -728,6 +728,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(10)){
             currentV4barAngle = targetV4barAngle;
         }
+        double servoPos = (targetV4barOrientation * -0.201172) + 0.94;
+        servoPos = Math.max(Math.min(servoPos,0.94),0.0);
+        servos.get(4).setPosition(servoPos);
     }
 
     public void setDepositAngle(double targetAngle){
