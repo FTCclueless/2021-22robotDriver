@@ -51,13 +51,13 @@ public class WearhouseAutoBlue extends LinearOpMode {
         while (System.currentTimeMillis() - start <= 30000 - 3270 - 1000 && opModeIsActive()){
             drive.startIntake(false);
             driveIn(endPoint,numMinerals);
-            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),17,3); //5
+            drive.startDeposit(endPoint, new Pose2d(-12.0 - (0.3 * (double)numMinerals), 24.0),17,3); //5
             driveOut(endPoint);
             waitForDeposit(endPoint);
             numMinerals ++;
         }
 
-        driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 0.5, 1000, 3);
+        driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 1, 1000, 3);
 
         while (opModeIsActive()){
             drive.update();
@@ -65,13 +65,13 @@ public class WearhouseAutoBlue extends LinearOpMode {
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         int a = 3;
-        int b = numMinerals/a;
+        int b = (numMinerals/a);
         double angle = (numMinerals % a) * Math.toRadians(-20);//b
-        double x = 42 + (numMinerals * b) * 4;//% a
+        double x = 38 + b * 4;//% a
         double y = 71.25 - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0;
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,1000,1); //0.5
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,1000,1); //0.5
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,y,angle), true,1, 0.5,1000,3); //0.35
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,1000,3); //0.35
         intakeMineral(0.45,3000);
     }
     public void driveOut(Pose2d endPoint){
@@ -84,7 +84,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         switch (capNum) {
             case 0: r = 8.5; h = 6; break;
             case 1: r = 7; h = 12.125; break;
-            case 2: r = 5; h = 17; break;
+            case 2: r = 3; h = 17; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         waitForDeposit();
@@ -122,7 +122,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         long start = System.currentTimeMillis();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
+        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());

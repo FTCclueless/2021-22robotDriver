@@ -4,6 +4,8 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
@@ -17,7 +19,15 @@ public class SensorTest extends LinearOpMode {
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        //DigitalChannel a = hardwareMap.digitalChannel.get("test");
+        //a.setMode(DigitalChannel.Mode.OUTPUT);
+        //a.setState(true);
+
+        drive.servos.get(0).setPosition(drive.rightIntakeDrop);
+        drive.servos.get(1).setPosition(drive.leftIntakeDrop);
+
         waitForStart();
+        //a.setState(false);
 
         double lockHeadAngle = 0;
         double totalElapsedRLITime = 0;
@@ -64,6 +74,8 @@ public class SensorTest extends LinearOpMode {
             //telemetry.addData("volatage", drive.getBatteryVoltage());
             telemetry.addData("left Wall", val1);
             telemetry.addData("right Wall", val2);
+            telemetry.addData("left Intake", drive.leftIntake.getVoltage());
+            telemetry.addData("right Intake", drive.rightIntake.getVoltage());
             telemetry.addData("rli", rli);
             //telemetry.addData("ReadTime", elapsedTimeRLI);
             //telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
