@@ -171,7 +171,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double transfer2Power = 0.85;
     public static int closeDepositTime = 250; // 300
     public static int openDepositTime = 400;
-    public static int effectiveDepoTime = openDepositTime;
+    public static int effectiveDepositTime = openDepositTime;
     public static double returnSlideLength = -0.5; //0,-0.25
 
 
@@ -661,10 +661,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                         double i = 3.0;
                         double ang = (Math.toRadians(180) - depositAngle + depositTransferAngle * (i-1))/i;
                         setDepositAngle(ang);
-                        effectiveDepoTime = openDepositTime - 100;
+                        effectiveDepositTime = openDepositTime - 100;
                     }
                     else{
-                        effectiveDepoTime = openDepositTime;
+                        effectiveDepositTime = openDepositTime;
                         setDepositAngle(depositTransferAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
@@ -683,7 +683,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
-                    if (System.currentTimeMillis() - slideTime >= effectiveDepoTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
+                    if (System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (slidesCase >= 6) {
@@ -703,7 +703,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
                     if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
                     break;
-                case 9: //resets the slidesCase & officially says mineral has not been transfered
+                case 9: //resets the slidesCase & officially says mineral has not been transferred
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false;
                     break;
             }
@@ -939,7 +939,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (Math.abs(drivePower.getX()) + Math.abs(drivePower.getY())
                 + Math.abs(drivePower.getHeading()) > 1) {
             // re-normalize the powers according to the weights
-            double denom = VX_WEIGHT * Math.abs(drivePower.getX())
+            double denominator = VX_WEIGHT * Math.abs(drivePower.getX())
                     + VY_WEIGHT * Math.abs(drivePower.getY())
                     + OMEGA_WEIGHT * Math.abs(drivePower.getHeading());
 
@@ -947,7 +947,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     VX_WEIGHT * drivePower.getX(),
                     VY_WEIGHT * drivePower.getY(),
                     OMEGA_WEIGHT * drivePower.getHeading()
-            ).div(denom);
+            ).div(denominator);
         }
 
         setDrivePower(vel);
