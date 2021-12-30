@@ -177,6 +177,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static double transfer2Power = 0.85;
     public static int closeDepositTime = 250; // 300
     public static int openDepositTime = 400;
+    public static int effectiveDepoTime = openDepositTime;
     public static double returnSlideLength = -0.5; //0,-0.25
 
 
@@ -671,8 +672,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                         double i = 3.0;
                         double ang = (Math.toRadians(180) - depositAngle + depositTransferAngle * (i-1))/i;
                         setDepositAngle(ang);
+                        effectiveDepoTime = openDepositTime - 100;
                     }
                     else{
+                        effectiveDepoTime = openDepositTime;
                         setDepositAngle(depositTransferAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
@@ -691,7 +694,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
-                    if (System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
+                    if (System.currentTimeMillis() - slideTime >= effectiveDepoTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (slidesCase >= 6) {
