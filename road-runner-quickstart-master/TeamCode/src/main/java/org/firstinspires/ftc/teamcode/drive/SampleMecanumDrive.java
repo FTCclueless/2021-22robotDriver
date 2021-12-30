@@ -667,7 +667,14 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    setDepositAngle(depositTransferAngle);
+                    if (deposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 10) {
+                        double i = 3.0;
+                        double ang = (Math.toRadians(180) - depositAngle + depositTransferAngle * (i-1))/i;
+                        setDepositAngle(ang);
+                    }
+                    else{
+                        setDepositAngle(depositTransferAngle);
+                    }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase > 1) {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset);
