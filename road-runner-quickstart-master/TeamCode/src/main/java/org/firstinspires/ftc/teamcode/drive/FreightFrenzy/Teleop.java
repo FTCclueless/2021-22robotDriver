@@ -32,8 +32,6 @@ public class Teleop extends LinearOpMode {
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-
-
         drive.servos.get(5).setPosition(0.237);
 
         waitForStart();
@@ -135,6 +133,9 @@ public class Teleop extends LinearOpMode {
             if (System.currentTimeMillis() - start >= 90000){
                 endgame.toggleState = true;
             }
+
+            // Endgame controls do not line up with diagram. gamepad1.left_bumper starts endgame and extends duckSpinSpin servo. gamepad2.b moves odo servo.  gamepad2.y spins flywheel
+            // Fine adjustments for slides and turret on gamepad2 not working
             if (endgame.getToggleState()){
                 spin.update(gamepad2.y);
                 if (spin.getToggleState()){
@@ -307,7 +308,7 @@ public class Teleop extends LinearOpMode {
             double lX1 = gamepad1.left_stick_x;
             double forward = lY1;
             double left = lX1;
-            if (true){
+            if (false){
                 //Field-centric-controls
                 forward = lY1 * Math.cos(drive.currentPose.getHeading()) + lX1 * Math.sin(drive.currentPose.getHeading());
                 left = lX1 * Math.cos(drive.currentPose.getHeading()) - lY1 * Math.sin(drive.currentPose.getHeading());
