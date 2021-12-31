@@ -87,6 +87,9 @@ public class Teleop extends LinearOpMode {
 
         double radius = 0;
 
+        long startDuckSpin = System.currentTimeMillis();
+        double duckSpinPower = 0.35;
+
         while (!isStopRequested()) {
             drive.update();
             switch(hub) {
@@ -137,18 +140,30 @@ public class Teleop extends LinearOpMode {
             // Endgame controls do not line up with diagram. gamepad1.left_bumper starts endgame and extends duckSpinSpin servo. gamepad2.b moves odo servo.  gamepad2.y spins flywheel
             // Fine adjustments for slides and turret on gamepad2 not working
             if (endgame.getToggleState()){
+                drive.servos.get(7).setPosition(0.467);
                 spin.update(gamepad2.y);
                 if (spin.getToggleState()){
-                    //drive.servos.get(7).setPosition(0.5);
-                    if (gamepad2.b){
-                        drive.duckSpin.setPower(-1);
+                    long a = System.currentTimeMillis() - startDuckSpin;
+                    if (a < 900){
+                        drive.duckSpin.setPower(duckSpinPower);
+                        drive.duckSpin2.setPower(-duckSpinPower);
+                        duckSpinPower += 0.00012;
+
+                    }
+                    else{
+                        drive.duckSpin.setPower(1);
                         drive.duckSpin2.setPower(-1);
+                    }
+                    if (a > 1500){ //TODO: tune this value
+                        spin.toggleState = false;
                     }
                 }
                 else{
-                    //drive.servos.get(7).setPosition(1.0);
+                    //TODO: find retracted location
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
+                    startDuckSpin = System.currentTimeMillis();
+                    duckSpinPower = 0.35;
                 }
             }
             boolean toggleHub = gamepad1.y;
@@ -335,41 +350,46 @@ public class Teleop extends LinearOpMode {
     }
     public void driveToPoint(Pose2d target){
         double maxPowerForward = 0.8;
-        double maxPowerSide = 0.8;
         double maxPowerTurn = 0.4;
         double slowDownDist = 4;
-        double slowTurnAngle = 8;
+        double slowTurnAngle = Math.toRadians(8);
         drive.targetPose = target;
         drive.targetRadius = 2;
         while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 2 || Math.abs(drive.currentPose.getY()-target.getY()) > 2) && auto.getToggleState()){
             auto.update(gamepad1.a);
             drive.update();
-            Pose2d relError = new Pose2d(
-                    Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
-                    Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
-                    target.getHeading()-drive.currentPose.getHeading()
-            );
-            double forward = Math.min(Math.max(relError.getX()*maxPowerForward/slowDownDist,-maxPowerForward),maxPowerForward);
-            double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-maxPowerSide),maxPowerSide);
-            double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/Math.toRadians(slowTurnAngle),-maxPowerTurn),maxPowerTurn);
-            double p1 = forward-left-turn;
-            double p2 = forward+left-turn;
-            double p3 = forward-left+turn;
-            double p4 = forward+left+turn;
-            double max = Math.max(Math.max(Math.max(Math.max(Math.abs(p1),Math.abs(p2)),Math.abs(p3)),Math.abs(p4)),1);
-            max *= 1.0/(1.0 - DriveConstants.kStatic);
-            p1 /= max;
-            p2 /= max;
-            p3 /= max;
-            p4 /= max;
-            p1 += DriveConstants.kStatic * Math.signum(p1);
-            p2 += DriveConstants.kStatic * Math.signum(p2);
-            p3 += DriveConstants.kStatic * Math.signum(p3);
-            p4 += DriveConstants.kStatic * Math.signum(p4);
-            drive.pinMotorPowers(p1, p2, p3, p4);
+            updateMotors(getRelError(target),DriveConstants.kStatic,maxPowerForward,maxPowerTurn,slowDownDist,slowTurnAngle,2);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
         drive.setMotorPowers(0,0,0,0);
+    }
+    public Pose2d getRelError(Pose2d target){
+        return new Pose2d(
+                Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
+                Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
+                target.getHeading()-drive.currentPose.getHeading()
+        );
+    }
+    public void updateMotors(Pose2d relError, double kStatic, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error){
+        double powerAdjust = power-kStatic;
+        double turnAdjust = maxPowerTurn-kStatic;
+        double forward = Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
+        double left = Math.min(Math.max(relError.getY()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getY()) * kStatic * Math.max(Math.signum(Math.abs(relError.getY()) - error),0);
+        double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - slowTurnAngle),0);
+        double [] p = new double[4];
+        p[0] = forward-left-turn;
+        p[1] = forward+left-turn;
+        p[2] = forward-left+turn;
+        p[3] = forward+left+turn;
+        double max = (1.0 - kStatic);
+        for (int i = 0; i < p.length; i ++){
+            max = Math.max(Math.abs(p[i]),max) * (1.0 - kStatic);
+        }
+        for (int i = 0; i < p.length; i ++){
+            p[i] *= max;
+            p[i] += kStatic * Math.signum(p[i]);
+        }
+        drive.pinMotorPowers(p[0], p[1], p[2], p[3]);
     }
 }

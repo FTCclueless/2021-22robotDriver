@@ -18,9 +18,9 @@ public class DuckSpinTest extends LinearOpMode {
         ButtonToggle d = new ButtonToggle();
         double power = 0;
         boolean last = false;
-        double startingSpeed = 0.27;
+        double startingSpeed = 0.35;
         long start = System.currentTimeMillis();
-        long timer = 950;
+        long timer = 900;
         long totalTime = 0;
         boolean last1 = false;
         while (!isStopRequested()) {
@@ -45,13 +45,15 @@ public class DuckSpinTest extends LinearOpMode {
             boolean running = b.getToggleState() || c.getToggleState() || d.getToggleState();
             if (update && !last){
                 power = startingSpeed;
+            }
+            if (!last1 && running){
                 start = System.currentTimeMillis();
             }
-            if (!running && !a.getToggleState() && last1){
+            if (!running && last1){
                 totalTime = System.currentTimeMillis() - start;
             }
             last = update;
-            last1 = running || a.getToggleState();
+            last1 = running;
             if (a.getToggleState()){
                power = startingSpeed;
             }
@@ -66,7 +68,7 @@ public class DuckSpinTest extends LinearOpMode {
                     } else if (d.getToggleState()) {
                         power += 0.000075;
                     }
-                    power = Math.min(power,0.4);
+                    power = Math.min(power,0.45);
                 }
                 else {
                     power = 1.0;
