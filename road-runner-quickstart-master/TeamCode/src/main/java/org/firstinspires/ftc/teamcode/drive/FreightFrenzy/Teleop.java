@@ -328,10 +328,10 @@ public class Teleop extends LinearOpMode {
                 forward = lY1 * Math.cos(drive.currentPose.getHeading()) + lX1 * Math.sin(drive.currentPose.getHeading());
                 left = lX1 * Math.cos(drive.currentPose.getHeading()) - lY1 * Math.sin(drive.currentPose.getHeading());
             }
-            double turn = gamepad1.right_stick_x * 0.6;
+            double turn = gamepad1.right_stick_x * 0.4;
             if (!gamepad1.left_stick_button){
-                forward *= 0.75;
-                left *= 0.75;
+                forward *= 0.65;
+                left *= 0.65;
             }
             double p1 = forward+left+turn;
             double p2 = forward-left+turn;
