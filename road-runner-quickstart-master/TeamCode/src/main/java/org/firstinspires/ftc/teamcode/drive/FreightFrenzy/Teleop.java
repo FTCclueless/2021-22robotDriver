@@ -340,7 +340,7 @@ public class Teleop extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) {
-                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_y) * 0.1;
+                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.1;
             }
 
             if(Math.abs(gamepad2.right_stick_y) > 0.25) {

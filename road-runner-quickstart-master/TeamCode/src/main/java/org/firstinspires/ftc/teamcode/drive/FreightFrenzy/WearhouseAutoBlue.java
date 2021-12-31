@@ -74,7 +74,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,1000,3); //0.35
         intakeMineral(0.45,3000);
     }
-    public void driveOut(Pose2d endPoint){
+    public void driveOut(Pose2d endPoint) {
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), endPoint, false,1, 0.8,1000,1); //0.5
         driveToPoint(endPoint, false,2, 0.5,1000,3); //0.6
     }
