@@ -141,6 +141,7 @@ public class Teleop extends LinearOpMode {
             // Endgame controls do not line up with diagram. gamepad1.left_bumper starts endgame and extends duckSpinSpin servo. gamepad2.b moves odo servo.  gamepad2.y spins flywheel
             // Fine adjustments for slides and turret on gamepad2 not working
             if (endgame.getToggleState()){
+                auto.toggleState = false;
                 drive.servos.get(7).setPosition(0.467);
                 spin.update(gamepad2.y);
                 if (spin.getToggleState()){
@@ -319,6 +320,12 @@ public class Teleop extends LinearOpMode {
             }
             lastIntakeCase = drive.intakeCase;
             lastSlidesCase = drive.slidesCase;
+
+            if (gamepad1.x){
+                drive.servos.get(1).setPosition(drive.leftIntakeRaise);
+                drive.servos.get(0).setPosition(drive.rightIntakeRaise);
+                drive.intakeCase = 6;
+            }
 
             double lY1 = gamepad1.left_stick_y * -1;
             double lX1 = gamepad1.left_stick_x;
