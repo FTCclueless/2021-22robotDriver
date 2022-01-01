@@ -140,6 +140,7 @@ public class Teleop extends LinearOpMode {
                 endgame.toggleState = true;
             }
             if (endgame.getToggleState()){
+                auto.toggleState = false;
                 drive.servos.get(7).setPosition(0.467);
                 spin.update(gamepad2.y);
                 if (spin.getToggleState()){
@@ -318,6 +319,12 @@ public class Teleop extends LinearOpMode {
             }
             lastIntakeCase = drive.intakeCase;
             lastSlidesCase = drive.slidesCase;
+
+            if (gamepad1.x){
+                drive.servos.get(1).setPosition(drive.leftIntakeRaise);
+                drive.servos.get(0).setPosition(drive.rightIntakeRaise);
+                drive.intakeCase = 6;
+            }
 
             double lY1 = gamepad1.left_stick_y * -1;
             double lX1 = gamepad1.left_stick_x;
