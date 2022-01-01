@@ -669,7 +669,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         effectiveDepositTime = openDepositTime;
                     }
                     if (deposit && fastDeposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 5){
-                        setDepositAngle(Math.toRadians(155));
+                        setDepositAngle(Math.toRadians(148));//155
                     }
                     else{
                         setDepositAngle(depositTransferAngle);
@@ -682,8 +682,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setV4barOrientation(targetV4barOrientation);
                     }
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
-                    if (slidesCase == 2 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3){slidesCase ++;}
-                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(10) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;}
+                    if (slidesCase == 2 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 1){slidesCase ++;} //3
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;}
                     break;
                 case 4:
                     setDepositAngle(Math.toRadians(180) - depositAngle);
