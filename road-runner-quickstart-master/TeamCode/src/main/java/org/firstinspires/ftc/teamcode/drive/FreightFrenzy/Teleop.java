@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
+import android.util.Log;
 import android.widget.ToggleButton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -328,10 +329,10 @@ public class Teleop extends LinearOpMode {
                 forward = lY1 * Math.cos(drive.currentPose.getHeading()) + lX1 * Math.sin(drive.currentPose.getHeading());
                 left = lX1 * Math.cos(drive.currentPose.getHeading()) - lY1 * Math.sin(drive.currentPose.getHeading());
             }
-            double turn = gamepad1.right_stick_x * 0.35;
+            double turn = gamepad1.right_stick_x * 0.4;
             if (!gamepad1.left_stick_button){
-                forward *= 0.4;
-                left *= 0.5;
+                forward *= 0.65;
+                left *= 0.65;
             }
             double p1 = forward+left+turn;
             double p2 = forward-left+turn;
@@ -340,11 +341,25 @@ public class Teleop extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) {
-                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.1;
+                Log.e("turret offset", drive.turretOffset + "");
+                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.25;
+
+                if(drive.turretOffset > 0.07) {
+                    drive.turretOffset = 0.07;
+                }
+
+                if(drive.turretOffset < -2) {
+                    drive.turretOffset = -2;
+                }
             }
 
             if(Math.abs(gamepad2.right_stick_y) > 0.25) {
-                drive.slidesOffset -= gamepad2.right_stick_y * 0.01;
+                Log.e("slides offset", drive.slidesOffset + "");
+                drive.slidesOffset -= gamepad2.right_stick_y * 0.4;
+
+                if(drive.slidesOffset > 17) {
+                    drive.slidesOffset = 17;
+                }
             }
         }
     }

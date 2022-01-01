@@ -56,33 +56,30 @@ public class WearhouseAutoBlue extends LinearOpMode {
                 i = 0;
             }
             else if (numMinerals < 6){
-                i = -4;
+                i = -2;
             }
             else {
                 i = -1;
             }
-            drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0),14,3); //0.5
+            drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0),13.5,3); //0.5
             driveOut(endPoint);
             waitForDeposit(endPoint);
             numMinerals ++;
         }
 
         driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 1, 1000, 3);
-
-        while (opModeIsActive()){
-            drive.update();
-        }
+        drive.setMotorPowers( 0 , 0, 0, 0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         int a = 3;
-        int b = (numMinerals/a);
+        int b = (numMinerals/(a - 1));
         double angle = (numMinerals % a) * Math.toRadians(-20);//b
-        double x = 38 + b * 4;//% a
+        double x = 42 + b * 4;
         double y = 71.25 - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0;
-        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), false,1, 0.8,500,1);
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,500,3);
-        intakeMineral(0.45,1500);
+        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,500,3); // 0.5
+        intakeMineral(0.35,1500); //0.35
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
@@ -98,7 +95,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         switch (capNum) {
             case 0: r = 8.5; h = 6; break;
             case 1: r = 7; h = 12.125; break;
-            case 2: r = 3; h = 14; break;
+            case 2: r = 3; h = 13.5; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
         waitForDeposit();
@@ -107,6 +104,11 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.deposit();
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
+
+            if (drive.intakeCase == 9){
+                if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+                if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
+            }
         }
     }
     public void waitForDeposit(Pose2d target){
@@ -122,6 +124,11 @@ public class WearhouseAutoBlue extends LinearOpMode {
             }
             else {
                 drive.setMotorPowers(0,0,0,0);
+            }
+
+            if (drive.intakeCase == 9){
+                if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+                if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
             }
         }
         drive.targetPose = null;

@@ -89,9 +89,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
-    public AnalogInput rightIntake, leftIntake;//, depositSensor;
+    public AnalogInput rightIntake, leftIntake, depositSensor;
     public CRServo duckSpin, duckSpin2;
-    double rightIntakeVal, leftIntakeVal;//, depositVal;
+    double rightIntakeVal, leftIntakeVal, depositVal;
     public static ColorSensor color, leftWall, rightWall;
     long lastTouchPoll;
     long lastTiltPoll;
@@ -110,7 +110,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public ArrayList<Servo> servos;
 
-    double currentIntake = 0;
+    public double currentIntake = 0;
 
     public BNO055IMU imu;
 
@@ -156,9 +156,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     private boolean display3WheelOdo;
 
     public static double intakeTurretInterfaceHeading = Math.toRadians(57.5);
-    public static double v4barInterfaceAngle = Math.toRadians(4);//13
+    public static double v4barInterfaceAngle = Math.toRadians(10);//13, 4
     public static double depositAngle = Math.toRadians(-45);
-    public static double depositInterfaceAngle = Math.toRadians(70);//40
+    public static double depositInterfaceAngle = Math.toRadians(65);//40, 70
     public static double depositTransferAngle = Math.toRadians(135);
 
 
@@ -172,7 +172,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static int closeDepositTime = 250; // 300
     public static int openDepositTime = 400;
     public static int effectiveDepositTime = openDepositTime;
-    public static double returnSlideLength = -0.5; //0,-0.25
+    public static double returnSlideLength = 0.75; //0,-0.25
 
 
     public double slideExtensionLength = 0;
@@ -333,7 +333,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         duckSpin2 = hardwareMap.crservo.get("duckSpin2");
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
-        //depositSensor = hardwareMap.analogInput.get("depositSensor");
+        depositSensor = hardwareMap.analogInput.get("depositSensor");
         rightIntakeVal = 0;
         leftIntakeVal = 0;
 
@@ -379,14 +379,16 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides2.setPositionPIDFCoefficients(sPP);
 
         leftIntakeDrop = 0.083;
-        leftIntakeRaise = 0.739;
+        leftIntakeRaise = 0.739; //0.739;
         rightIntakeDrop = 0.816;
-        rightIntakeRaise = 0.165;
+        rightIntakeRaise = 0.165; //0.165;
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
         setV4barDeposit(depositInterfaceAngle,v4barInterfaceAngle);
         servos.get(3).setPosition(0.48);
+
+        setSlidesLength(returnSlideLength);
 
         poseHistory = new ArrayList<>();
 
@@ -421,7 +423,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
         leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
-        //depositVal = bulkData.getAnalogInputValue(depositSensor);
+        depositVal = bulkData.getAnalogInputValue(depositSensor);
 
         if (intakeCase >= 1 && intakeCase <= 4){
             if(currentIntake == 1 && leftIntakeVal <= 300){
@@ -549,7 +551,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double y1 = targetPose.getY() + radius * -1.0 * (targetPose.getY()-endPose.getY())/d;
         Pose2d relTarget = new Pose2d(
                 Math.cos(endPose.getHeading())*(endPose.getX()-x1) + Math.sin(endPose.getHeading())*(endPose.getY()-y1),
-                Math.cos(endPose.getHeading())*(endPose.getY()-y1) + Math.sin(endPose.getHeading())*(endPose.getX()-x1)
+                Math.cos(endPose.getHeading())*(endPose.getY()-y1) - Math.sin(endPose.getHeading())*(endPose.getX()-x1)
         );
         targetTurretHeading = Math.atan2(relTarget.getY(),relTarget.getX());
         height -= (9.44882 + Math.sin(depositAngle) * depositLength);
@@ -644,8 +646,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
             case 5: if (slideExtensionLength < 0 || System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
-            case 6: if (System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
-            case 7: if (System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break; // || depositVal < 300
+            case 6: if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
+            case 7: if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break; // || depositVal < 300
             case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break;
         }
     }
