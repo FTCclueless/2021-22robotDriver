@@ -39,7 +39,7 @@ public class Teleop extends LinearOpMode {
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
         drive.update();
-        Pose2d startingPose = new Pose2d(12,65.25,0);
+        Pose2d startingPose = new Pose2d(36.5,65.25,0);
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
 
@@ -97,7 +97,7 @@ public class Teleop extends LinearOpMode {
                 case 0: endPoint = new Pose2d(65.25, 16, Math.toRadians(90));
                     hubLocation = new Pose2d(48, 0);
                     intake = true;
-                    height = 6;
+                    height = 2;
                     radius = 2;
                         break;
                 case 1: case 2:
@@ -284,7 +284,7 @@ public class Teleop extends LinearOpMode {
                         drive.startIntake(intake);
                     }
                     drive.startDeposit(endPoint,hubLocation,height,radius);
-                    boolean inside = Math.abs(drive.currentPose.getY()) > 43.5 && drive.currentPose.getX() > 43.5;
+                    boolean inside = Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5;
                     if (! inside) {
                         if (hub == 1) {
                             driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()));
