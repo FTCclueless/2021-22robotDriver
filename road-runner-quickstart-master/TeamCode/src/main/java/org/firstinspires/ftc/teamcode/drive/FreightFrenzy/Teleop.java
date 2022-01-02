@@ -53,7 +53,7 @@ public class Teleop extends LinearOpMode {
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
         drive.update();
-        Pose2d startingPose = new Pose2d(36.5,65.25,0);
+        Pose2d startingPose = new Pose2d(36.5,65.25 * side,0);
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
 
@@ -106,7 +106,7 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             drive.update();
             switch(hub) {
-                case 0: endPoint = new Pose2d(65.25, 16, Math.toRadians(90));
+                case 0: endPoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
                     hubLocation = new Pose2d(48, 0);
                     intake = true;
                     height = 2;
@@ -114,10 +114,10 @@ public class Teleop extends LinearOpMode {
                         break;
                 case 1: case 2:
                     if (hub == 1) {
-                        endPoint = new Pose2d(12, 65.25, Math.toRadians(0));
+                        endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
                     }
                     else {
-                        endPoint = new Pose2d(-56, 60, Math.toRadians(180));
+                        endPoint = new Pose2d(-56, 60 * side, Math.toRadians(180));
                     }
                     boolean dpadUp = gamepad1.dpad_up;
                     boolean dpadDown = gamepad1.dpad_down;
@@ -134,7 +134,7 @@ public class Teleop extends LinearOpMode {
                         case 2: radius = 7; height = 12.13; break;
                         case 3: radius = 3; height = 14; break;
                     }
-                    hubLocation = new Pose2d(-12.0, 24.0);
+                    hubLocation = new Pose2d(-12.0, 24.0*side);
                     intake = false;
                         break;
             }
