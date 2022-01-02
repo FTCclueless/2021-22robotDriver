@@ -33,15 +33,27 @@ public class Teleop extends LinearOpMode {
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-
+        double side = 1;
+        boolean intake = false;
 
         drive.servos.get(5).setPosition(0.237);
+
+        while (!isStarted()){
+            if (gamepad1.dpad_up){
+                side = -1;
+                intake = true;
+            }
+            if (gamepad1.dpad_down){
+                side = 1;
+                intake = false;
+            }
+        }
 
         waitForStart();
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
         drive.update();
-        Pose2d startingPose = new Pose2d(12,65.25,0);
+        Pose2d startingPose = new Pose2d(36.5,65.25 * side,0);
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
 
@@ -51,8 +63,6 @@ public class Teleop extends LinearOpMode {
         Pose2d hubLocation = new Pose2d();
         double height = 0;
         double r = 0;
-
-        boolean intake = true;
 
         int level = 3;
 
