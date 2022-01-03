@@ -50,16 +50,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
 
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
-            double i = -1;
-            if (numMinerals < 3){
-                i = 0;
-            }
-            else if (numMinerals < 6){
-                i = -2;
-            }
-            Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
-            driveOut(newEnd);
-            waitForDeposit(newEnd);
+            driveOut(endPoint,numMinerals);
             numMinerals ++;
         }
 
@@ -75,18 +66,25 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double y = 71.25 - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0;
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,500,3); // 0.5
-        intakeMineral(0.35,1500); //0.35
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,500,3);
+        intakeMineral(0.35,1500);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
     }
-    public void driveOut(Pose2d endPoint){
-
-        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),13.5,3);
-
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), endPoint, false,1, 0.8,1000,1);
-        driveToPoint(endPoint, false,2, 0.5,1000,3);
+    public void driveOut(Pose2d endPoint, int numMinerals){
+        double i = -1;
+        if (numMinerals < 3){
+            i = 0;
+        }
+        else if (numMinerals < 6){
+            i = -2;
+        }
+        Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
+        drive.startDeposit(newEnd, new Pose2d(-12.0, 24.0),13.5,3);
+        driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
+        driveToPoint(newEnd, false,2, 0.5,1000,3);
+        waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
