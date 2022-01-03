@@ -528,9 +528,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         if (currentIntake != targetIntake){
             currentIntake = targetIntake;
-            if (!transferMineral || slidesCase >= 6){
-                setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
-            }
+            setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
         }
         startIntake = true;
         intakeDelay = System.currentTimeMillis();
@@ -583,6 +581,17 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateIntake(){
+        if (intakeCase == 0 && slidesCase == 0){
+            setDepositAngle(depositInterfaceAngle);
+            setV4barOrientation(v4barInterfaceAngle);
+            setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
+            setSlidesLength(returnSlideLength);
+            servos.get(0).setPosition(rightIntakeRaise);
+            servos.get(1).setPosition(leftIntakeRaise);
+        }
+        if (intakeCase >= 4 && intakeCase != 9){
+            setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
+        }
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
                 case 1: // rotate the servo down
@@ -619,36 +628,46 @@ public class SampleMecanumDrive extends MecanumDrive {
                     slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     setSlidesLength(2.5,0.2);
                     break;
-                case 9: intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
-                Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
-                if (sumIntakeSensor/intakeSensorLoops >= 200) {
-                    Log.e("Type", "cube");
-                }
-                else {
-                    Log.e("Type", "ball");
-                }
-                break; // turn off the intake
+                case 9:
+                    intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
+                    Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
+                    break; // turn off the intake
             }
             intakeTime = System.currentTimeMillis();
         }
         lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
-            case 1: if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;} break;  // waiting for the servo to drop
-            case 2: if ((currentIntake == -1 && rightIntakeVal <= 240) || (currentIntake == 1 && leftIntakeVal <= 240)){ //300 -> 220
+            case 1:
+                if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;}
+                break;  // waiting for the servo to drop
+            case 2:
+                if ((currentIntake == -1 && rightIntakeVal <= 240) || (currentIntake == 1 && leftIntakeVal <= 240)){ //300 -> 220
                 intakeCase ++;
-            } break; // wait for block in
-            case 3: if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;}
+                }
+                break; // wait for block in
+            case 3:
+                if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){intakeCase ++;}
                 if (!transferMineral){
                     setDepositAngle(depositInterfaceAngle);
                     setV4barOrientation(v4barInterfaceAngle);
                 }
                 break;  // waiting for the servo to go up && slides to be back 200 before
-            case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
-            case 5: if (slideExtensionLength < 0 || System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
-            case 6: if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
-            case 7: if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break; // || depositVal < 300
-            case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break;
+            case 4:
+                if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}
+                break;//wait for the slides to be in the correct orientation
+            case 5:
+                if (slideExtensionLength < 0 || System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}
+                break;
+            case 6:
+                if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}
+                break;
+            case 7:
+                if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}
+                break;
+            case 8:
+                if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}
+                break;
         }
     }
 
