@@ -93,8 +93,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     public CRServo duckSpin, duckSpin2;
     double rightIntakeVal, leftIntakeVal, depositVal;
     public static ColorSensor color, leftWall, rightWall;
-    long lastTouchPoll;
-    long lastTiltPoll;
+    long lastTouchPoll, lastTiltPoll, tiltTime;
+    Orientation imuAngle;
+    boolean updateIMU = false;
+    boolean firstOffBarrier = false;
 
     public int intakeCase;
     public int lastIntakeCase;
@@ -134,24 +136,16 @@ public class SampleMecanumDrive extends MecanumDrive {
     boolean tiltForward = false;
     boolean tiltBackward = false;
 
-    long tiltTime;
-
     public long depositTime = 0;
 
     public boolean isKnownY = true;
     public boolean isKnownX = true;
     boolean lastLightReading = false;
 
-    Orientation imuAngle;
-    boolean updateIMU = false;
-
-    boolean firstOffBarrier = false;
+    long firstTiltTime;
 
     Vec3F finalTiltHeading;
-
     robotComponents r;
-
-    long firstTiltTime;
 
     private boolean display3WheelOdo;
 
@@ -213,8 +207,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     private final FtcDashboard dashboard;
 
     long intakeDelay;
-
-    public boolean expansion2 = false;
+    long depositDelay;
+    long slidesDelay;
 
     long lastLoopTime = System.nanoTime();
 
@@ -234,6 +228,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         intakeTime = currentTime;
         slideTime = currentTime;
         intakeDelay = currentTime;
+        depositDelay = currentTime;
+        slidesDelay = currentTime;
 
         staticHeading = 0;
         r = new robotComponents(true);
@@ -439,7 +435,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         // you can set the bulkData to the other expansion hub to get data from the other one
-        if (!(slidesCase == 0) || intakeCase == 4 || expansion2){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
+        if (!(slidesCase == 0) || intakeCase == 4){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
             bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
@@ -578,10 +574,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         targetSlideExtensionLength = Math.max(0,targetSlideExtensionLength);
         startSlides = true;
+        slidesDelay = System.currentTimeMillis();
     }
 
     public void deposit(){
         deposit = true;
+        depositDelay = System.currentTimeMillis();
     }
 
     public void updateIntake(){
@@ -731,7 +729,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         double angle = targetDepositAngle - currentV4barAngle;
         double targetPos = angle * 0.215820468 + 0.5;
         targetPos = Math.min(Math.max(targetPos,0.246),1.0);
-        //Log.e("targetPos", targetPos + "");
         servos.get(2).setPosition(targetPos);
     }
 
@@ -742,7 +739,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         double servoPos = (targetV4barAngle * -0.201172) + 0.94;
         servoPos = Math.max(Math.min(servoPos,0.94),0.0);
-        //Log.e("servoPos", servoPos + "");
         servos.get(4).setPosition(servoPos);
     }
 
@@ -774,6 +770,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateScoring(){
         if (System.currentTimeMillis() - intakeDelay >= 1000){
             startIntake = false;
+        }
+        if (System.currentTimeMillis() - depositDelay >= 1000){
+            deposit = false;
+        }
+        if (System.currentTimeMillis() - slidesDelay >= 2000){
+            startSlides = false;
         }
         if (startIntake && intakeCase == 0){
             intakeCase = 1;
