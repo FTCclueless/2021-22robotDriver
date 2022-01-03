@@ -67,7 +67,7 @@ public class WearhouseAutoRed extends LinearOpMode {
                 i = -1;
             }
             drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * side),13.5,3); //0.5
-            Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getY());
+            Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
             driveOut(newEnd);
             waitForDeposit(newEnd);
             numMinerals ++;
@@ -80,7 +80,7 @@ public class WearhouseAutoRed extends LinearOpMode {
         int b = (numMinerals/(a - 1));
         double angle = (numMinerals % a) * Math.toRadians(-20) * side;
         double x = 42 + b * 4;
-        double y = 71.25 * side - Math.sin(angle) * -8.0 * side - Math.cos(angle) * 6.0;
+        double y = 71.25 * side - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * side,angle), true,1, 0.5,500,3); // 0.5

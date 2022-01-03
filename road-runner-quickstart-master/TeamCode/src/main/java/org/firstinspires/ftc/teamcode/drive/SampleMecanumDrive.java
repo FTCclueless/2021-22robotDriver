@@ -388,6 +388,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         setV4barDeposit(depositInterfaceAngle,v4barInterfaceAngle);
         servos.get(3).setPosition(0.48);
 
+        servos.get(7).setPosition(0.938);
+
         setSlidesLength(returnSlideLength);
 
         poseHistory = new ArrayList<>();

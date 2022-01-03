@@ -108,7 +108,7 @@ public class Teleop extends LinearOpMode {
             switch(hub) {
                 case 0: endPoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
                     hubLocation = new Pose2d(48, 0);
-                    intake = true;
+                    intake = side == 1;
                     height = 2;
                     radius = 2;
                         break;
@@ -135,7 +135,7 @@ public class Teleop extends LinearOpMode {
                         case 3: radius = 3; height = 14; break;
                     }
                     hubLocation = new Pose2d(-12.0, 24.0*side);
-                    intake = false;
+                    intake = side == -1;
                         break;
             }
             if(gamepad1.right_bumper) {
@@ -159,14 +159,14 @@ public class Teleop extends LinearOpMode {
                 if (spin.getToggleState()){
                     long a = System.currentTimeMillis() - startDuckSpin;
                     if (a < 900){
-                        drive.duckSpin.setPower(duckSpinPower);
-                        drive.duckSpin2.setPower(-duckSpinPower);
+                        drive.duckSpin.setPower(duckSpinPower * side);
+                        drive.duckSpin2.setPower(-duckSpinPower * side);
                         duckSpinPower += 0.00012;
 
                     }
                     else{
-                        drive.duckSpin.setPower(1);
-                        drive.duckSpin2.setPower(-1);
+                        drive.duckSpin.setPower(1 * side);
+                        drive.duckSpin2.setPower(-1 * side);
                     }
                     if (a > 1500){ //TODO: tune this value
                         spin.toggleState = false;

@@ -62,7 +62,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
                 i = -1;
             }
             drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0),13.5,3); //0.5
-            Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getY());
+            Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
             driveOut(newEnd);
             waitForDeposit(newEnd);
             numMinerals ++;
