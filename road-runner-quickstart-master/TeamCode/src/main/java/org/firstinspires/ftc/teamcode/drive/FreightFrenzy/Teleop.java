@@ -217,8 +217,6 @@ public class Teleop extends LinearOpMode {
         }
     }
     public void capstone(){
-        locVal = 0;
-        lastLocVal = 0;
         boolean in = gamepad2.dpad_down;
         boolean out = gamepad2.dpad_up;
         if (in && !lastIn){
