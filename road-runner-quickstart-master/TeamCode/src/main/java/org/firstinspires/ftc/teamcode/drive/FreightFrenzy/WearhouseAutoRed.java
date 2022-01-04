@@ -122,10 +122,10 @@ public class WearhouseAutoRed extends LinearOpMode {
         drive.targetRadius = 0.25;
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
-            Pose2d error = getRelError(target);
+            Pose2d error = drive.getRelError(target);
             double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
             if (dist > 1) {
-                updateMotors(error, DriveConstants.kStatic, 0.25, 0.25, 4, Math.toRadians(8), 1);
+                drive.updateMotors(error, 0.25, 0.25, 4, Math.toRadians(8), 1);
             }
             else {
                 drive.setMotorPowers(0,0,0,0);
@@ -152,14 +152,14 @@ public class WearhouseAutoRed extends LinearOpMode {
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-            Pose2d relError = getRelError(target);
+            Pose2d relError = drive.getRelError(target);
             if (x){
                 relError = new Pose2d(0,relError.getY(),relError.getHeading());
             }
             if (y){
                 relError = new Pose2d(relError.getX(),0,relError.getHeading());
             }
-            updateMotors(relError, kStatic, power, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), error);
+            drive.updateMotors(relError, power, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), error);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
@@ -174,42 +174,11 @@ public class WearhouseAutoRed extends LinearOpMode {
         long start = System.currentTimeMillis();
         while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > error || Math.abs(drive.currentPose.getY()-target.getY()) > error || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
             drive.update();
-            updateMotors(getRelError(target), kStatic, power, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), error);
+            drive.updateMotors(drive.getRelError(target), power, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), error);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
         drive.setMotorPowers(0,0,0,0);
-    }
-    public Pose2d getRelError(Pose2d target){
-        return new Pose2d(
-                Math.cos(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()) + Math.sin(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()),
-                Math.cos(drive.currentPose.getHeading()) * (target.getY()-drive.currentPose.getY()) - Math.sin(drive.currentPose.getHeading()) * (target.getX()-drive.currentPose.getX()),
-                target.getHeading()-drive.currentPose.getHeading()
-        );
-    }
-    public void updateMotors(Pose2d relError, double kStatic, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error){
-        double powerAdjust = power-kStatic;
-        double turnAdjust = maxPowerTurn-kStatic;
-        double maxPowerSide = Math.min(0.4,power);
-        double sideAdjust = maxPowerSide-kStatic;
-        double forward = Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
-        double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-sideAdjust),sideAdjust) + Math.signum(relError.getY()) * kStatic * Math.max(Math.signum(Math.abs(relError.getY()) - error),0);
-        double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - slowTurnAngle),0);
-        double [] p = new double[4];
-        p[0] = forward-left-turn;
-        p[1] = forward+left-turn;
-        p[2] = forward-left+turn;
-        p[3] = forward+left+turn;
-        double max = 1;
-        for (int i = 0; i < p.length; i ++){
-            max = Math.max(Math.abs(p[i]),max);
-        }
-        max *= 1.0/(1.0 - kStatic);
-        for (int i = 0; i < p.length; i ++){
-            p[i] /= max;
-            p[i] += kStatic * Math.signum(p[i]);
-        }
-        drive.pinMotorPowers(p[0], p[1], p[2], p[3]);
     }
     public void intakeMineral(double power, long maxTime){
         long startingTime = System.currentTimeMillis();
