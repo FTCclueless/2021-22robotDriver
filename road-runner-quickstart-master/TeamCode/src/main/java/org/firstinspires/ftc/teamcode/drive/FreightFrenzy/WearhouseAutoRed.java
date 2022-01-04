@@ -47,6 +47,8 @@ public class WearhouseAutoRed extends LinearOpMode {
 
         Logger a = new Logger("Alliance",false);
         a.addData("red");
+        a.update();
+        a.close();
 
         drive.update();
 

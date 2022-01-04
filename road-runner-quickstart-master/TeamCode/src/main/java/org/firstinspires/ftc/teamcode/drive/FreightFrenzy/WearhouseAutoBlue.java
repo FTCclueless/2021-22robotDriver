@@ -42,6 +42,8 @@ public class WearhouseAutoBlue extends LinearOpMode {
 
         Logger a = new Logger("Alliance",false);
         a.addData("blue");
+        a.update();
+        a.close();
 
         drive.update();
 
