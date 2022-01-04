@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.drive.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
@@ -38,6 +39,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.setTurretTarget(drive.intakeTurretInterfaceHeading);
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
         waitForStart();
+
+        Logger a = new Logger("Alliance",false);
+        a.addData("blue");
 
         drive.update();
 

@@ -20,7 +20,7 @@ public class Logger {
     private long startTime;
     private boolean disabled = false;
 
-    Logger(String filename, boolean logTime) {
+    public Logger(String filename, boolean logTime) {
         if (logTime) startTime = System.nanoTime();
         this.logTime = logTime;
         String directoryPath = Environment.getExternalStorageDirectory().getPath()+"/"+BASE_FOLDER_NAME;

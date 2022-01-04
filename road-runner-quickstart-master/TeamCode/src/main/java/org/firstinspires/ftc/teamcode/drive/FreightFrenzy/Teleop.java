@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.drive.Logger;
+import org.firstinspires.ftc.teamcode.drive.Reader;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
@@ -75,6 +77,9 @@ public class Teleop extends LinearOpMode {
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.servos.get(5).setPosition(0.237); //Capstone servo
 
+        Reader r = new Reader();
+        String info = r.readFile("Alliance");
+
         while (!isStarted()){
             if (gamepad1.dpad_up){
                 side = -1;
@@ -85,6 +90,7 @@ public class Teleop extends LinearOpMode {
                 intake = false;
             }
             telemetry.addData("side", side);
+            telemetry.addData("info from file", info);
             telemetry.update();
             drive.update();
         }
