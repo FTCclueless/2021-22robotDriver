@@ -63,6 +63,8 @@ public class Teleop extends LinearOpMode {
     boolean lastOut = false;
     boolean armIn = true;
 
+    boolean lastIntake = false;
+
     long startDuckSpin = System.currentTimeMillis();
     double duckSpinPower = 0.35;
     long start;
@@ -125,9 +127,18 @@ public class Teleop extends LinearOpMode {
             if(gamepad1.right_bumper) {//Starts the deposit sequence
                 drive.startDeposit(endPoint, hubLocation, height, radius);
             }
-            if(gamepad1.right_trigger >= 0.5) {//Starts the intake sequence
-                drive.startIntake(intake);
+            boolean currentIntake = gamepad1.right_trigger >= 0.5;
+            if(currentIntake && !lastIntake) {//Starts the intake sequence
+                if (drive.intakeCase == 1 || drive.intakeCase == 2) { //Can cancel intake if it hasn't intaked yet
+                    drive.intakeCase = 0;
+                    drive.servos.get(0).setPosition(drive.rightIntakeRaise);
+                    drive.servos.get(1).setPosition(drive.leftIntakeRaise);
+                }
+                else{ //If you are not canceling the intake, then buffer an intake
+                    drive.startIntake(intake);
+                }
             }
+            lastIntake = currentIntake;
             if (gamepad2.right_trigger >= 0.5){//Makes it deposit
                 drive.deposit();
                 //Updates the target location for auto movement upon deposit
