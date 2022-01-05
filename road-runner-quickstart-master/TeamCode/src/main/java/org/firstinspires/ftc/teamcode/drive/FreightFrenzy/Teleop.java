@@ -25,8 +25,6 @@ import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
  */
 @TeleOp(group = "Comp Drive")
 public class Teleop extends LinearOpMode {
-
-    ButtonToggle auto = new ButtonToggle();
     SampleMecanumDrive drive;
 
     int hub = 0;
@@ -45,6 +43,9 @@ public class Teleop extends LinearOpMode {
     boolean lastUp = false;
     boolean lastDown = false;
     boolean lastToggleHub = false;
+
+    ButtonToggle auto = new ButtonToggle();
+    boolean firstAutoUpdate = false;
 
     ButtonToggle endgame = new ButtonToggle();
     ButtonToggle spin = new ButtonToggle();
@@ -303,7 +304,20 @@ public class Teleop extends LinearOpMode {
         lastLocVal = a;
     }
     public void updateAuto(){
-        auto.update(gamepad1.a);
+        boolean a = gamepad1.a;
+        auto.update(a);
+        if (a){
+            if (!firstAutoUpdate){ // Only updates on first time
+                if (drive.currentPose.getY() < 56){ //checks to see if you actually want to go for the alliance hub instead of the shared hub
+                    hub = 1;
+                }
+                else {
+                    hub = 0;
+                }
+                updateHub();
+            }
+            firstAutoUpdate = true; // after auto has started we will assume that they do not need this anymore
+        }
         if (auto.toggleState && !done){
             done = true;
             if (flag == 0) {
@@ -347,6 +361,7 @@ public class Teleop extends LinearOpMode {
     public void updateHub(){
         boolean toggleHub = gamepad1.y;
         if (toggleHub && !lastToggleHub){
+            firstAutoUpdate = true; // if you intentionally click the button it thinks you remembered to click the button
             if (!endgame.getToggleState()) { //TODO: Think about removing endgame (especially since we aren't really using it)
                 hub = (hub + 1) % 2;
             }
