@@ -1076,7 +1076,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateSensor(){
         updateWallDetection();
-        //updateLineDetection(); not working currently (decreases accuracy)
+        updateLineDetection(); //not working currently (decreases accuracy)
         //updateOdoOverBarrier(); not working currently
     }
 
@@ -1208,11 +1208,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         double colorX = 1.25;//0.996
         double detectionDist = 1.25;
         int threshold = 200;
-        int sensorThreshold = 5;
+        int sensorThreshold = 10; //5
         boolean leftRight = Math.abs(currentPose.getX()-(72-(43.5-1))) < sensorThreshold && Math.abs(Math.abs(currentPose.getY())-(72-robotWidth/2.0)) < sensorThreshold;
         boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
         boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
-        if ((!isKnownX || !isKnownY) || leftRight || topLeft || topRight){
+        double velocity = Math.sqrt(Math.pow(relCurrentVelocity.getX(),2) + Math.pow(relCurrentVelocity.getY(),2));
+        if ((!isKnownX || !isKnownY) || (leftRight || topLeft || topRight && velocity < 5)){
             detectLine = color.alpha() > threshold;
         }
         boolean updatePose = lastLightReading != detectLine;

@@ -426,4 +426,32 @@ public class Teleop extends LinearOpMode {
         drive.targetRadius = 1;
         drive.setMotorPowers(0,0,0,0);
     }
+    public void driveToPoint(Pose2d target, Pose2d target2, long maxTime){
+        double maxPowerForward = 0.8;
+        double maxPowerTurn = 0.4;
+        double slowDownDist = 4;
+        double slowTurnAngle = Math.toRadians(8);
+        double error = 2;
+        drive.targetPose = target;
+        drive.targetRadius = error;
+        long start = System.currentTimeMillis();
+        boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
+        boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
+        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && auto.getToggleState() && System.currentTimeMillis() - start < maxTime){
+            drive.update();
+            x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
+            y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
+            Pose2d relError = drive.getRelError(target);
+            if (x){
+                relError = new Pose2d(0,relError.getY(),relError.getHeading());
+            }
+            if (y){
+                relError = new Pose2d(relError.getX(),0,relError.getHeading());
+            }
+            drive.updateMotors(relError, maxPowerForward, maxPowerTurn, slowDownDist, slowTurnAngle, error);
+        }
+        drive.targetPose = null;
+        drive.targetRadius = 1;
+        drive.setMotorPowers(0,0,0,0);
+    }
 }
