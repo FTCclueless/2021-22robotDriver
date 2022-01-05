@@ -186,6 +186,10 @@ public class Teleop extends LinearOpMode {
             double p3 = forward+left-turn;
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
+
+            telemetry.addData("hub", hub);
+            telemetry.addData("level", level);
+            telemetry.update();
         }
     }
     public void updateEndgame(){
