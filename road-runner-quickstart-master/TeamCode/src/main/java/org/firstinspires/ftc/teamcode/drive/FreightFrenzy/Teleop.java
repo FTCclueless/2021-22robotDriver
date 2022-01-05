@@ -337,11 +337,11 @@ public class Teleop extends LinearOpMode {
                 }
                 if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),1000);
+                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(36.5, endPoint.getY(), endPoint.getHeading()),1000);
                         driveToPoint(new Pose2d(36.5, endPoint.getY(), endPoint.getHeading()),1000);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),1000);
+                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), 36.5 * side, endPoint.getHeading()),1000);
                         driveToPoint(new Pose2d(endPoint.getX(), 36.5 * side, endPoint.getHeading()),1000);
                     }
                 }
