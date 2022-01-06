@@ -14,8 +14,6 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 @Autonomous(group = "Auto")
 public class WarehouseAutoRed extends LinearOpMode {
     SampleMecanumDrive drive;
-
-    Long start;
     double side = -1;
 
     @Override
@@ -43,7 +41,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         a.update();
         a.close();
 
-        start = System.currentTimeMillis();
+        Long start = System.currentTimeMillis();
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
