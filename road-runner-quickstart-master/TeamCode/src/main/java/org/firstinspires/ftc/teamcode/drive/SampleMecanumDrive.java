@@ -92,7 +92,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public AnalogInput rightIntake, leftIntake, depositSensor;
     public CRServo duckSpin, duckSpin2;
     double rightIntakeVal, leftIntakeVal, depositVal;
-    public static ColorSensor color, leftWall, rightWall;
+    public ColorSensor color, leftWall, rightWall;
     long lastTouchPoll, lastTiltPoll, tiltTime;
     Orientation imuAngle;
     boolean updateIMU = false;
@@ -109,6 +109,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public boolean deposit = false;
 
+    public boolean expansion2 = false;
+
     public ArrayList<Servo> servos;
 
     public double currentIntake = 0;
@@ -119,7 +121,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public Localizer localizer;
 
-    public static int[] encoders;
+    public int[] encoders;
 
     public int loops = 0;
 
@@ -148,24 +150,24 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean display3WheelOdo;
 
-    public static double intakeTurretInterfaceHeading = Math.toRadians(57.5);
-    public static double v4barInterfaceAngle = Math.toRadians(10);//13, 4
-    public static double depositAngle = Math.toRadians(-45);
-    public static double depositInterfaceAngle = Math.toRadians(65);//40, 70
-    public static double depositTransferAngle = Math.toRadians(135);
+    public double intakeTurretInterfaceHeading = Math.toRadians(57.5);
+    public double v4barInterfaceAngle = Math.toRadians(10);//13, 4
+    public double depositAngle = Math.toRadians(-45);
+    public double depositInterfaceAngle = Math.toRadians(65);//40, 70
+    public double depositTransferAngle = Math.toRadians(135);
 
 
-    public static int dropIntakeTime = 300;
-    public static double intakePower = -1;
-    public static int liftIntakeTime = 450;
-    public static int transfer1Time = 350; //400
-    public static int transfer2Time = 250; //400
-    public static double transfer1Power = 1.0;
-    public static double transfer2Power = 0.85;
-    public static int closeDepositTime = 250; // 300
-    public static int openDepositTime = 400;
-    public static int effectiveDepositTime = openDepositTime;
-    public static double returnSlideLength = 0.75; //0,-0.25
+    public int dropIntakeTime = 300;
+    public double intakePower = -1;
+    public int liftIntakeTime = 450;
+    public int transfer1Time = 350; //400
+    public int transfer2Time = 250; //400
+    public double transfer1Power = 1.0;
+    public double transfer2Power = 0.85;
+    public int closeDepositTime = 250; // 300
+    public int openDepositTime = 400;
+    public int effectiveDepositTime = openDepositTime;
+    public double returnSlideLength = 0.75; //0,-0.25
 
 
     public double slideExtensionLength = 0;
@@ -434,7 +436,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         // you can set the bulkData to the other expansion hub to get data from the other one
-        if (!(slidesCase == 0) || intakeCase == 4 || intakeCase == 5){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
+        if (!(slidesCase == 0) || intakeCase == 4 || intakeCase == 5 || expansion2){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
             bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;

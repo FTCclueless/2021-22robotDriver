@@ -1,64 +1,51 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
-import android.util.Log;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.drive.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-
-import java.util.ArrayList;
 
 /*
  * This is an example of a more complex path to really test the tuning.
  */
 @Autonomous(group = "Auto")
-public class WearhouseAutoBlue extends LinearOpMode {
+public class WarehouseAutoRed extends LinearOpMode {
     SampleMecanumDrive drive;
 
     Long start;
-    double side = 1;
+    double side = -1;
 
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
 
         drive.resetAssemblies();
-
         Pose2d startingPose = new Pose2d(12,65.25 * side,0);
         Pose2d endPoint = new Pose2d(12,65.25 * side,0);
 
+        int capNum = 2;
         //TODO: Implement ML here
 
-        int capNum = 2;
-        setUp(startingPose);
-        drive.transferMineral = true;
-
         drive.currentIntake = side;
-
-        drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
+        drive.transferMineral = true;
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
+        drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
+
         waitForStart();
 
+        setUp(startingPose);
+
         Logger a = new Logger("Alliance",false);
-        a.addData("blue");
+        a.addData("red");
         a.update();
         a.close();
 
-        drive.update();
-
-        drive.servos.get(2).setPosition(0.614);
         start = System.currentTimeMillis();
-
         depositFirst(capNum, endPoint);
-
         int numMinerals = 0;
-
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
             driveOut(endPoint,numMinerals);
@@ -76,7 +63,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3); // 0.5
         intakeMineral(0.35,1500);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
@@ -183,7 +170,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
     public void intakeMineral(double power, long maxTime){
         long startingTime = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
-            double turn = 0;//Math.signum(Math.sin(startingTime * Math.PI/500.0)) * 0.5;
+            double turn = 0;
             double multiplier = Math.min(1.0/(Math.abs(power) + Math.abs(turn)),1);
             drive.pinMotorPowers((power+turn)*multiplier,(power+turn)*multiplier,(power-turn)*multiplier,(power-turn)*multiplier);
             drive.update();
