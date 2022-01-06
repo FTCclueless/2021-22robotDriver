@@ -61,9 +61,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double x = 42 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3);
-        intakeMineral(0.35,1500);
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,300,1);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,300,3);
+        intakeMineral(0.35,750);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
