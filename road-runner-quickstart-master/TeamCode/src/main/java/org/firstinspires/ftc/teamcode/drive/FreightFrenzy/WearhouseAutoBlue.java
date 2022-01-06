@@ -23,7 +23,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
 
     Long start;
     double side = 1;
-    boolean intake = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -69,7 +68,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.setMotorPowers( 0 , 0, 0, 0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
-        drive.startIntake(intake);
+        drive.startIntake(side == -1);
         int a = 3;
         int b = (numMinerals/(a - 1));
         double angle = (numMinerals % a) * Math.toRadians(-20) * Math.signum(endPoint.getY());
