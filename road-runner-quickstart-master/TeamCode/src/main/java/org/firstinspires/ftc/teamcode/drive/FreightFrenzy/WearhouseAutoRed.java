@@ -19,19 +19,20 @@ import java.util.ArrayList;
  */
 @Autonomous(group = "Auto")
 public class WearhouseAutoRed extends LinearOpMode {
-    Long start;
     SampleMecanumDrive drive;
+
+    Long start;
+    double side = -1;
+    boolean intake = true;
+
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
 
         drive.resetAssemblies();
 
-        double side = -1;
-        boolean intake = true;
-
         Pose2d startingPose = new Pose2d(12,65.25 * side,0);
-        Pose2d endPoint = new Pose2d(12,65.25* side, 0);
+        Pose2d endPoint = new Pose2d(12,65.25 * side, 0);
 
         //TODO: Implement ML here
 
@@ -60,45 +61,41 @@ public class WearhouseAutoRed extends LinearOpMode {
         int numMinerals = 0;
 
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
-            drive.startIntake(intake);
-            driveIn(endPoint,numMinerals,side);
-            double i;
-            if (numMinerals < 3){
-                i = 0;
-            }
-            else if (numMinerals < 6){
-                i = -2;
-            }
-            else {
-                i = -1;
-            }
-            drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * side),13.5,3); //0.5
-            Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
-            driveOut(newEnd);
-            waitForDeposit(newEnd);
+            driveIn(endPoint,numMinerals);
+            driveOut(endPoint,numMinerals);
             numMinerals ++;
         }
         driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 1, 1000, 3);
         drive.setMotorPowers( 0 , 0, 0, 0);
     }
-    public void driveIn(Pose2d endPoint, int numMinerals, double side){
+    public void driveIn(Pose2d endPoint, int numMinerals){
+        drive.startIntake(intake);
         int a = 3;
         int b = (numMinerals/(a - 1));
-        double angle = (numMinerals % a) * Math.toRadians(-20) * side;
+        double angle = (numMinerals % a) * Math.toRadians(-20) * Math.signum(endPoint.getY());
         double x = 42 + b * 4;
-        double y = 71.25 * side - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
+        double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * side,angle), true,1, 0.5,500,3); // 0.5
-        intakeMineral(0.35,1500); //0.35
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3); // 0.5
+        intakeMineral(0.35,1500);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
     }
-    public void driveOut(Pose2d endPoint){
-        drive.deposit();
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), endPoint, false,1, 0.8,1000,1);
-        driveToPoint(endPoint, false,2, 0.5,1000,3);
+    public void driveOut(Pose2d endPoint, int numMinerals){
+        double i = -1;
+        if (numMinerals < 3){
+            i = 0;
+        }
+        else if (numMinerals < 6){
+            i = -2;
+        }
+        Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,3);
+        driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
+        driveToPoint(newEnd, false,2, 0.5,1000,3);
+        waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
@@ -112,10 +109,9 @@ public class WearhouseAutoRed extends LinearOpMode {
         waitForDeposit();
     }
     public void waitForDeposit(){
-        drive.deposit();
         while (drive.slidesCase <= 4 && opModeIsActive()) {
+            drive.deposit();
             drive.update();
-
             if (drive.intakeCase == 9){
                 if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
                 if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
@@ -123,10 +119,10 @@ public class WearhouseAutoRed extends LinearOpMode {
         }
     }
     public void waitForDeposit(Pose2d target){
-        drive.deposit();
         drive.targetPose = target;
         drive.targetRadius = 0.25;
         while (drive.slidesCase <= 4 && opModeIsActive()) {
+            drive.deposit();
             drive.update();
             Pose2d error = drive.getRelError(target);
             double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
@@ -136,7 +132,6 @@ public class WearhouseAutoRed extends LinearOpMode {
             else {
                 drive.setMotorPowers(0,0,0,0);
             }
-
             if (drive.intakeCase == 9){
                 if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
                 if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}

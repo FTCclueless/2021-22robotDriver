@@ -19,16 +19,20 @@ import java.util.ArrayList;
  */
 @Autonomous(group = "Auto")
 public class WearhouseAutoBlue extends LinearOpMode {
-    Long start;
     SampleMecanumDrive drive;
+
+    Long start;
+    double side = 1;
+    boolean intake = false;
+
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
 
         drive.resetAssemblies();
 
-        Pose2d startingPose = new Pose2d(12,65.25,0);
-        Pose2d endPoint = new Pose2d(12,65.25,0);
+        Pose2d startingPose = new Pose2d(12,65.25 * side,0);
+        Pose2d endPoint = new Pose2d(12,65.25 * side,0);
 
         //TODO: Implement ML here
 
@@ -36,7 +40,9 @@ public class WearhouseAutoBlue extends LinearOpMode {
         setUp(startingPose);
         drive.transferMineral = true;
 
-        drive.setTurretTarget(drive.intakeTurretInterfaceHeading);
+        drive.currentIntake = side;
+
+        drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
         waitForStart();
 
@@ -59,20 +65,19 @@ public class WearhouseAutoBlue extends LinearOpMode {
             driveOut(endPoint,numMinerals);
             numMinerals ++;
         }
-
         driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 1, 1000, 3);
         drive.setMotorPowers( 0 , 0, 0, 0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
-        drive.startIntake(false);
+        drive.startIntake(intake);
         int a = 3;
         int b = (numMinerals/(a - 1));
-        double angle = (numMinerals % a) * Math.toRadians(-20);//b
+        double angle = (numMinerals % a) * Math.toRadians(-20) * Math.signum(endPoint.getY());
         double x = 42 + b * 4;
-        double y = 71.25 - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0;
+        double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24,angle), true,1, 0.5,500,3);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3);
         intakeMineral(0.35,1500);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
@@ -87,7 +92,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
             i = -2;
         }
         Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
-        drive.startDeposit(newEnd, new Pose2d(-12.0, 24.0),13.5,3);
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
         driveToPoint(newEnd, false,2, 0.5,1000,3);
         waitForDeposit(newEnd);
@@ -106,9 +111,7 @@ public class WearhouseAutoBlue extends LinearOpMode {
     public void waitForDeposit(){
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.deposit();
-
             drive.update();
-
             if (drive.intakeCase == 9){
                 if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
                 if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
@@ -120,7 +123,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
         drive.targetRadius = 0.25;
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.deposit();
-
             drive.update();
             Pose2d error = drive.getRelError(target);
             double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
@@ -130,7 +132,6 @@ public class WearhouseAutoBlue extends LinearOpMode {
             else {
                 drive.setMotorPowers(0,0,0,0);
             }
-
             if (drive.intakeCase == 9){
                 if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
                 if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
