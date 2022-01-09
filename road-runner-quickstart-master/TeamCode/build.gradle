@@ -28,6 +28,8 @@ dependencies {
     implementation 'org.openftc:easyopencv:1.4.4'
 
     implementation 'com.spartronics4915.lib:ftc265:2.1.9'
+
+    implementation 'org.openftc:apriltag:1.0.0'
 }
 repositories {
     // This line will already be here; you do not need to add it
