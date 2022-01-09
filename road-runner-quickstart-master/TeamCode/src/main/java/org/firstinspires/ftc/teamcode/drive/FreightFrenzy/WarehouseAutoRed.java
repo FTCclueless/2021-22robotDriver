@@ -8,6 +8,15 @@ import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.drive.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
+import java.util.ArrayList;
+
 /*
  * This is an example of a more complex path to really test the tuning.
  */
@@ -15,6 +24,25 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 public class WarehouseAutoRed extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = -1;
+    public int RANDOMIZATION = 3;  //default set to 3, which is the highest level of the shipping hub
+
+    /* START CAMERA PARAMETERS */
+    OpenCvCamera camera;
+    AprilTagDetectionPipeline aprilTagDetectionPipeline;
+
+    // Lens intrinsics (UNITS ARE PIXELS). Calibration for C270 webcam at 640x480
+    double fx = 822.317;
+    double fy = 822.317;
+    double cx = 319.495;
+    double cy = 242.502;
+
+    // UNITS ARE METERS
+    double tagsize = 0.0762;    //0.166
+
+    int ID_TAG_OF_INTEREST = 17; // Tag ID 17 from the 36h11 family
+    boolean tagOfInterestFound;
+    AprilTagDetection tagOfInterest = null;
+    /* END CAMERA PARAMETERS */
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -32,7 +60,69 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
         drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
 
-        waitForStart();
+        /* START CAMERA INITIALIZATION */
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        camera.setPipeline(aprilTagDetectionPipeline);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT);
+            }
+        });
+        /* END CAMERA INITIALIZATION */
+
+        // The INIT-loop: This REPLACES waitForStart()!
+        while (!isStarted() && !isStopRequested()) {
+            //Detecting AprilTags
+            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+            tagOfInterestFound = false;
+            for(AprilTagDetection tag : currentDetections) {
+                if(tag.id == ID_TAG_OF_INTEREST) {
+                    tagOfInterest = tag;
+                    tagOfInterestFound = true;
+                    break;
+                }
+            }
+
+            if (tagOfInterestFound) {
+                telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
+//                tagToTelemetry(tagOfInterest);
+            }
+            else if (tagOfInterest != null) {
+                telemetry.addLine("Tag no longer in view; previously found at:");
+//                tagToTelemetry(tagOfInterest);
+            }
+            else {
+                telemetry.addLine("No Tag.");
+            }
+
+            telemetry.update();
+        }
+
+        // BELOW STUFF HAPPENS AFTER START IS PRESSED
+        /* Update the telemetry with tag data */
+        if (tagOfInterest != null) {
+            telemetry.addLine("Tag snapshot:\n");
+            tagToTelemetry(tagOfInterest);
+            telemetry.update();
+        }
+        else {
+            telemetry.addLine("No tag detected.");
+            telemetry.update();
+        }
+        /* Set the randomization variable. This is based on the location of the last sighting of the tag. */
+        //TODO: figure out the correct thresholds (123 and 234 are fillers)
+        if(tagOfInterest.pose.x <= 123) {
+            RANDOMIZATION = 1;
+        }
+        else if(tagOfInterest.pose.x >= 123 && tagOfInterest.pose.x <= 234) {
+            RANDOMIZATION = 2;
+        }
+        else {  //Note: the tag is out of the FoV when the randomization is 3
+            RANDOMIZATION = 3;
+        }
 
         setUp(startingPose);
 
@@ -179,5 +269,11 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.update();
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
+    }
+    void tagToTelemetry(AprilTagDetection detection) {
+        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
+        telemetry.addLine(String.format("Translation X: %.2f meters", detection.pose.x));
+        telemetry.addLine(String.format("Translation Y: %.2f meters", detection.pose.y));
+        telemetry.addLine(String.format("Translation Z: %.2f meters", detection.pose.z));
     }
 }
