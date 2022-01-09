@@ -18,21 +18,16 @@ public class AprilTagAutonomousInitDetectionTest extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
-    static final double FEET_PER_METER = 3.28084;
-
-    // Lens intrinsics
-    // UNITS ARE PIXELS
-    // Calibration for C270 webcam at 640x480
+    // Lens intrinsics (UNITS ARE PIXELS). Calibration for C270 webcam at 640x480
     double fx = 822.317;
     double fy = 822.317;
     double cx = 319.495;
     double cy = 242.502;
 
     // UNITS ARE METERS
-    double tagsize = 0.166;
+    double tagsize = 0.0762;    //0.166
 
     int ID_TAG_OF_INTEREST = 17; // Tag ID 17 from the 36h11 family
-
     boolean tagOfInterestFound;
     AprilTagDetection tagOfInterest = null;
 
@@ -52,8 +47,7 @@ public class AprilTagAutonomousInitDetectionTest extends LinearOpMode {
 
         telemetry.setMsTransmissionInterval(50);
 
-        // The INIT-loop:
-        // This REPLACES waitForStart!
+        // The INIT-loop: This REPLACES waitForStart!
         while (!isStarted() && !isStopRequested()) {
             //Detecting AprilTags
             ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
@@ -123,9 +117,9 @@ public class AprilTagAutonomousInitDetectionTest extends LinearOpMode {
 
     void tagToTelemetry(AprilTagDetection detection) {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
-        telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x*FEET_PER_METER));
-        telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y*FEET_PER_METER));
-        telemetry.addLine(String.format("Translation Z: %.2f feet", detection.pose.z*FEET_PER_METER));
+        telemetry.addLine(String.format("Translation X: %.2f meters", detection.pose.x));
+        telemetry.addLine(String.format("Translation Y: %.2f meters", detection.pose.y));
+        telemetry.addLine(String.format("Translation Z: %.2f meters", detection.pose.z));
 //        telemetry.addLine(String.format("Rotation Yaw: %.2f degrees", Math.toDegrees(detection.pose.yaw)));
 //        telemetry.addLine(String.format("Rotation Pitch: %.2f degrees", Math.toDegrees(detection.pose.pitch)));
 //        telemetry.addLine(String.format("Rotation Roll: %.2f degrees", Math.toDegrees(detection.pose.roll)));
