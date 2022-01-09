@@ -25,7 +25,7 @@ dependencies {
 
     implementation 'org.openftc:rev-extensions-2:1.2'
     
-    implementation 'org.openftc:easyopencv:1.4.4'
+    implementation 'org.openftc:easyopencv:1.4.2'
 
     implementation 'com.spartronics4915.lib:ftc265:2.1.9'
 
