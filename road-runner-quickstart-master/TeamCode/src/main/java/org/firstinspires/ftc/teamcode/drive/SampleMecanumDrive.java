@@ -186,6 +186,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     boolean fastDeposit = false;
 
+    boolean intakeDepositTransfer = false;
+    long startIntakeDepositTransfer;
+
     double targetDepositAngle = 0;
 
     double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
@@ -225,6 +228,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public SampleMecanumDrive(HardwareMap hardwareMap, boolean threeWheel, boolean t265, boolean mergeT265Odo) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
         long currentTime = System.currentTimeMillis();
+        startIntakeDepositTransfer = currentTime;
         lastTouchPoll = currentTime;
         firstTiltTime = currentTime;
         lastTiltPoll = currentTime;
@@ -666,7 +670,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setSlidesLength(2.5,0.2);
                     break;
                 case 9:
-                    intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true;
+                    intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true; intakeDepositTransfer = false;
                     Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                     break; // turn off the intake
             }
@@ -688,8 +692,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
             case 5: if (slideExtensionLength < 0 || System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
-            case 6: if (depositVal <= 30 || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
-            case 7: if (depositVal <= 30 || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break;
+            case 6: if (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
+            case 7: if (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break;
             case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break;
         }
     }
@@ -890,7 +894,20 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("slidesCase", slidesCase);
         packet.put("depositVal", depositVal);
         packet.put("averageDepositVal", sumDeposit/50.0);
-        packet.put("depositValDelta", depositVal/sumDeposit);
+        packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
+
+        double val = -Math.pow(2.67534908265,sumDeposit/-50000.0) + 1;
+        
+        packet.put("val", val);
+
+        if (depositVal/(sumDeposit/50.0) < val){
+            intakeDepositTransfer = true;
+            startIntakeDepositTransfer = System.currentTimeMillis();
+        }
+        packet.put("intake",intakeDepositTransfer);
+        if (System.currentTimeMillis() - startIntakeDepositTransfer > 1000){
+            intakeDepositTransfer = false;
+        }
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);

@@ -72,6 +72,9 @@ public class SensorTest extends LinearOpMode {
             //telemetry.addData("Imu heading", angle);
             //telemetry.addData("currentMotor", current);
             //telemetry.addData("volatage", drive.getBatteryVoltage());
+
+
+
             telemetry.addData("left Wall", val1);
             telemetry.addData("right Wall", val2);
             telemetry.addData("left Intake", drive.leftIntake.getVoltage());
