@@ -71,17 +71,10 @@ public class WarehouseAutoBlue extends LinearOpMode {
         }
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
-        Pose2d newEnd;
+        Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
         switch (numMinerals){
-            default:
-                newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
-                break;
-            case 3: case 4:
-                newEnd = new Pose2d(endPoint.getX() - 2, endPoint.getY(), endPoint.getHeading());
-                break;
-            case 5: case 6: case 7:
-                newEnd = new Pose2d(endPoint.getX() + 1, endPoint.getY(), endPoint.getHeading());
-                break;
+            case 3: case 4: newEnd = new Pose2d(endPoint.getX() - 2, endPoint.getY(), endPoint.getHeading()); break;
+            case 5: case 6: case 7: newEnd = new Pose2d(endPoint.getX() + 1, endPoint.getY(), endPoint.getHeading()); break;
         }
         if (numMinerals > 5){
             drive.slidesOffset = 5;

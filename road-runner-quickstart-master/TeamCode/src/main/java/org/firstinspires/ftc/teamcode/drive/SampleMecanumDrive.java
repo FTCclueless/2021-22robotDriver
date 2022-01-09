@@ -92,6 +92,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public AnalogInput rightIntake, leftIntake, depositSensor;
     public CRServo duckSpin, duckSpin2;
     double rightIntakeVal, leftIntakeVal, depositVal;
+    ArrayList<Double> depositHistory;
     public ColorSensor color, leftWall, rightWall;
     long lastTouchPoll, lastTiltPoll, tiltTime;
     Orientation imuAngle;
@@ -168,6 +169,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int openDepositTime = 400;
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 0.75; //0,-0.25
+
+    int intakeMinVal = 100;
 
 
     public double slideExtensionLength = 0;
@@ -390,6 +393,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         setSlidesLength(returnSlideLength);
 
         poseHistory = new ArrayList<>();
+        depositHistory = new ArrayList<>();
 
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
@@ -425,11 +429,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         depositVal = bulkData.getAnalogInputValue(depositSensor);
 
         if (intakeCase >= 1 && intakeCase <= 4){
-            if(currentIntake == 1 && leftIntakeVal <= 300){
+            if(currentIntake == 1){
                 sumIntakeSensor += leftIntakeVal;
                 intakeSensorLoops ++;
             }
-            if(currentIntake == -1 && rightIntakeVal <= 300){
+            if(currentIntake == -1){
                 sumIntakeSensor += rightIntakeVal;
                 intakeSensorLoops ++;
             }
@@ -465,8 +469,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         p[2] = forward-left+turn;
         p[3] = forward+left+turn;
         double max = 1;
-        for (int i = 0; i < p.length; i ++){
-            max = Math.max(Math.abs(p[i]),max);
+        for (double v : p) {
+            max = Math.max(Math.abs(v), max);
         }
         max *= 1.0/(1.0 - kStatic);
         for (int i = 0; i < p.length; i ++){
@@ -672,7 +676,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         int a = intakeCase;
         switch (a) {
             case 1: if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;}break;  // waiting for the servo to drop
-            case 2: if ((currentIntake == -1 && rightIntakeVal <= 240) || (currentIntake == 1 && leftIntakeVal <= 240)){intakeCase ++;}break; // wait for block in
+            case 2: if ((currentIntake == -1 && rightIntakeVal >= intakeMinVal) || (currentIntake == 1 && leftIntakeVal >= intakeMinVal)){intakeCase ++;}break; // wait for block in
             case 3:
                 if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){
                     intakeCase ++;
@@ -684,8 +688,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
             case 5: if (slideExtensionLength < 0 || System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
-            case 6: if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
-            case 7: if (depositVal <= 270 || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break;
+            case 6: if (depositVal <= 30 || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
+            case 7: if (depositVal <= 30 || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break;
             case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break;
         }
     }
@@ -865,6 +869,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             poseHistory.remove(0);
         }
 
+        depositHistory.add(depositVal);
+        if (depositHistory.size() > 50){
+            depositHistory.remove(0);
+        }
+        double sumDeposit = 0;
+        for (double v: depositHistory){
+            sumDeposit += v;
+        }
+
         packet.put("x", currentPose.getX());
         packet.put("y", currentPose.getY());
         packet.put("heading (deg)", Math.toDegrees(currentPose.getHeading()));
@@ -875,6 +888,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("v4bar Actual (deg)", Math.toDegrees(currentV4barAngle));
         packet.put("intakeCase", intakeCase);
         packet.put("slidesCase", slidesCase);
+        packet.put("depositVal", depositVal);
+        packet.put("averageDepositVal", sumDeposit/50.0);
+        packet.put("depositValDelta", depositVal/sumDeposit);
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
