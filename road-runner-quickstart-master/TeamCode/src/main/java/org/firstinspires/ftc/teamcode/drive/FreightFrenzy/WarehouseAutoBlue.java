@@ -39,8 +39,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
     double tagsize = 0.0762;    //0.166
 
     int ID_TAG_OF_INTEREST = 17; // Tag ID 17 from the 36h11 family
-    boolean tagOfInterestFound;
     AprilTagDetection tagOfInterest = null;
+    AprilTagDetection previousTag = null;
+    int previousTagCounter = 0;
     /* END CAMERA PARAMETERS */
 
     @Override
@@ -74,52 +75,54 @@ public class WarehouseAutoBlue extends LinearOpMode {
         // The INIT-loop: This REPLACES waitForStart()!
         while (!isStarted() && !isStopRequested()) {
             //Detecting AprilTags
+            tagOfInterest = null;
             ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
-            tagOfInterestFound = false;
             for(AprilTagDetection tag : currentDetections) {
                 if(tag.id == ID_TAG_OF_INTEREST) {
                     tagOfInterest = tag;
-                    tagOfInterestFound = true;
+                    previousTag = tag;
+                    previousTagCounter = 0;
                     break;
                 }
             }
+            if (previousTagCounter > 25) {  //If a tag was detected within the last 25 frames, count it
+                previousTag = null;
+            }
+            previousTagCounter++;
 
-            if (tagOfInterestFound) {
+            if (tagOfInterest != null) {
                 telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
                 tagToTelemetry(tagOfInterest);
             }
-            else if (tagOfInterest != null) {
-                telemetry.addLine("Tag no longer in view; previously found at:");
-                tagToTelemetry(tagOfInterest);
+            else if (previousTag != null) {
+                telemetry.addLine("Tag of interest sighted in the last few frames.\n\nLocation data:");
+                tagToTelemetry(previousTag);
             }
             else {
                 telemetry.addLine("No Tag.");
             }
-
             telemetry.update();
         }
 
         // BELOW STUFF HAPPENS AFTER START IS PRESSED
-        /* Update the telemetry with tag data */
-        if (tagOfInterest != null) {
-            telemetry.addLine("Tag snapshot:\n");
-            tagToTelemetry(tagOfInterest);
-            telemetry.update();
+        //TODO: figure out the correct thresholds (123 and 234 are fillers)
+        if (tagOfInterest == null && previousTag == null) { //No tag was ever detected
+            capNum = 2;
         }
         else {
-            telemetry.addLine("No tag detected.");
-            telemetry.update();
-        }
-        /* Set the randomization variable. This is based on the location of the last sighting of the tag. */
-        //TODO: figure out the correct thresholds using the telemetry (123 and 234 are fillers)
-        if(tagOfInterest.pose.x <= 123) {
-            capNum = 0;
-        }
-        else if(tagOfInterest.pose.x >= 123 && tagOfInterest.pose.x <= 234) {
-            capNum = 1;
-        }
-        else {  //Note: the tag is out of the FoV when the randomization is 3
-            capNum = 2;
+            if (tagOfInterest == null && previousTag != null) { //A tag was detected in the last few frames
+                tagOfInterest = previousTag;
+            }
+
+            if(tagOfInterest.pose.x <= 123) {
+                capNum = 0;
+            }
+            else if(tagOfInterest.pose.x >= 123 && tagOfInterest.pose.x <= 234) {
+                capNum = 1;
+            }
+            else {  //Note: the tag is out of the FoV when the randomization is 3
+                capNum = 2;
+            }
         }
 
         setUp(startingPose);
