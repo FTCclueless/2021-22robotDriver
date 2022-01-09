@@ -897,7 +897,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
 
         double val = -Math.pow(2.67534908265,sumDeposit/-50000.0) + 1;
-        
+
         packet.put("val", val);
 
         if (depositVal/(sumDeposit/50.0) < val){
