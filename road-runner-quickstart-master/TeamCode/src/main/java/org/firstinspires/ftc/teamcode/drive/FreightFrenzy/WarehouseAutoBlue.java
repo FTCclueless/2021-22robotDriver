@@ -24,7 +24,6 @@ import java.util.ArrayList;
 public class WarehouseAutoBlue extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = 1;
-    public int RANDOMIZATION = 3;  //default set to 3, which is the highest level of the shipping hub
 
     /* START CAMERA PARAMETERS */
     OpenCvCamera camera;
@@ -53,7 +52,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
         Pose2d endPoint = new Pose2d(12,65.25 * side,0);
 
         int capNum = 2;
-        //TODO: Implement ML here
 
         drive.currentIntake = side;
         drive.transferMineral = true;
@@ -115,13 +113,13 @@ public class WarehouseAutoBlue extends LinearOpMode {
         /* Set the randomization variable. This is based on the location of the last sighting of the tag. */
         //TODO: figure out the correct thresholds using the telemetry (123 and 234 are fillers)
         if(tagOfInterest.pose.x <= 123) {
-            RANDOMIZATION = 1;
+            capNum = 0;
         }
         else if(tagOfInterest.pose.x >= 123 && tagOfInterest.pose.x <= 234) {
-            RANDOMIZATION = 2;
+            capNum = 1;
         }
         else {  //Note: the tag is out of the FoV when the randomization is 3
-            RANDOMIZATION = 3;
+            capNum = 2;
         }
 
         setUp(startingPose);

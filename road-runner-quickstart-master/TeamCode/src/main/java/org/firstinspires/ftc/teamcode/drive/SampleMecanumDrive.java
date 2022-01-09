@@ -896,7 +896,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("averageDepositVal", sumDeposit/50.0);
         packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
 
-        double val = -Math.pow(2.67534908265,sumDeposit/-50000.0) + 1;
+        double val = Math.pow(10,(sumDeposit/(1000*50))*0.266769051121 - 0.896739150596);
+        val += (1.0-val)*0.3;
 
         packet.put("val", val);
 
