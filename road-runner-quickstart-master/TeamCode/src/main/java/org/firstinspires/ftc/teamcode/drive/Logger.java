@@ -15,7 +15,7 @@ public class Logger {
 
     private static final String BASE_FOLDER_NAME = "FIRST";
     private Writer fileWriter;
-    private String line;
+    private String line = "";
     private boolean logTime;
     private long startTime;
     private boolean disabled = false;

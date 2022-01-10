@@ -112,6 +112,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         }
         /* Set the randomization variable. This is based on the location of the last sighting of the tag. */
         //TODO: figure out the correct thresholds (123 and 234 are fillers)
+        /*
         if(tagOfInterest.pose.x <= 123) {
             capNum = 0;
         }
@@ -121,15 +122,18 @@ public class WarehouseAutoRed extends LinearOpMode {
         else {  //Note: the tag is out of the FoV when the randomization is 3
             capNum = 2;
         }
+         */
 
         setUp(startingPose);
 
         Logger a = new Logger("Alliance",false);
-        a.addData("red");
+        String b = "red";
+        a.addData(b);
         a.update();
         a.close();
 
         Long start = System.currentTimeMillis();
+        drive.slidesOffset = 0;
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
@@ -137,6 +141,7 @@ public class WarehouseAutoRed extends LinearOpMode {
             driveOut(endPoint,numMinerals);
             numMinerals ++;
         }
+        drive.slidesOffset = 0;
         driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 1, 1000, 3);
         drive.setMotorPowers( 0 , 0, 0, 0);
     }
@@ -150,20 +155,20 @@ public class WarehouseAutoRed extends LinearOpMode {
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), true,1, 0.8,500,1);
         driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3); // 0.5
-        intakeMineral(0.35,1500);
+        intakeMineral(0.35,750);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
-        double i = -1;
-        if (numMinerals < 3){
-            i = 0;
+        Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
+        switch (numMinerals){
+            case 3: case 4: newEnd = new Pose2d(endPoint.getX() - 2, endPoint.getY(), endPoint.getHeading()); break;
+            case 5: case 6: case 7: newEnd = new Pose2d(endPoint.getX() + 1, endPoint.getY(), endPoint.getHeading()); break;
         }
-        else if (numMinerals < 6){
-            i = -2;
+        if (numMinerals > 5){
+            drive.slidesOffset = 5;
         }
-        Pose2d newEnd = new Pose2d(endPoint.getX() + i, endPoint.getY(), endPoint.getHeading());
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
         driveToPoint(newEnd, false,2, 0.5,1000,3);

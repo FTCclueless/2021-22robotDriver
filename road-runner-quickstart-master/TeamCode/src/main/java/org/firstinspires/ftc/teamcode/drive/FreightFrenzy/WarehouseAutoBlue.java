@@ -112,6 +112,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         }
         /* Set the randomization variable. This is based on the location of the last sighting of the tag. */
         //TODO: figure out the correct thresholds using the telemetry (123 and 234 are fillers)
+        /*
         if(tagOfInterest.pose.x <= 123) {
             capNum = 0;
         }
@@ -121,11 +122,13 @@ public class WarehouseAutoBlue extends LinearOpMode {
         else {  //Note: the tag is out of the FoV when the randomization is 3
             capNum = 2;
         }
+         */
 
         setUp(startingPose);
 
         Logger a = new Logger("Alliance",false);
-        a.addData("blue");
+        String b = "blue";
+        a.addData(b);
         a.update();
         a.close();
 
