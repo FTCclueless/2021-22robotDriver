@@ -28,6 +28,9 @@ public class Teleop extends LinearOpMode {
     SampleMecanumDrive drive;
 
     int hub = 0;
+
+    boolean firstUpdate = false;
+
     Pose2d endPoint = new Pose2d();
     Pose2d hubLocation = new Pose2d();
     double height = 0;
@@ -83,6 +86,17 @@ public class Teleop extends LinearOpMode {
         Reader r = new Reader();
         String info = r.readFile("Alliance");
 
+        switch (info){
+            case "blue":
+                side = 1;
+                intake = false;
+                break;
+            case "red":
+                side = -1;
+                intake = true;
+                break;
+        }
+
         while (!isStarted()){
             if (gamepad1.dpad_up){
                 side = -1;
@@ -115,6 +129,7 @@ public class Teleop extends LinearOpMode {
                 drive.slidesCase = 0;
                 drive.intakeCase = 0;
                 drive.currentIntake = 0;
+                firstUpdate = false;
             }
             if (gamepad1.x){ //Finish intaking
                 drive.servos.get(1).setPosition(drive.leftIntakeRaise);
@@ -125,10 +140,12 @@ public class Teleop extends LinearOpMode {
             updateEndgame();
 
             if(gamepad1.right_bumper) {//Starts the deposit sequence
+                firstUpdate = true;
                 drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             boolean currentIntake = gamepad1.right_trigger >= 0.5;
             if(currentIntake && !lastIntake) {//Starts the intake sequence
+                firstUpdate = true;
                 if (drive.intakeCase == 1 || drive.intakeCase == 2) { //Can cancel intake if it hasn't intaked yet
                     drive.intakeCase = 0;
                     drive.servos.get(0).setPosition(drive.rightIntakeRaise);
@@ -140,6 +157,7 @@ public class Teleop extends LinearOpMode {
             }
             lastIntake = currentIntake;
             if (gamepad2.right_trigger >= 0.5){//Makes it deposit
+                firstUpdate = true;
                 drive.deposit();
                 //Updates the target location for auto movement upon deposit
                 if (auto.getToggleState()) {
@@ -318,6 +336,7 @@ public class Teleop extends LinearOpMode {
         boolean a = gamepad1.a;
         auto.update(a);
         if (a){
+            firstUpdate = true;
             if (!firstAutoUpdate){ // Only updates on first time
                 if (drive.currentPose.getY() < 56){ //checks to see if you actually want to go for the alliance hub instead of the shared hub
                     hub = 1;
@@ -385,7 +404,9 @@ public class Teleop extends LinearOpMode {
             case 0:
                 endPoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
                 hubLocation = new Pose2d(48, 0);
-                drive.currentIntake = -side;
+                if (firstUpdate) {
+                    drive.currentIntake = -side;
+                }
                 intake = side == 1;
                 height = 2;
                 radius = 2;
@@ -416,7 +437,9 @@ public class Teleop extends LinearOpMode {
                 hubLocation = new Pose2d(-12.0, 24.0*side);
 
                 intake = side == -1;
-                drive.currentIntake = side;
+                if (firstUpdate) {
+                    drive.currentIntake = side;
+                }
                 break;
         }
     }

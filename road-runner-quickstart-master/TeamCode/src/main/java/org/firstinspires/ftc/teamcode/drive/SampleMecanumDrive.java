@@ -170,7 +170,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 0.75; //0,-0.25
 
-    int intakeMinVal = 100;
+    int intakeMinVal = 500;
 
 
     public double slideExtensionLength = 0;
@@ -200,7 +200,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     double sP = sF * 0.1;
     double sI = sF * 0.01;
     double sD = 0;
-    double sPP = 20; //was 15. If the slides are too violent, stop this.
+    double sPP = 35;
 
     public double leftIntakeDrop;
     public double leftIntakeRaise;
@@ -687,6 +687,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
                 if (!transferMineral){
                     setDepositAngle(depositInterfaceAngle);
+                    setDepositAngle(depositInterfaceAngle);
                     setV4barOrientation(v4barInterfaceAngle);
                 }
                 break;  // waiting for the servo to go up && slides to be back 200 before
@@ -887,14 +888,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("heading (deg)", Math.toDegrees(currentPose.getHeading()));
         packet.put("velX", relCurrentVelocity.getX());
         packet.put("velY", relCurrentVelocity.getY());
+        /*
         packet.put("velHeading (deg)", Math.toDegrees(relCurrentVelocity.getHeading()));
         packet.put("v4bar (deg)", Math.toDegrees(targetV4barAngle));
         packet.put("v4bar Actual (deg)", Math.toDegrees(currentV4barAngle));
+         */
         packet.put("intakeCase", intakeCase);
         packet.put("slidesCase", slidesCase);
         packet.put("depositVal", depositVal);
         packet.put("averageDepositVal", sumDeposit/50.0);
         packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
+        packet.put("turret Heading", turretHeading);
+        packet.put("slides length", slideExtensionLength);
 
         double val = Math.pow(10,(sumDeposit/(1000*50))*0.266769051121 - 0.896739150596);
         val += (1.0-val)*0.3;
