@@ -200,7 +200,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     double sP = sF * 0.1;
     double sI = sF * 0.01;
     double sD = 0;
-    double sPP = 35;
+    double sPP = 20;
 
     public double leftIntakeDrop;
     public double leftIntakeRaise;
