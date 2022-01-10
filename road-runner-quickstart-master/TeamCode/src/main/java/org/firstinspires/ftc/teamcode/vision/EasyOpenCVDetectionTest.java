@@ -16,6 +16,8 @@ public class EasyOpenCVDetectionTest extends LinearOpMode {
     OpenCvCamera camera;
     EasyOpenCVPipeline pipeline;
     double detectionX;
+    double previousDetectionX = -1;
+    int previousDetectionLoopsCounter = 0;
 
     int RANDOMIZATION = 3;  //default value=3 (shipping hub high level)
 
@@ -39,22 +41,41 @@ public class EasyOpenCVDetectionTest extends LinearOpMode {
         while (!isStarted() && !isStopRequested()) {
             detectionX = pipeline.getLatestDetections();
             telemetry.addLine("TSE X = " + detectionX);
+            if (detectionX > 0) {   //Not nothing was detected
+                previousDetectionX = detectionX;
+                previousDetectionLoopsCounter = 0;
+            }
+            if (previousDetectionLoopsCounter > 25) {
+                previousDetectionX = -1;
+                previousDetectionLoopsCounter = 0;
+            }
+            previousDetectionLoopsCounter++;
+        }
 
-            //TODO: figure out the correct thresholds using the telemetry (123 and 234 are fillers)
+        // BELOW STUFF HAPPENS AFTER START IS PRESSED
+        //TODO: figure out the correct thresholds using the telemetry (123 and 234 are fillers)
+        if (detectionX < 0 && previousDetectionX < 0) { //This means nothing was recently detected
+            RANDOMIZATION = 3;
+        }
+        else {
+            if (detectionX < 0 && previousDetectionX > 0) { //Something was detected in the last few frames
+                detectionX = previousDetectionX;
+            }
+
+            //Logic for Blue Alliance
             if (detectionX > 234 || detectionX < 0) {
                 RANDOMIZATION = 3;
             }
-            else if (detectionX < 234 && detectionX > 123) {   //this means TSE was found previously, but not anymore
+            else if (detectionX < 234 && detectionX > 123) {
                 RANDOMIZATION = 2;
             }
             else {
                 RANDOMIZATION = 1;
             }
-            telemetry.addLine("RANDOMIZATION: " + RANDOMIZATION);
-            telemetry.update();
         }
+        telemetry.addLine("RANDOMIZATION: " + RANDOMIZATION);
+        telemetry.update();
 
-        // BELOW STUFF HAPPENS AFTER START IS PRESSED
 
         // temporary; prevent auto from ending immediately
         while (opModeIsActive()) {
