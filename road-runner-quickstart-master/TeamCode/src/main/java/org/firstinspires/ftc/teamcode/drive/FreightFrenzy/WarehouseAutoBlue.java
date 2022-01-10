@@ -101,7 +101,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
             else {
                 telemetry.addLine("No Tag.");
             }
-
             telemetry.update();
         }
 
