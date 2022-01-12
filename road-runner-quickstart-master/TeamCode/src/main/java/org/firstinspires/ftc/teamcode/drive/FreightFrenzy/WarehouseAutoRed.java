@@ -138,8 +138,12 @@ public class WarehouseAutoRed extends LinearOpMode {
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
+            long lastCycleStart = System.currentTimeMillis();
             driveIn(endPoint,numMinerals);
             driveOut(endPoint,numMinerals);
+            while (System.currentTimeMillis() - lastCycleStart < 1000){
+                drive.update();
+            }
             numMinerals ++;
         }
         drive.slidesOffset = 0;
