@@ -149,6 +149,8 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.slidesOffset = 0;
         driveToPoint(new Pose2d(45, endPoint.getY(),0), false,1, 1, 1000, 3);
         drive.setMotorPowers( 0 , 0, 0, 0);
+        drive.slides.setPower(0);
+        drive.slides2.setPower(0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
@@ -208,6 +210,10 @@ public class WarehouseAutoRed extends LinearOpMode {
     public void waitForDeposit(Pose2d target){
         drive.targetPose = target;
         drive.targetRadius = 0.25;
+        while (drive.slidesCase > 4 && opModeIsActive()) {
+            drive.update();
+            drive.startDeposit(target, new Pose2d(-12.0, 24.0 * Math.signum(target.getY())),13.5,3);
+        }
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.deposit();
             drive.update();
@@ -234,6 +240,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.targetPose = target;
         drive.targetRadius = error;
         long start = System.currentTimeMillis();
+        drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
         while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
@@ -260,6 +267,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.targetPose = target;
         drive.targetRadius = error;
         long start = System.currentTimeMillis();
+        drive.update();
         while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > error || Math.abs(drive.currentPose.getY()-target.getY()) > error || Math.abs(drive.currentPose.getHeading() - target.getHeading()) > Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
             drive.update();
             drive.updateMotors(drive.getRelError(target), power, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), error);

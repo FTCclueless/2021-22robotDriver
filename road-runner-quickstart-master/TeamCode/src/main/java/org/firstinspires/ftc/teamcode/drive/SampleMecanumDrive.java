@@ -198,11 +198,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     double tI = tF * 0.01;
     double tD = 0;
     double tPP = 15;
-    double sF = 32767.0 / (223.0 / 60.0 * 751.83);
-    double sP = sF * 0.1;
-    double sI = sF * 0.01;
-    double sD = 0;
-    double sPP = 20;
 
     public double leftIntakeDrop;
     public double leftIntakeRaise;
@@ -309,11 +304,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setTargetPosition(0);
-        //slides.setTargetPosition(0);
-        //slides2.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        //slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        //slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -381,10 +372,6 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
-        //slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
-        //slides.setPositionPIDFCoefficients(sPP);
-        //slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
-        //slides2.setPositionPIDFCoefficients(sPP);
 
         leftIntakeDrop = 0.083;
         leftIntakeRaise = 0.739;
@@ -792,21 +779,11 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void setSlidesLength(double inches){
         targetSlidesPose = inches;
         slidesPower = 1;
-        /*
-        slides.setPower(1.0);slides2.setPower(1.0);
-        slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
-        slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
-         */
     }
 
     public void setSlidesLength(double inches, double power){
         targetSlidesPose = inches;
         slidesPower = power;
-        /*
-        slides.setPower(power);slides2.setPower(power);
-        slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
-        slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
-         */
     }
 
     public void setTurretTarget(double radians){
