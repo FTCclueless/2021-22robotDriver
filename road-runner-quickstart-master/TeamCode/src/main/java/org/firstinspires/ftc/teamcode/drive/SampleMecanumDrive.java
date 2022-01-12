@@ -157,6 +157,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double depositInterfaceAngle = Math.toRadians(65);//40, 70
     public double depositTransferAngle = Math.toRadians(135);
 
+    double targetSlidesPose = 0;
+    double slidesPower = 0;
 
     public int dropIntakeTime = 300;
     public double intakePower = -1;
@@ -307,11 +309,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setTargetPosition(0);
-        slides.setTargetPosition(0);
-        slides2.setTargetPosition(0);
+        //slides.setTargetPosition(0);
+        //slides2.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
@@ -377,10 +381,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
-        slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
-        slides.setPositionPIDFCoefficients(sPP);
-        slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
-        slides2.setPositionPIDFCoefficients(sPP);
+        //slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
+        //slides.setPositionPIDFCoefficients(sPP);
+        //slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
+        //slides2.setPositionPIDFCoefficients(sPP);
 
         leftIntakeDrop = 0.083;
         leftIntakeRaise = 0.739;
@@ -408,8 +412,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void initT265(HardwareMap hardwareMap){
@@ -651,10 +655,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 5:
                     setDepositAngle(depositInterfaceAngle);
                     setV4barOrientation(v4barInterfaceAngle);
-                    slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    slides.setPower(-0.3);
-                    slides2.setPower(-0.3);
+                    //slides.setPower(-0.3);
+                    //slides2.setPower(-0.3);
                 case 6:
                     slides.setPower(0);
                     slides2.setPower(0);
@@ -665,8 +667,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                 break;
                 case 8:
                     setDepositAngle(depositTransferAngle);
-                    slides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    slides2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     setSlidesLength(2.5,0.2);
                     break;
                 case 9:
@@ -790,20 +790,39 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void setSlidesLength(double inches){
+        targetSlidesPose = inches;
+        slidesPower = 1;
+        /*
         slides.setPower(1.0);slides2.setPower(1.0);
         slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
         slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
+         */
     }
 
     public void setSlidesLength(double inches, double power){
+        targetSlidesPose = inches;
+        slidesPower = power;
+        /*
         slides.setPower(power);slides2.setPower(power);
         slides.setTargetPosition((int)(inches*slideTickToInch)); slides.setPower(1.0);
         slides2.setTargetPosition((int)(inches*slideTickToInch)); slides2.setPower(1.0);
+         */
     }
 
     public void setTurretTarget(double radians){
         turret.setPower(1.0);
         turret.setTargetPosition((int)(radians*turretTickToRadians));turret.setPower(1.0);
+    }
+
+    public void updateSlidesLength(){
+        if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.5){
+            slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * Math.abs(slidesPower));
+            slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * Math.abs(slidesPower));
+        }
+        else {
+            slides.setPower(0);
+            slides2.setPower(0);
+        }
     }
 
     public void updateScoring(){
@@ -853,6 +872,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         updateSensor();
         updateVisualizer();
+
+        updateSlidesLength();
 
         updateDepositAngle();
         updateV4barAngle(loopSpeed);

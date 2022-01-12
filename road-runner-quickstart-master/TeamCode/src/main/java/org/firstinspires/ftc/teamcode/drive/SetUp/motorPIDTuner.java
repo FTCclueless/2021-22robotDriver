@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.drive.SetUp;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
@@ -64,10 +65,10 @@ public class motorPIDTuner extends LinearOpMode {
                 case "slides":
                     currentPos = drive.slideExtensionLength;
                     if(Math.abs(drive.slideExtensionLength - 5) <= offset && System.currentTimeMillis() - start >= time){
-                        targetPos = 40.41;
+                        targetPos = 20;
                         start = System.currentTimeMillis();
                     }
-                    if(Math.abs(drive.slideExtensionLength - 40.41) <= offset && System.currentTimeMillis() - start >= time){
+                    if(Math.abs(drive.slideExtensionLength - 20) <= offset && System.currentTimeMillis() - start >= time){
                         targetPos = 5;
                         start = System.currentTimeMillis();
                     }
