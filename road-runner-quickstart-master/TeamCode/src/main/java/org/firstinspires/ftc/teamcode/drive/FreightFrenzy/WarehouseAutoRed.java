@@ -70,6 +70,11 @@ public class WarehouseAutoRed extends LinearOpMode {
             public void onOpened() {
                 camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT);
             }
+
+            @Override
+            public void onError(int errorCode) {
+                // Do nothing
+            }
         });
         /* END CAMERA INITIALIZATION */
 

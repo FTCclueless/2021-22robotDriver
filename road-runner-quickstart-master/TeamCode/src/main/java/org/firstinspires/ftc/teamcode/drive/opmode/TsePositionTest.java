@@ -51,7 +51,7 @@ public class TsePositionTest extends LinearOpMode
             @Override
             public void onError(int errorCode)
             {
-                phoneCam.stopStreaming();
+                //phoneCam.stopStreaming();
                 telemetry.addData("Camera not Connected", "");
             }
         });
