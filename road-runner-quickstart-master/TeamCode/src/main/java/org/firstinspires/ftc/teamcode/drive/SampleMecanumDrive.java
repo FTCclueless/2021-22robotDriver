@@ -704,7 +704,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                             if (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 3){
                                 setDepositAngle(Math.toRadians(165)); //148
                             }
-                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.75);
+                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.5 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
                         } else {
                             setDepositAngle(depositTransferAngle);
                             setSlidesLength(targetSlideExtensionLength + slidesOffset);
