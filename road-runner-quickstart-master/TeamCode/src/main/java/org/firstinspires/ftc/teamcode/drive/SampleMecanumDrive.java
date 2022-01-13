@@ -726,11 +726,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     if (System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
-                case 6 : case 7: case 8: case 9:
-                    if (slidesCase >= 6) {
+                case 6: if (System.currentTimeMillis() - slideTime >= 1000){slidesCase ++;} break;
+                case 7 : case 8: case 9: case 10:
+                    if (slidesCase >= 8) {
                         setSlidesLength(returnSlideLength, 0.7);
                     }
-                    if (slidesCase <= 6) {
+                    if (slidesCase <= 8) {
                         setTurretTarget(targetTurretHeading + turretOffset);
                         setV4barDeposit(depositInterfaceAngle + Math.toRadians(10),v4barInterfaceAngle - Math.toRadians(3));
                     }
@@ -739,12 +740,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setV4barOrientation(v4barInterfaceAngle);
                         setDepositAngle(depositInterfaceAngle);
                     }
-                    if (slidesCase == 6 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
-                    if (slidesCase == 7 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
-                    if (slidesCase == 8 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
-                    if (slidesCase == 9 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
+                    if (slidesCase == 7 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
+                    if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
+                    if (slidesCase == 9 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
+                    if (slidesCase == 10 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
                     break;
-                case 10: //resets the slidesCase & officially says mineral has not been transferred
+                case 11: //resets the slidesCase & officially says mineral has not been transferred
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; fastDeposit = false;
                     break;
             }

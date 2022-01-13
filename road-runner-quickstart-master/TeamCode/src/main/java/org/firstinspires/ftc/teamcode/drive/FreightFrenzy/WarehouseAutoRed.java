@@ -199,7 +199,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         waitForDeposit();
     }
     public void waitForDeposit(){
-        while (drive.slidesCase <= 4 && opModeIsActive()) {
+        while (drive.slidesCase <= 5 && opModeIsActive()) {
             drive.deposit();
             drive.update();
             if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
@@ -213,7 +213,7 @@ public class WarehouseAutoRed extends LinearOpMode {
             drive.update();
             drive.startDeposit(target, new Pose2d(-12.0, 24.0 * Math.signum(target.getY())),13.5,3);
         }
-        while (drive.slidesCase <= 4 && opModeIsActive()) {
+        while (drive.slidesCase <= 5 && opModeIsActive()) {
             drive.deposit();
             drive.update();
             Pose2d error = drive.getRelError(target);
