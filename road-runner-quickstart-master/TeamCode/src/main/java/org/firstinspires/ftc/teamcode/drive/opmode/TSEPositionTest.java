@@ -21,7 +21,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
  * the sample regions over the first 3 stones.
  */
 @TeleOp
-public class TsePositionTest extends LinearOpMode
+public class TSEPositionTest extends LinearOpMode
 {
     OpenCvInternalCamera phoneCam;
     FreightFrenzyDetectionPipeline pipeline;
@@ -71,7 +71,7 @@ public class TsePositionTest extends LinearOpMode
     public static class FreightFrenzyDetectionPipeline extends OpenCvPipeline
     {
         /*
-         * An enum to define the skystone position
+         * An enum to define the TSE position
          */
         public enum CapstonePosition
         {
