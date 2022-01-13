@@ -36,10 +36,6 @@ public class motorPIDTuner extends LinearOpMode {
 
             drive.turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
             drive.turret.setPositionPIDFCoefficients(tPP);
-            drive.slides.setVelocityPIDFCoefficients(sP,sI,sD,sF);
-            drive.slides.setPositionPIDFCoefficients(sPP);
-            drive.slides2.setVelocityPIDFCoefficients(sP,sI,sD,sF);
-            drive.slides2.setPositionPIDFCoefficients(sPP);
 
             if (gamepad1.a){
                 state = "idle";
@@ -72,7 +68,7 @@ public class motorPIDTuner extends LinearOpMode {
                         targetPos = 5;
                         start = System.currentTimeMillis();
                     }
-                    drive.setSlidesLength(targetPos);
+                    drive.setSlidesLength(targetPos,1);
                     break;
                 case "turret":
                     currentPos = Math.toDegrees(drive.turretHeading);

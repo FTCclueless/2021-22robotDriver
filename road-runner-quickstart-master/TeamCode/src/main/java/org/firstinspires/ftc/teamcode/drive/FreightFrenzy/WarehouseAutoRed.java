@@ -62,6 +62,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         /* START CAMERA INITIALIZATION */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        sleep(1000);
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
         camera.setPipeline(aprilTagDetectionPipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -159,9 +160,9 @@ public class WarehouseAutoRed extends LinearOpMode {
         double angle = (numMinerals % a) * Math.toRadians(-20) * Math.signum(endPoint.getY());
         double x = 42 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
-        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), false,1, 0.8,500,1);
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.5,500,3); // 0.5
+        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), false,1, 0.9,500,1);
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.9,500,1);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.65,500,3); // 0.5
         intakeMineral(0.35,750);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
@@ -183,7 +184,7 @@ public class WarehouseAutoRed extends LinearOpMode {
          */
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
-        driveToPoint(newEnd, false,2, 0.5,1000,3);
+        driveToPoint(newEnd, false,2, 0.65,1000,3);
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
@@ -201,10 +202,8 @@ public class WarehouseAutoRed extends LinearOpMode {
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.deposit();
             drive.update();
-            if (drive.intakeCase == 9){
-                if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
-                if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
-            }
+            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
         }
     }
     public void waitForDeposit(Pose2d target){

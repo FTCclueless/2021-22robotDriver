@@ -162,15 +162,15 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public int dropIntakeTime = 300;
     public double intakePower = -1;
-    public int liftIntakeTime = 450;
-    public int transfer1Time = 350; //400
-    public int transfer2Time = 250; //400
+    public int liftIntakeTime = 500; //450
+    public int transfer1Time = 350;
+    public int transfer2Time = 250;
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.85;
     public int closeDepositTime = 250; // 300
     public int openDepositTime = 400;
     public int effectiveDepositTime = openDepositTime;
-    public double returnSlideLength = 0.75; //0,-0.25
+    public double returnSlideLength = 1.25; //0.75
 
     int intakeMinVal = 500;
 
@@ -642,8 +642,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 5:
                     setDepositAngle(depositInterfaceAngle);
                     setV4barOrientation(v4barInterfaceAngle);
-                    //slides.setPower(-0.3);
-                    //slides2.setPower(-0.3);
                 case 6:
                     slides.setPower(0);
                     slides2.setPower(0);
@@ -695,15 +693,22 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    if (deposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) > 5) {
-                        effectiveDepositTime = openDepositTime - 50;
+                    if (deposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) > 10) {
+                        effectiveDepositTime = openDepositTime - 75;
                         fastDeposit = true;
                     }
                     else if (!fastDeposit){effectiveDepositTime = openDepositTime;}
-                    if (deposit && fastDeposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 5){setDepositAngle(Math.toRadians(148));}
-                    else{setDepositAngle(depositTransferAngle);}
-
-                    if (slidesCase > 1) {setSlidesLength(targetSlideExtensionLength + slidesOffset);}
+                    if (slidesCase > 1) {
+                        if (fastDeposit && (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 10)) {
+                            if (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 3){
+                                setDepositAngle(Math.toRadians(165)); //148
+                            }
+                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.75);
+                        } else {
+                            setDepositAngle(depositTransferAngle);
+                            setSlidesLength(targetSlideExtensionLength + slidesOffset);
+                        }
+                    }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slideExtensionLength > Math.min(5,slideExtensionLength - 5)){setV4barOrientation(targetV4barOrientation);}
 
@@ -792,9 +797,19 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateSlidesLength(){
-        if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.5){
-            slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * Math.abs(slidesPower));
-            slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * Math.abs(slidesPower));
+        if (Math.abs(targetSlidesPose - slideExtensionLength) >= 3){
+            if (targetSlidesPose > slideExtensionLength) {
+                slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80)));
+                slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80)));
+            }
+            else {
+                slides.setPower(-0.5);
+                slides2.setPower(-0.5);
+            }
+        }
+        else if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.5){
+            slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.3);
+            slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * 0.3);
         }
         else {
             slides.setPower(0);
