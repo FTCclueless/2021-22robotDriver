@@ -21,15 +21,12 @@ import org.openftc.easyopencv.OpenCvPipeline;
  * the sample regions over the first 3 stones.
  */
 @TeleOp
-public class TSEPositionTest extends LinearOpMode
-{
+public class TSEPositionTest extends LinearOpMode {
     OpenCvInternalCamera phoneCam;
     FreightFrenzyDetectionPipeline pipeline;
 
     @Override
-    public void runOpMode()
-    {
-
+    public void runOpMode() throws InterruptedException {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
         pipeline = new FreightFrenzyDetectionPipeline();
