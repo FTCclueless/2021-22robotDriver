@@ -627,11 +627,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         if (lastIntakeCase != intakeCase) {
             switch (intakeCase) {
-                case 1: // rotate the servo down
-                    intakeSensorLoops = 1; sumIntakeSensor = 0;
-                    if(currentIntake == 1){servos.get(1).setPosition(leftIntakeDrop);}
-                    if(currentIntake == -1){servos.get(0).setPosition(rightIntakeDrop);}
-                    break;
+                case 1: intakeSensorLoops = 1; sumIntakeSensor = 0;break; // rotate the servo down
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3:
                     intake.setPower(intakePower * 0.85);
@@ -664,8 +660,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         lastIntakeCase = intakeCase;
         int a = intakeCase;
         switch (a) {
-            case 1: if (System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;}break;  // waiting for the servo to drop
-            case 2: if ((currentIntake == -1 && rightIntakeVal >= intakeMinVal) || (currentIntake == 1 && leftIntakeVal >= intakeMinVal)){intakeCase ++;}break; // wait for block in
+            case 1: case 2:
+                if (intakeCase == 1 && System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;}// waiting for the servo to drop
+                if (intakeCase == 2 && (currentIntake == -1 && rightIntakeVal >= intakeMinVal) || (currentIntake == 1 && leftIntakeVal >= intakeMinVal)){intakeCase ++;}
+
+                if(currentIntake == 1){servos.get(1).setPosition(leftIntakeDrop);}
+                if(currentIntake == -1){servos.get(0).setPosition(rightIntakeDrop);}
+            break; // wait for block in
             case 3:
                 if (System.currentTimeMillis() - intakeTime >= liftIntakeTime && !transferMineral){
                     intakeCase ++;
@@ -717,13 +718,15 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;}
                     break;
                 case 4:
+                    if (System.currentTimeMillis() - slideTime >= 100){slidesCase ++;} break;
+                case 5:
                     setDepositAngle(Math.toRadians(180) - depositAngle);
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     if (System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
-                case 5 : case 6: case 7: case 8:
+                case 6 : case 7: case 8: case 9:
                     if (slidesCase >= 6) {
                         setSlidesLength(returnSlideLength, 0.7);
                     }
@@ -736,12 +739,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setV4barOrientation(v4barInterfaceAngle);
                         setDepositAngle(depositInterfaceAngle);
                     }
-                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
-                    if (slidesCase == 6 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
-                    if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
-                    if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
+                    if (slidesCase == 6 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
+                    if (slidesCase == 7 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
+                    if (slidesCase == 8 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
+                    if (slidesCase == 9 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
                     break;
-                case 9: //resets the slidesCase & officially says mineral has not been transferred
+                case 10: //resets the slidesCase & officially says mineral has not been transferred
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; fastDeposit = false;
                     break;
             }
