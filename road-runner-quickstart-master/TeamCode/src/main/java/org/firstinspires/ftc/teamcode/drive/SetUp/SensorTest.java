@@ -77,6 +77,8 @@ public class SensorTest extends LinearOpMode {
 
             telemetry.addData("left Wall", val1);
             telemetry.addData("right Wall", val2);
+            telemetry.addData("left Color",drive.leftWall.argb());
+            telemetry.addData("right Color",drive.rightWall.argb());
             telemetry.addData("left Intake", drive.leftIntake.getVoltage());
             telemetry.addData("right Intake", drive.rightIntake.getVoltage());
             telemetry.addData("depo", drive.depositSensor.getVoltage());

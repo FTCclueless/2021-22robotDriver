@@ -172,7 +172,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 1.25; //0.75
 
-    int intakeMinVal = 500;
+    int intakeMinValRight = 500;
+    int intakeMinValLeft = 100;
 
 
     public double slideExtensionLength = 0;
@@ -662,7 +663,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         switch (a) {
             case 1: case 2:
                 if (intakeCase == 1 && System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;}// waiting for the servo to drop
-                if (intakeCase == 2 && (currentIntake == -1 && rightIntakeVal >= intakeMinVal) || (currentIntake == 1 && leftIntakeVal >= intakeMinVal)){intakeCase ++;}
+                if (intakeCase == 2 && (currentIntake == -1 && rightIntakeVal >= intakeMinValRight) || (currentIntake == 1 && leftIntakeVal >= intakeMinValLeft)){intakeCase ++;}
 
                 if(currentIntake == 1){servos.get(1).setPosition(leftIntakeDrop);}
                 if(currentIntake == -1){servos.get(0).setPosition(rightIntakeDrop);}
@@ -718,13 +719,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;}
                     break;
                 case 4:
-                    if (System.currentTimeMillis()-slideTime >= 1000) {
+                    if (System.currentTimeMillis()-slideTime >= 30) {
                         setDepositAngle(Math.toRadians(180) - depositAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
-                    if (System.currentTimeMillis() - slideTime >= effectiveDepositTime + 100 + 1000){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
+                    if (System.currentTimeMillis() - slideTime >= effectiveDepositTime + 30){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (slidesCase >= 6) {
@@ -1143,8 +1144,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         double extraOffset = 5.0;
         double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
         if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.alpha() >= 120;
-            boolean rightSensor = rightWall.alpha() >= 200;
+            boolean leftSensor = leftWall.argb() >= 100000000;
+            boolean rightSensor = rightWall.argb() >= 50000000;
             double heading = clipHeading(currentPose.getHeading());
             if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
                 double angleOffset = 15;

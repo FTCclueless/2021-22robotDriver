@@ -67,9 +67,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         camera.setPipeline(aprilTagDetectionPipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
-            public void onOpened() {
-                camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT);
-            }
+            public void onOpened() { camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT); }
         });
         /* END CAMERA INITIALIZATION */
 
@@ -156,13 +154,13 @@ public class WarehouseAutoRed extends LinearOpMode {
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
         int a = 3;
-        int b = (numMinerals/(a - 1));
+        int b = (numMinerals/a);
         double angle = (numMinerals % a) * Math.toRadians(-20) * Math.signum(endPoint.getY());
         double x = 42 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), false,1, 0.9,500,1);
         driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.9,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.65,500,3); // 0.5
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.65,500,3);
         intakeMineral(0.35,750);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
@@ -174,14 +172,6 @@ public class WarehouseAutoRed extends LinearOpMode {
             case 2: case 3: newEnd = new Pose2d(endPoint.getX() - 1, endPoint.getY(), endPoint.getHeading()); break;
             case 4: case 5: case 6: case 7: newEnd = new Pose2d(endPoint.getX() + 1, endPoint.getY(), endPoint.getHeading()); break;
         }
-        /*
-        if (numMinerals >= 6){
-            drive.slidesOffset = 3;
-        }
-        else if (numMinerals >= 4){
-            drive.slidesOffset = 5 - (numMinerals-4.0) * 0.5;
-        }
-         */
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
         driveToPoint(newEnd, false,2, 0.65,1000,3);
