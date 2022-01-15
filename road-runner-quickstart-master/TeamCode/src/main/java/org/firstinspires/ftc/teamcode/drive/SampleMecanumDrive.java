@@ -110,7 +110,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public boolean deposit = false;
 
-    public boolean expansion2 = false;
+    public boolean expansion2 = true; //makes expansion hub 2 always on
 
     public ArrayList<Servo> servos;
 
@@ -172,8 +172,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 1.25; //0.75
 
-    int intakeMinValRight = 500;
-    int intakeMinValLeft = 100;
+    int intakeMinValRight = 200;
+    int intakeMinValLeft = 200;
 
 
     public double slideExtensionLength = 0;
@@ -377,7 +377,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftIntakeDrop = 0.083;
         leftIntakeRaise = 0.739;
         rightIntakeDrop = 0.816;
-        rightIntakeRaise = 0.165;
+        rightIntakeRaise = 0.160;
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
@@ -705,7 +705,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                             if (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 3){
                                 setDepositAngle(Math.toRadians(165)); //148
                             }
-                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.5 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
+                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.6 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
                         } else {
                             setDepositAngle(depositTransferAngle);
                             setSlidesLength(targetSlideExtensionLength + slidesOffset);
@@ -768,7 +768,15 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateV4barAngle(double loopSpeed){
-        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI/0.75 * loopSpeed;
+        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 0.75 * loopSpeed;
+        /*
+        if (currentV4barAngle > Math.PI) {
+            currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 1.25 * loopSpeed;
+        }
+        else {
+            currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 0.75 * loopSpeed;
+        }
+         */
         if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(10)){
             currentV4barAngle = targetV4barAngle;
         }
@@ -803,15 +811,15 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateSlidesLength(){
         if (Math.abs(targetSlidesPose - slideExtensionLength) >= 3){
             if (targetSlidesPose > slideExtensionLength) {
-                slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80)));
-                slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80)));
+                slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80.0)));
+                slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80.0)));
             }
             else {
-                slides.setPower(-0.5);
-                slides2.setPower(-0.5);
+                slides.setPower(-0.35 + (targetSlidesPose - slideExtensionLength)/100.0);
+                slides2.setPower(-0.35 + (targetSlidesPose - slideExtensionLength)/100.0);
             }
         }
-        else if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.5){
+        else if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.25){
             slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.3);
             slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * 0.3);
         }
@@ -917,6 +925,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
         packet.put("turret Heading", turretHeading);
         packet.put("slides length", slideExtensionLength);
+        packet.put("target Slide Length", targetSlidesPose);
 
         double val = Math.pow(10,(sumDeposit/(1000*50))*0.266769051121 - 0.896739150596);
         val += (1.0-val)*0.3;
