@@ -94,6 +94,21 @@ public class WarehouseAutoRed extends LinearOpMode {
             }
             previousTagCounter++;
 
+            if (previousTag != null){
+                if (previousTag.pose.x  > 0) {
+                    telemetry.addLine("Center Level \n");
+                    capNum = 1;
+                }
+                else {
+                    telemetry.addLine("Low Level \n");
+                    capNum = 0;
+                }
+            }
+            else {
+                telemetry.addLine("Top Level \n");
+                capNum = 2;
+            }
+
             if (tagOfInterest != null) {
                 telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
                 tagToTelemetry(tagOfInterest);
@@ -108,27 +123,6 @@ public class WarehouseAutoRed extends LinearOpMode {
             telemetry.update();
         }
 
-        // BELOW STUFF HAPPENS AFTER START IS PRESSED
-        //TODO: figure out the correct thresholds (123 and 234 are fillers)
-        if (tagOfInterest == null && previousTag == null) { //No tag was ever detected
-            capNum = 2;
-        }
-        else {
-            if (tagOfInterest == null && previousTag != null) { //A tag was detected in the last few frames
-                tagOfInterest = previousTag;
-            }
-
-            if (tagOfInterest.pose.x >= 234) {
-                capNum = 2;
-            }
-            else if(tagOfInterest.pose.x >= 123 && tagOfInterest.pose.x <= 234) {
-                capNum = 1;
-            }
-            else {  //Note: the tag is out of the FoV in this case
-                capNum = 0;
-            }
-        }
-
         setUp(startingPose);
 
         Logger a = new Logger("Alliance",false);
@@ -137,7 +131,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         a.update();
         a.close();
 
-        Long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         drive.slidesOffset = 0;
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
@@ -158,18 +152,19 @@ public class WarehouseAutoRed extends LinearOpMode {
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
-        int a = 4;
-        int b = (numMinerals/(a-1));
+        int a = 3;
+        int b = (numMinerals/(a));
         double angle = ((numMinerals % a) * Math.toRadians(-20)) * Math.signum(endPoint.getY());
-        if (numMinerals % a == 3){
-            angle = -Math.toRadians(5) * Math.signum(endPoint.getY());
+        if (numMinerals >= 6){
+            angle =  -Math.toRadians(35)* Math.signum(endPoint.getY());
         }
         double x = 42 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), false,1, 0.9,500,1);
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,500,1);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.55,500,3);
-        intakeMineral(0.35,750);
+        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,300,1);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle + Math.signum(endPoint.getY()) * Math.toRadians(5)), true,1, 0.55,500,3); //0.65
+        intakeMineral(0.475,400);
+        intakeMineral(0.35,500);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
@@ -195,12 +190,32 @@ public class WarehouseAutoRed extends LinearOpMode {
         double h = 20;
         double r = 6;
         switch (capNum) {
-            case 0: r = 8.5; h = 6; break;
-            case 1: r = 7; h = 12.125; break;
+            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -1.5; break;
+            case 1: r = 7; h = 8.125; break;
             case 2: r = 3; h = 13.5; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
-        waitForDeposit();
+        if (capNum == 2) {
+            waitForDeposit();
+        }
+        else {
+            waitForDepositSlow();
+        }
+        drive.slidesOffset = 0;
+    }
+    public void waitForDepositSlow(){
+        while (drive.slidesCase < 3 && opModeIsActive()){
+            drive.update();
+            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
+        }
+        while (drive.slidesCase <= 4 && opModeIsActive()) {
+            drive.deposit();
+            drive.update();
+            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
+        }
+
     }
     public void waitForDeposit(){
         while (drive.slidesCase <= 4 && opModeIsActive()) {
