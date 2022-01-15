@@ -189,7 +189,7 @@ public class Teleop extends LinearOpMode {
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
                 drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.25;
-                double maxPossibleTurretAngle = Math.toRadians(100);//Todo: fix value
+                double maxPossibleTurretAngle = Math.toRadians(100); //Todo: fix value
                 if (Math.abs(drive.targetTurretHeading + drive.turretOffset) > maxPossibleTurretAngle){
                     drive.turretOffset = Math.abs(maxPossibleTurretAngle - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
