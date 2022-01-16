@@ -162,12 +162,13 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public int dropIntakeTime = 300;
     public double intakePower = -1;
-    public int liftIntakeTime = 500; //450
-    public int transfer1Time = 350;
-    public int transfer2Time = 250;
+    public int liftIntakeTime = 500;
+    //TODO: Values here changed
+    public int transfer1Time = 300; //350
+    public int transfer2Time = 300; // 250
     public double transfer1Power = 1.0;
-    public double transfer2Power = 0.85;
-    public int closeDepositTime = 250; // 300
+    public double transfer2Power = 0.78; //0.85
+    public int closeDepositTime = 250;
     public int openDepositTime = 400;
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 1.25; //0.75
@@ -610,6 +611,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void deposit(){
+        Log.e("deposit", "depositFunction");
         deposit = true;
         depositDelay = System.currentTimeMillis();
     }
@@ -622,6 +624,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             setSlidesLength(returnSlideLength);
             servos.get(0).setPosition(rightIntakeRaise);
             servos.get(1).setPosition(leftIntakeRaise);
+            intake.setPower(0);
         }
         if (intakeCase >= 4 && intakeCase != 9){
             setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
@@ -703,29 +706,32 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase > 1) {
                         if (fastDeposit && (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 10)) {
                             if (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) < 3){
-                                setDepositAngle(Math.toRadians(165)); //148
+                                //TODO: Values here changed
+                                setDepositAngle(Math.toRadians(155)); //165
                             }
-                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.6 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
+                            //TODO: Values here changed
+                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.5 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.25); //0.6, 0.35
                         } else {
                             setDepositAngle(depositTransferAngle);
-                            setSlidesLength(targetSlideExtensionLength + slidesOffset);
+                            //TODO: Values here changed
+                            setSlidesLength(targetSlideExtensionLength + slidesOffset,0.85); //1.0
                         }
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slideExtensionLength > Math.min(5,slideExtensionLength - 5)){setV4barOrientation(targetV4barOrientation);}
 
-                    if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
-                    if (slidesCase == 2 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 1 || System.currentTimeMillis() - slideTime >= 1000){slidesCase ++;} //3
-                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;}
+                    if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
+                    if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 1 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;Log.e("here","2");} //3
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
                     break;
                 case 4:
-                    if (System.currentTimeMillis()-slideTime >= 30) {
+                    if (System.currentTimeMillis()-slideTime >= 70) {
                         setDepositAngle(Math.toRadians(180) - depositAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
-                    if (System.currentTimeMillis() - slideTime >= effectiveDepositTime + 30){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;}
+                    if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime + 70){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;Log.e("here", "4");}
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (slidesCase >= 6) {
@@ -740,10 +746,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setV4barOrientation(v4barInterfaceAngle);
                         setDepositAngle(depositInterfaceAngle);
                     }
-                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
-                    if (slidesCase == 6 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;}
-                    if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
-                    if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;}
+                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;Log.e("here", "5");}
+                    if (slidesCase == 6 && Math.abs(slideExtensionLength) <= 10 + returnSlideLength){slidesCase ++;Log.e("here", "6");}
+                    if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;Log.e("here", "7");}
+                    if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;Log.e("here", "8");}
                     break;
                 case 9: //resets the slidesCase & officially says mineral has not been transferred
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; fastDeposit = false;
@@ -836,7 +842,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (System.currentTimeMillis() - depositDelay >= 1000){
             deposit = false;
         }
-        if (System.currentTimeMillis() - slidesDelay >= 2000){
+        if (System.currentTimeMillis() - slidesDelay >= 3000){
             startSlides = false;
         }
         if (startIntake && intakeCase == 0){
@@ -1153,7 +1159,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double extraOffset = 5.0;
         double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
         if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.argb() >= 100000000;
+            boolean leftSensor = leftWall.argb() >= 200000000;
             boolean rightSensor = rightWall.argb() >= 50000000;
             double heading = clipHeading(currentPose.getHeading());
             if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
