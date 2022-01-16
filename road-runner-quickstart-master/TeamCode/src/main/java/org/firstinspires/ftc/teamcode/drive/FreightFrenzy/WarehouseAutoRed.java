@@ -77,6 +77,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         /* END CAMERA INITIALIZATION */
 
         // The INIT-loop: This REPLACES waitForStart()!
+        boolean seenMarker = false;
         while (!isStarted() && !isStopRequested()) {
             //Detecting AprilTags
             tagOfInterest = null;
@@ -86,6 +87,7 @@ public class WarehouseAutoRed extends LinearOpMode {
                     tagOfInterest = tag;
                     previousTag = tag;
                     previousTagCounter = 0;
+                    seenMarker = true;
                     break;
                 }
             }
@@ -96,17 +98,23 @@ public class WarehouseAutoRed extends LinearOpMode {
 
             if (previousTag != null){
                 if (previousTag.pose.x  > 0) {
+                    telemetry.addLine("Top Level \n");
+                    capNum = 2;
+                }
+                else {
                     telemetry.addLine("Center Level \n");
                     capNum = 1;
                 }
-                else {
+            }
+            else {
+                if (seenMarker) {
                     telemetry.addLine("Low Level \n");
                     capNum = 0;
                 }
-            }
-            else {
-                telemetry.addLine("Top Level \n");
-                capNum = 2;
+                else {
+                    telemetry.addLine("Never Saw Capstone . . . High Level \n");
+                    capNum = 2;
+                }
             }
 
             if (tagOfInterest != null) {
