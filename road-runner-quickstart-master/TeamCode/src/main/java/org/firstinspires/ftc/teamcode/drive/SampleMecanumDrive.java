@@ -1159,8 +1159,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         double extraOffset = 5.0;
         double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
         if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.argb() >= 200000000;
-            boolean rightSensor = rightWall.argb() >= 50000000;
+            boolean leftSensor = leftWall.argb() >= 100000000; //200000000
+            boolean rightSensor = rightWall.argb() >= 200000000;
             double heading = clipHeading(currentPose.getHeading());
             if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
                 double angleOffset = 15;

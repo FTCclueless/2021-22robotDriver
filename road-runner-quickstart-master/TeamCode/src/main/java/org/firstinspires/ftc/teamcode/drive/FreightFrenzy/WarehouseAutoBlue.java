@@ -50,7 +50,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
 
         drive.resetAssemblies();
         Pose2d startingPose = new Pose2d(12,65.25 * side,0);
-        Pose2d endPoint = new Pose2d(12,65.25 * side,0);
+        Pose2d endPoint = new Pose2d(12,65.125 * side,0);
 
         int capNum = 2;
 
@@ -155,11 +155,12 @@ public class WarehouseAutoBlue extends LinearOpMode {
         int a = 3;
         //TODO: Values here changed
         int b = (numMinerals/(a-1));
-        double angle = ((numMinerals % a) * Math.toRadians(-20)) * Math.signum(endPoint.getY());
-        double x = 42 + b * 4;
+        double angle = ((numMinerals % a) * Math.toRadians(-10)) * Math.signum(endPoint.getY());
+        double x = 45 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
-        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(36.5, endPoint.getY(),0), false,1, 0.9,500,1);
-        driveToPoint(new Pose2d(36.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,300,1);
+        driveToPoint(new Pose2d(18.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,1, 0.9,500,0.5);
+        //ramWall();
+        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,300,1);
         driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle + Math.signum(endPoint.getY()) * Math.toRadians(5)), true,1, 0.55,500,3); //0.65
         intakeMineral(0.475,400);
         intakeMineral(0.35,500);
@@ -179,10 +180,17 @@ public class WarehouseAutoBlue extends LinearOpMode {
                 drive.slidesOffset = 5;
                 break;
         }
-        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(36.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),13.5,0.5);
+        driveToPoint(new Pose2d(38.5, newEnd.getY(),0), newEnd, false,1, 0.8,1000,1);
+        //ramWall();
         driveToPoint(newEnd, false,2, 0.65,1000,3);
         waitForDeposit(newEnd);
+    }
+    public void ramWall(){
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start <= 1000){
+            drive.updateMotors(drive.getRelError(new Pose2d(drive.currentPose.getX(),72 * side, drive.currentPose.getHeading())),0.6,0.8,4,Math.toRadians(8),0.5);
+        }
     }
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
