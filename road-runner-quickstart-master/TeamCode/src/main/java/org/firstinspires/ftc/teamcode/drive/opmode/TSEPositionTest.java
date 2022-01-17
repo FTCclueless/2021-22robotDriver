@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.drive.opmode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -28,7 +29,7 @@ public class TSEPositionTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        phoneCam = (OpenCvInternalCamera) OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         pipeline = new FreightFrenzyDetectionPipeline();
         phoneCam.setPipeline(pipeline);
 
@@ -49,7 +50,7 @@ public class TSEPositionTest extends LinearOpMode {
             public void onError(int errorCode)
             {
                 //phoneCam.stopStreaming();
-                telemetry.addData("Camera not Connected", "");
+                telemetry.addData("Can not see TSE...defaulted to high level", "");
             }
         });
 
@@ -72,9 +73,9 @@ public class TSEPositionTest extends LinearOpMode {
          */
         public enum CapstonePosition
         {
-            FIRST_LEVEL,
-            SECOND_LEVEL,
-            THIRD_LEVEL
+            TOP_LEVEL,
+            CENTER_LEVEL,
+            BOTTOM_LEVEL
         }
 
         // Color Constants
@@ -131,7 +132,7 @@ public class TSEPositionTest extends LinearOpMode {
         int avg1, avg2, avg3;
 
         // Volatile since accessed by OpMode thread w/o synchronization
-        private volatile CapstonePosition position = CapstonePosition.FIRST_LEVEL;
+        private volatile CapstonePosition position = CapstonePosition.TOP_LEVEL;
 
         /*
          * This function takes the RGB frame, converts to YCrCb,
@@ -268,7 +269,7 @@ public class TSEPositionTest extends LinearOpMode {
              */
             if(max == avg1) // Was it from region 1?
             {
-                position = CapstonePosition.FIRST_LEVEL; // Record our analysis
+                position = CapstonePosition.TOP_LEVEL; // Record our analysis
 
                 Imgproc.rectangle(
                         input, // Buffer to draw on
@@ -279,7 +280,7 @@ public class TSEPositionTest extends LinearOpMode {
             }
             else if(max == avg2) // Was it from region 2?
             {
-                position = CapstonePosition.SECOND_LEVEL; // Record our analysis
+                position = CapstonePosition.CENTER_LEVEL; // Record our analysis
 
                 Imgproc.rectangle(
                         input, // Buffer to draw on
@@ -290,7 +291,7 @@ public class TSEPositionTest extends LinearOpMode {
             }
             else if(max == avg3) // Was it from region 3?
             {
-                position = CapstonePosition.THIRD_LEVEL; // Record our analysis
+                position = CapstonePosition.BOTTOM_LEVEL; // Record our analysis
 
                 Imgproc.rectangle(
                         input, // Buffer to draw on
