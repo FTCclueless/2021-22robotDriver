@@ -92,7 +92,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public AnalogInput rightIntake, leftIntake, depositSensor;
     public CRServo duckSpin, duckSpin2;
     double rightIntakeVal, leftIntakeVal, depositVal;
-    ArrayList<Double> depositHistory;
+    ArrayList<Double> depositHistory, intakeHistory;
     public ColorSensor color, leftWall, rightWall;
     long lastTouchPoll, lastTiltPoll, tiltTime;
     Orientation imuAngle;
@@ -138,8 +138,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     boolean tiltForward = false;
     boolean tiltBackward = false;
 
-    public long depositTime = 0;
-
     public boolean isKnownY = true;
     public boolean isKnownX = true;
     boolean lastLightReading = false;
@@ -152,9 +150,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     private boolean display3WheelOdo;
 
     public double intakeTurretInterfaceHeading = Math.toRadians(57.5);
-    public double v4barInterfaceAngle = Math.toRadians(10);//13, 4
+    public double v4barInterfaceAngle = Math.toRadians(10);
     public double depositAngle = Math.toRadians(-45);
-    public double depositInterfaceAngle = Math.toRadians(65);//40, 70
+    public double depositInterfaceAngle = Math.toRadians(65);
     public double depositTransferAngle = Math.toRadians(135);
 
     double targetSlidesPose = 0;
@@ -391,6 +389,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         poseHistory = new ArrayList<>();
         depositHistory = new ArrayList<>();
+        intakeHistory = new ArrayList<>();
 
         dashboard = FtcDashboard.getInstance();
         dashboard.setTelemetryTransmissionInterval(25);
@@ -622,8 +621,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             setV4barOrientation(v4barInterfaceAngle);
             setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
             setSlidesLength(returnSlideLength);
-            //servos.get(0).setPosition(rightIntakeRaise);
-            //servos.get(1).setPosition(leftIntakeRaise);
+            servos.get(0).setPosition(rightIntakeRaise);
+            servos.get(1).setPosition(leftIntakeRaise);
             intake.setPower(0);
         }
         if (intakeCase >= 4 && intakeCase != 9){
@@ -655,7 +654,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setSlidesLength(2.5,0.2);
                     break;
                 case 9:
-                    intake.setPower(0); depositTime = System.currentTimeMillis(); transferMineral = true; intakeDepositTransfer = false;
+                    intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
                     Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                     break; // turn off the intake
             }
@@ -897,15 +896,6 @@ public class SampleMecanumDrive extends MecanumDrive {
             poseHistory.remove(0);
         }
 
-        depositHistory.add(depositVal);
-        if (depositHistory.size() > 50){
-            depositHistory.remove(0);
-        }
-        double sumDeposit = 0;
-        for (double v: depositHistory){
-            sumDeposit += v;
-        }
-
         packet.put("x", currentPose.getX());
         packet.put("y", currentPose.getY());
         packet.put("heading (deg)", Math.toDegrees(currentPose.getHeading()));
@@ -919,26 +909,57 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("intakeCase", intakeCase);
         packet.put("slidesCase", slidesCase);
         packet.put("depositVal", depositVal);
-        packet.put("averageDepositVal", sumDeposit/50.0);
-        packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
         packet.put("turret Heading", turretHeading);
         packet.put("slides length", slideExtensionLength);
         packet.put("target Slide Length", targetSlidesPose);
-        packet.put("intake Current Draw", intake.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
 
-        double val = Math.pow(10,(sumDeposit/(1000*50))*0.266769051121 - 0.896739150596);
-        val += (1.0-val)*0.3;
-
-        packet.put("val", val);
-
-        if (depositVal/(sumDeposit/50.0) < val){
+        depositHistory.add(depositVal);
+        if (depositHistory.size() > 50){
+            depositHistory.remove(0);
+        }
+        double sumDeposit = 0;
+        for (double v: depositHistory){
+            sumDeposit += v;
+        }
+        double criticalVal = Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
+        criticalVal += (1.0-criticalVal)*0.3;
+        if (depositVal/(sumDeposit/depositHistory.size()) < criticalVal){
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
         }
-        packet.put("intake",intakeDepositTransfer);
         if (System.currentTimeMillis() - startIntakeDepositTransfer > 1000){
             intakeDepositTransfer = false;
         }
+
+        packet.put("criticalDepositVal", criticalVal);
+        packet.put("averageDepositVal", sumDeposit/50.0);
+        packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
+
+        double intakeCurrent = 0;
+        double averageIntakeCurrent = 0;
+        double intakeCurrentCriticalVal = 0;
+        double intakeDeltaCurrent = 0;
+        if (intakeCase == 2 && System.currentTimeMillis() - intakeTime >= 100){
+            intakeCurrent = intake.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
+            intakeHistory.add(intakeCurrent);
+            if (intakeHistory.size() > 150){
+                intakeHistory.remove(0);
+            }
+            double sumIntake = 0;
+            for (double v: intakeHistory){
+                sumIntake += v;
+            }
+            averageIntakeCurrent = sumIntake/intakeHistory.size();
+            intakeCurrentCriticalVal = 2;
+            intakeDeltaCurrent = intakeCurrent/averageIntakeCurrent;
+            if (intakeDeltaCurrent > intakeCurrentCriticalVal){
+                Log.e("intake","stack detected");
+            }
+        }
+        packet.put("intake Current Draw", intakeCurrent);
+        packet.put("averageIntakeCurrentDraw", averageIntakeCurrent);
+        packet.put("intakeCurrentCriticalVal", intakeCurrentCriticalVal);
+        packet.put("intakeDeltaCurrent", intakeDeltaCurrent);
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
