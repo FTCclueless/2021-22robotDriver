@@ -233,7 +233,6 @@ public class Teleop extends LinearOpMode {
             endgame.toggleState = true;
         }
         if (endgame.getToggleState()){
-            auto.toggleState = false;
             drive.servos.get(7).setPosition(0.467);
             spin.update(gamepad2.y);
             if (spin.getToggleState()){
@@ -361,25 +360,23 @@ public class Teleop extends LinearOpMode {
                 }
                 if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(38.5, endPoint.getY(), endPoint.getHeading()),1000);
-                        //ramWall();
-                        driveToPoint(new Pose2d(38.5, endPoint.getY(), endPoint.getHeading()),1000);
+                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(18.5, endPoint.getY(), endPoint.getHeading()),3000);
+                        driveToPoint(new Pose2d(38.5, endPoint.getY(), endPoint.getHeading()),3000);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), 38.5 * side, endPoint.getHeading()),1000);
-                        driveToPoint(new Pose2d(endPoint.getX(), 38.5 * side, endPoint.getHeading()),1000);
+                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), 18.5 * side, endPoint.getHeading()),3000);
+                        driveToPoint(new Pose2d(endPoint.getX(), 38.5 * side, endPoint.getHeading()),3000);
                     }
                 }
             }
             else { //This is for going toward deposit area
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (hub == 1) {
-                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),1000);
-                    //ramWall();
+                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000);
                     driveToPoint(allianceHubEndpoint,1000);
                 }
                 if (hub == 0) {
-                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),1000);
+                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000);
                     driveToPoint(sharedHubEndpoint,1000);
                 }
             }
@@ -449,51 +446,37 @@ public class Teleop extends LinearOpMode {
         }
     }
     public void driveToPoint(Pose2d target, long maxTime){
-        double maxPowerForward = 0.6;
-        double maxPowerTurn = 0.4;
-        double slowDownDist = 4;
-        double slowTurnAngle = Math.toRadians(8);
-        drive.targetPose = target;
-        drive.targetRadius = 2;
-        long start = System.currentTimeMillis();
-        while (opModeIsActive() && (Math.abs(drive.currentPose.getX()-target.getX()) > 2 || Math.abs(drive.currentPose.getY()-target.getY()) > 2) && auto.getToggleState() && System.currentTimeMillis() - start < maxTime){
-            auto.update(gamepad1.a);
-            drive.update();
-            drive.updateMotors(drive.getRelError(target),maxPowerForward,maxPowerTurn,slowDownDist,slowTurnAngle,2);
-        }
-        drive.targetPose = null;
-        drive.targetRadius = 1;
-        drive.setMotorPowers(0,0,0,0);
-    }
-    public void ramWall(){
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start <= 1000){
-            drive.updateMotors(drive.getRelError(new Pose2d(drive.currentPose.getX(),72 * side, drive.currentPose.getHeading())),0.6,0.8,4,Math.toRadians(8),2);
-        }
+        driveToPoint(target,target,maxTime);
     }
     public void driveToPoint(Pose2d target, Pose2d target2, long maxTime){
-        double maxPowerForward = 0.6;
+        double maxPowerForward = 0.8;
         double maxPowerTurn = 0.4;
         double slowDownDist = 4;
         double slowTurnAngle = Math.toRadians(8);
         double error = 2;
         drive.targetPose = target;
         drive.targetRadius = error;
+        double sideError = 0.3;
         long start = System.currentTimeMillis();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
         while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && auto.getToggleState() && System.currentTimeMillis() - start < maxTime){
+            auto.update(gamepad1.a);
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
             Pose2d relError = drive.getRelError(target);
-            if (x){
-                relError = new Pose2d(0,relError.getY(),relError.getHeading());
+            double sideKStatic = 0.3 * side;
+            if (x || y){
+                if (Math.abs(relError.getY()) < sideError) {
+                    relError = new Pose2d(relError.getX(), 0, relError.getHeading());
+                    sideKStatic = 0;
+                }
+                else if (Math.abs(relError.getX()) < error){
+                    relError = new Pose2d(0, relError.getY(), relError.getHeading());
+                }
             }
-            if (y){
-                relError = new Pose2d(relError.getX(),0,relError.getHeading());
-            }
-            drive.updateMotors(relError, maxPowerForward, maxPowerTurn, slowDownDist, slowTurnAngle, error);
+            drive.updateMotors(relError, maxPowerForward, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), sideError, sideKStatic);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
