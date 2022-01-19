@@ -164,7 +164,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             Log.e("intake", "never found anything");
             drive.intakeCase ++;
         }
-        lastIntakeX = drive.currentPose.getX();
+        lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
     }
     /* this is old code if we want to revert to it
     public void driveIn(Pose2d endPoint, int numMinerals){
