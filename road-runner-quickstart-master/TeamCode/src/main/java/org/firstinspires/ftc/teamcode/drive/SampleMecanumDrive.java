@@ -305,8 +305,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         turret.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //TODO: was run without encoder
+        slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
@@ -400,8 +400,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //TODO: was run without encoder
+        slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void initT265(HardwareMap hardwareMap){

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
+import android.util.Log;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -43,6 +45,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
     AprilTagDetection previousTag = null;
     int previousTagCounter = 0;
     /* END CAMERA PARAMETERS */
+
+    double lastIntakeX = 42;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -151,6 +155,19 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.slides2.setPower(0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
+        Pose2d intakePoint = new Pose2d(lastIntakeX,endPoint.getY(),0);
+        driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.9,500,0.5, true);
+        driveToPoint(new Pose2d(38.5, endPoint.getY(),0),intakePoint, false,1, 0.8,300,1, true);
+        driveToPoint(intakePoint, true,1, 0.75,500,3, false);
+        intakeMineral(0.5,1000);
+        if (drive.intakeCase == 2){
+            Log.e("intake", "never found anything");
+            drive.intakeCase ++;
+        }
+        lastIntakeX = drive.currentPose.getX();
+    }
+    /* this is old code if we want to revert to it
+    public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
         int a = 3;
         //TODO: Values here changed
@@ -171,6 +188,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             drive.intakeCase ++;
         }
     }
+     */
     public void driveOut(Pose2d endPoint, int numMinerals){
         Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
         double i = 0;
