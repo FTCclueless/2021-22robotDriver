@@ -71,63 +71,52 @@ import java.util.List;
 public class SampleMecanumDrive extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(7, 0.075,0.5);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(100, 10, 0);
-
     public static double LATERAL_MULTIPLIER = 1.75;
-
     public static double VX_WEIGHT = 1;
     public static double VY_WEIGHT = 1;
     public static double OMEGA_WEIGHT = 1;
     public int staticHeading;
-
     public TrajectorySequenceRunner trajectorySequenceRunner;
-
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
     private final List<DcMotorEx> motors;
-
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake, depositSensor;
     public CRServo duckSpin, duckSpin2;
     double rightIntakeVal, leftIntakeVal, depositVal;
-    ArrayList<Double> depositHistory, intakeHistory;
     public ColorSensor color, leftWall, rightWall;
+    public BNO055IMU imu;
+    public ArrayList<Servo> servos;
+    private final VoltageSensor batteryVoltageSensor;
+
     long lastTouchPoll, lastTiltPoll, tiltTime;
     Orientation imuAngle;
     boolean updateIMU = false;
     boolean firstOffBarrier = false;
+    Vec3F finalTiltHeading;
+    long firstTiltTime;
 
-    public int intakeCase;
-    public int lastIntakeCase;
-    private long intakeTime;
-    private long slideTime;
+    ArrayList<Double> depositHistory, intakeHistory;
+    public double currentIntake = 0;
+    public double sumIntakeSensor, intakeSensorLoops;
+    public int intakeCase, lastIntakeCase;
+    private long intakeTime, slideTime;
     public boolean transferMineral;
     boolean startIntake = false;
     public int slidesCase, lastSlidesCase;
     boolean startSlides = false;
-
     public boolean deposit = false;
 
     public boolean expansion2 = true; //makes expansion hub 2 always on
 
-    public ArrayList<Servo> servos;
-
-    public double currentIntake = 0;
-
-    public BNO055IMU imu;
-
-    private final VoltageSensor batteryVoltageSensor;
-
     public Localizer localizer;
-
+    public boolean isKnownY = true, isKnownX = true;
     public int[] encoders;
 
     public int loops = 0;
-
-    public double sumIntakeSensor;
-    public double intakeSensorLoops;
 
     public Pose2d currentPose = new Pose2d(0,0,0);
     public Pose2d targetPose = null;
@@ -138,13 +127,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     boolean tiltForward = false;
     boolean tiltBackward = false;
 
-    public boolean isKnownY = true;
-    public boolean isKnownX = true;
     boolean lastLightReading = false;
 
-    long firstTiltTime;
-
-    Vec3F finalTiltHeading;
     robotComponents r;
 
     private boolean display3WheelOdo;
