@@ -205,8 +205,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
                 break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
+        drive.fastDeposit = true;
         driveToPoint(new Pose2d(38.5, newEnd.getY(),0), new Pose2d(36.5, newEnd.getY(),0), false,1, 0.8,1000,1,true);
-        drive.deposit();
         driveToPoint(newEnd, false,2, 0.65,1000,3, true);
         waitForDeposit(newEnd);
     }
@@ -257,7 +257,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
             drive.startDeposit(target, new Pose2d(-12.0, 24.0 * Math.signum(target.getY())),13.5,3);
         }
         while (drive.slidesCase <= 4 && opModeIsActive()) {
-            drive.deposit();
             drive.update();
             Pose2d error = drive.getRelError(target);
             double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
@@ -265,6 +264,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
                 drive.updateMotors(error, 0.25, 0.25,4, Math.toRadians(8), 1, 0);
             }
             else {
+                drive.deposit();
                 drive.setMotorPowers(0,0,0,0);
             }
             if (drive.intakeCase == 9){

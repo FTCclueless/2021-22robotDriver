@@ -164,7 +164,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double turretTickToRadians = 578.3213;
     double currentV4barAngle = 0;
     double targetV4barAngle = 0;
-    boolean fastDeposit = false;
+    public boolean fastDeposit = false;
 
     public boolean intakeDepositTransfer = false, intakeHit = false;
     long startIntakeDepositTransfer, startIntakeHit;
@@ -794,13 +794,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                 slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 80.0)));
             }
             else {
-                slides.setPower(-0.35);
-                slides2.setPower(-0.35);
+                slides.setPower(-0.45);
+                slides2.setPower(-0.45);
             }
         }
         else if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.25){
-            slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.3);
-            slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * 0.3);
+            slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.45);
+            slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * 0.45);
         }
         else {
             slides.setPower(0);
