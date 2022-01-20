@@ -278,7 +278,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall){
         double kStatic = DriveConstants.kStatic;
         double maxPowerTurn = Math.max(power/2.0,kStatic * 1.5);
-        double slowTurnAngle = 8;
+        double slowTurnAngle = Math.toRadians(16);
         drive.targetPose = target;
         drive.targetRadius = error;
         long start = System.currentTimeMillis();
@@ -304,7 +304,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
                     relError = new Pose2d(0, relError.getY(), relError.getHeading());
                 }
             }
-            drive.updateMotors(relError, power, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), sideError, sideKStatic);
+            drive.updateMotors(relError,power,maxPowerTurn,slowDownDist,slowTurnAngle,sideError,sideKStatic);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
