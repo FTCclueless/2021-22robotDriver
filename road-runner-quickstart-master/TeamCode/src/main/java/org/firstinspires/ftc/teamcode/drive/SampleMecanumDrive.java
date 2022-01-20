@@ -139,8 +139,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double depositInterfaceAngle = Math.toRadians(65);
     public double depositTransferAngle = Math.toRadians(135);
 
-    double targetSlidesPose = 0;
-    double slidesPower = 0;
+    double targetSlidesPose = 0, slidesPower = 0, targetTurretPose = 0, turretPower = 0;
 
     public int dropIntakeTime = 300;
     public double intakePower = -1;
@@ -284,7 +283,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setTargetPosition(0);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //TODO: was run without encoder
         slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -381,7 +380,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //TODO: was run without encoder
         slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
@@ -782,11 +781,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         slidesPower = power;
     }
 
-    public void setTurretTarget(double radians){
-        turret.setPower(1.0);
-        turret.setTargetPosition((int)(radians*turretTickToRadians));turret.setPower(1.0);
-    }
-
     public void updateSlidesLength(){
         if (Math.abs(targetSlidesPose - slideExtensionLength) >= 3){
             if (targetSlidesPose > slideExtensionLength) {
@@ -801,6 +795,24 @@ public class SampleMecanumDrive extends MecanumDrive {
         else if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.25){
             slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.45);
             slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * 0.45);
+        }
+        else {
+            slides.setPower(0);
+            slides2.setPower(0);
+        }
+    }
+
+    public void setTurretTarget(double radians){
+        targetTurretPose = radians;
+        turretPower = 0.75;
+    }
+
+    public void updateTurretLength(){
+        if (Math.abs(targetTurretPose - turretHeading) >= Math.toRadians(3)){
+            turret.setPower(Math.signum(turretHeading - targetTurretPose) * Math.abs(turretPower));
+        }
+        else if (Math.abs(targetTurretPose - turretHeading) >= Math.toRadians(0.5)){
+            turret.setPower(Math.signum(turretHeading  - targetTurretPose) * 0.45);
         }
         else {
             slides.setPower(0);
@@ -857,6 +869,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateVisualizer();
 
         updateSlidesLength();
+        updateTurretLength();
 
         updateDepositAngle();
         updateV4barAngle(loopSpeed);
