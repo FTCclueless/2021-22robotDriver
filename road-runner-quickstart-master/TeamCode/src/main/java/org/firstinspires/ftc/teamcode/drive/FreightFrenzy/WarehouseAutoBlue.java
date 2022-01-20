@@ -159,7 +159,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.9,500,0.5, true);
         driveToPoint(new Pose2d(38.5, endPoint.getY(),0),intakePoint, false,1, 0.8,300,1, true);
         driveToPoint(intakePoint, true,1, 0.75,500,3, false);
-        intakeMineral(0.5,1000);
+        intakeMineral(0.5,2000);
         if (drive.intakeCase == 2){
             Log.e("intake", "never found anything");
             drive.intakeCase ++;
@@ -315,10 +315,16 @@ public class WarehouseAutoBlue extends LinearOpMode {
     }
     public void intakeMineral(double power, long maxTime){
         long startingTime = System.currentTimeMillis();
+        double maxPower = power;
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
+            double currentPower = maxPower;
+            if (drive.intakeHit){
+                currentPower *= 0.3;
+                currentPower = Math.min(currentPower,0.25);
+            }
             double turn = 0;
-            double multiplier = Math.min(1.0/(Math.abs(power) + Math.abs(turn)),1);
-            drive.pinMotorPowers((power+turn)*multiplier,(power+turn)*multiplier,(power-turn)*multiplier,(power-turn)*multiplier);
+            double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn)),1);
+            drive.pinMotorPowers((currentPower+turn)*multiplier,(currentPower+turn)*multiplier,(currentPower-turn)*multiplier,(currentPower-turn)*multiplier);
             drive.update();
         }
         drive.setMotorPowers(0,0,0,0);

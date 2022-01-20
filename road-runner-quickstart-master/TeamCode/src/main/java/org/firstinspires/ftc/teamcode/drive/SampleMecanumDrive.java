@@ -86,7 +86,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake, depositSensor;
     public CRServo duckSpin, duckSpin2;
-    double rightIntakeVal, leftIntakeVal, depositVal;
     public ColorSensor color, leftWall, rightWall;
     public BNO055IMU imu;
     public ArrayList<Servo> servos;
@@ -98,10 +97,14 @@ public class SampleMecanumDrive extends MecanumDrive {
     boolean firstOffBarrier = false;
     Vec3F finalTiltHeading;
     long firstTiltTime;
+    boolean tiltForward = false;
+    boolean tiltBackward = false;
 
     ArrayList<Double> depositHistory, intakeHistory;
     public double currentIntake = 0;
-    public double sumIntakeSensor, intakeSensorLoops;
+    double rightIntakeVal, leftIntakeVal, depositVal, sumIntakeSensor, intakeSensorLoops;
+    int intakeMinValRight = 15;
+    int intakeMinValLeft = 15;
     public int intakeCase, lastIntakeCase;
     private long intakeTime, slideTime;
     public boolean transferMineral;
@@ -123,9 +126,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetRadius = 0;
     public Pose2d currentVelocity = new Pose2d(0,0,0);
     public Pose2d relCurrentVelocity = new Pose2d(0,0,0);
-
-    boolean tiltForward = false;
-    boolean tiltBackward = false;
 
     boolean lastLightReading = false;
 
@@ -155,10 +155,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 1.0; //1.0
 
-    int intakeMinValRight = 15;
-    int intakeMinValLeft = 15;
-
-
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
     public double targetSlideExtensionLength = 0;
@@ -166,14 +162,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetV4barOrientation = 0;
     public double slideTickToInch = 25.1372713591;
     public double turretTickToRadians = 578.3213;
-
     double currentV4barAngle = 0;
     double targetV4barAngle = 0;
-
     boolean fastDeposit = false;
 
-    boolean intakeDepositTransfer = false;
-    long startIntakeDepositTransfer;
+    public boolean intakeDepositTransfer = false, intakeHit = false;
+    long startIntakeDepositTransfer, startIntakeHit;
 
     double targetDepositAngle = 0;
 
@@ -942,7 +936,12 @@ public class SampleMecanumDrive extends MecanumDrive {
             intakeDeltaCurrent = intakeCurrent/averageIntakeCurrent;
             if (intakeDeltaCurrent > intakeCurrentCriticalVal && System.currentTimeMillis() - intakeTime >= 100){
                 Log.e("intake","stack detected");
+                intakeHit = true;
+                startIntakeHit = System.currentTimeMillis();
             }
+        }
+        if (intakeHit && System.currentTimeMillis() - startIntakeHit > 1000){
+            intakeHit = false;
         }
         packet.put("intake Current Draw", intakeCurrent);
         packet.put("averageIntakeCurrentDraw", averageIntakeCurrent);
