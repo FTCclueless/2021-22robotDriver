@@ -125,6 +125,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
                 telemetry.addLine("No Tag.");
             }
             telemetry.update();
+            drive.update();
         }
 
         setUp(startingPose);
@@ -155,11 +156,12 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.slides2.setPower(0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
-        Pose2d intakePoint = new Pose2d(lastIntakeX,endPoint.getY(),0);
+        drive.startIntake(side == -1);
+        Pose2d intakePoint = new Pose2d(lastIntakeX - 4,endPoint.getY(),0);
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.9,500,0.5, true);
         driveToPoint(new Pose2d(38.5, endPoint.getY(),0),intakePoint, false,1, 0.8,300,1, true);
-        driveToPoint(intakePoint, true,1, 0.75,500,3, false);
-        intakeMineral(0.5,2000);
+        driveToPoint(intakePoint, true,1, 0.5,500,3, false);
+        intakeMineral(0.35,2000);
         if (drive.intakeCase == 2){
             Log.e("intake", "never found anything");
             drive.intakeCase ++;
@@ -192,6 +194,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void driveOut(Pose2d endPoint, int numMinerals){
         Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
         double i = 0;
+        drive.slidesOffset = 3;
         switch (numMinerals){
             case 2: case 3:
                 newEnd = new Pose2d(endPoint.getX() - 1.5, endPoint.getY(), endPoint.getHeading());
@@ -319,7 +322,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double currentPower = maxPower;
             if (drive.intakeHit){
-                currentPower *= 0.3;
+                currentPower *= 0.5;
                 currentPower = Math.min(currentPower,0.25);
             }
             double turn = 0;
