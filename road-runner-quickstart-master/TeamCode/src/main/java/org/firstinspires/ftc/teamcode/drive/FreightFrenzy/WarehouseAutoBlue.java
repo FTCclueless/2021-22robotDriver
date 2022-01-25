@@ -194,7 +194,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void driveOut(Pose2d endPoint, int numMinerals){
         Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
         double i = 0;
-        drive.slidesOffset = 3;
+        drive.slidesOffset = 1;
         switch (numMinerals){
             case 2: case 3:
                 newEnd = new Pose2d(endPoint.getX() - 1.5, endPoint.getY(), endPoint.getHeading());
@@ -321,13 +321,15 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double maxPower = power;
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double currentPower = maxPower;
+            double sidePower = 0;
             if (drive.intakeHit){
-                currentPower *= 0.5;
-                currentPower = Math.min(currentPower,0.25);
+                currentPower *= 0.3;
+                currentPower = Math.min(currentPower,0.2);
+                sidePower = Math.min(maxPower*0.6,0.35) * side * -1;
             }
             double turn = 0;
-            double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn)),1);
-            drive.pinMotorPowers((currentPower+turn)*multiplier,(currentPower+turn)*multiplier,(currentPower-turn)*multiplier,(currentPower-turn)*multiplier);
+            double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn) + Math.abs(sidePower)),1);
+            drive.pinMotorPowers((currentPower+turn-sidePower)*multiplier,(currentPower+turn+sidePower)*multiplier,(currentPower-turn-sidePower)*multiplier,(currentPower-turn+sidePower)*multiplier);
             drive.update();
         }
         drive.setMotorPowers(0,0,0,0);

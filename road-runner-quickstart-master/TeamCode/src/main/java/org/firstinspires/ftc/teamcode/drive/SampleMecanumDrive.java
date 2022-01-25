@@ -683,13 +683,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     if (l < 10) {
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.5 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.25); //0.6, 0.35
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.65 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35); //0.5, 0.25
                         if (fastDeposit &&  l < 3){
                             setDepositAngle(Math.toRadians(155)); //165
                         }
                     } else {
                         setDepositAngle(depositTransferAngle);
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.85); //1.0
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,1); //0.85
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slideExtensionLength > Math.min(5,slideExtensionLength - 5)){
@@ -700,7 +700,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
                     break;
                 case 4:
-                    if (System.currentTimeMillis()-slideTime >= 70) {
+                    if (System.currentTimeMillis()-slideTime >= 120) {//70
                         setDepositAngle(Math.toRadians(180) - depositAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
