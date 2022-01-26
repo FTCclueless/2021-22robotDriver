@@ -352,12 +352,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
 
-        double n = 3;
-        leftIntakeDrop = 0.033;
-        leftIntakeRaise = 0.689;
+        double n = 13;
+        leftIntakeDrop = 0.0;
+        leftIntakeRaise = 0.655;
         leftIntakeMid = (leftIntakeDrop + leftIntakeRaise * (n-1))/n;
-        rightIntakeDrop = 0.816;
-        rightIntakeRaise = 0.160;
+        rightIntakeDrop = 0.875;
+        rightIntakeRaise = 0.228;
         rightIntakeMid = (rightIntakeDrop + rightIntakeRaise * (n-1))/n;
 
         servos.get(0).setPosition(rightIntakeRaise);
@@ -916,7 +916,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
         }
-        if (System.currentTimeMillis() - startIntakeDepositTransfer > 1000){
+        if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 1000){
             intakeDepositTransfer = false;
         }
 
@@ -926,7 +926,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         double intakeCurrent = 0;
         double averageIntakeCurrent = 0;
-        double intakeCurrentCriticalVal = 0;
+        double intakeCurrentCriticalValTop = 1.2;
+        double intakeCurrentCriticalValBottom = 0.875;
         double intakeDeltaCurrent = 0;
         if (2 <= intakeCase && intakeCase <= 7){
             intakeCurrent = intake.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
@@ -939,12 +940,15 @@ public class SampleMecanumDrive extends MecanumDrive {
                 sumIntake += v;
             }
             averageIntakeCurrent = sumIntake/intakeHistory.size();
-            intakeCurrentCriticalVal = 1.2;
             intakeDeltaCurrent = intakeCurrent/averageIntakeCurrent;
-            if (intakeDeltaCurrent > intakeCurrentCriticalVal && System.currentTimeMillis() - intakeTime >= 100){
+            if (intakeDeltaCurrent > intakeCurrentCriticalValTop && System.currentTimeMillis() - intakeTime >= 100){
                 Log.e("intake","stack detected");
                 intakeHit = true;
                 startIntakeHit = System.currentTimeMillis();
+            }
+            if (intakeDeltaCurrent < intakeCurrentCriticalValBottom && System.currentTimeMillis() - intakeTime >= 100){
+                intakeDepositTransfer = true;
+                startIntakeDepositTransfer = System.currentTimeMillis();
             }
         }
         if (intakeHit && System.currentTimeMillis() - startIntakeHit > 1000){
@@ -952,7 +956,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         packet.put("intake Current Draw", intakeCurrent);
         packet.put("averageIntakeCurrentDraw", averageIntakeCurrent);
-        packet.put("intakeCurrentCriticalVal", intakeCurrentCriticalVal);
+        packet.put("intakeCurrentCriticalValTop", intakeCurrentCriticalValTop);
+        packet.put("intakeCurrentCriticalValBottom", intakeCurrentCriticalValBottom);
         packet.put("intakeDeltaCurrent", intakeDeltaCurrent);
 
         packet.put("leftIntake", leftIntakeVal);
@@ -1184,6 +1189,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                 double currentYDist = Math.cos(heading) * (6.25 + distance) + Math.sin(heading) * (5.0);
                 double gain = 0.6;
                 if (forward || backward) {
+                    if (Math.abs(relCurrentVelocity.getY()) < 0.5){
+                        if (forward){
+                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(currentPose.getHeading() * 9.0 + 0)/10.0));
+                        }
+                        if (backward){
+                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(Math.abs(currentPose.getHeading()) * 9.0 + Math.toRadians(180))/10.0 * Math.signum(currentPose.getHeading())));
+                        }
+                    }
                     double m = 1;
                     if (backward) {
                         m = -1;
@@ -1202,6 +1215,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                 }
                 if (right || left) {
+                    if (Math.abs(relCurrentVelocity.getY()) < 0.5){
+                        if (right){
+                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(Math.abs(currentPose.getHeading()) * 9.0 + Math.toRadians(-90))/10.0));
+                        }
+                        if (left){
+                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(Math.abs(currentPose.getHeading()) * 9.0 + Math.toRadians(90))/10.0));
+                        }
+                    }
                     double m = 1;
                     if (left) {
                         m = -1;

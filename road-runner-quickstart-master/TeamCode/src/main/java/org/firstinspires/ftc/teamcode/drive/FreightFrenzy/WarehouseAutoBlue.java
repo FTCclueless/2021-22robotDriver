@@ -58,6 +58,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
 
         int capNum = 2;
 
+
         drive.currentIntake = side;
         drive.transferMineral = true;
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
@@ -79,6 +80,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
             }
         });
         /* END CAMERA INITIALIZATION */
+
+        setUp(startingPose);
 
         // The INIT-loop: This REPLACES waitForStart()!
         while (!isStarted() && !isStopRequested()) {
@@ -178,10 +181,10 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double angle = ((numMinerals % a) * Math.toRadians(-10)) * Math.signum(endPoint.getY());
         double x = lastIntakeX;//45 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
-        driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.9,500,0.5, true);
-        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,300,1, true);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle + Math.signum(endPoint.getY()) * Math.toRadians(5)), true,1, 0.75,500,3, false); //0.6
-        intakeMineral(0.35,200);
+        driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,1, 0.9,500,0.5, true);
+        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,3, 0.8,300,1, true);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.75,500,3, false); //0.6
+        intakeMineral(0.35,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
@@ -277,8 +280,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
     }
     public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall){
         double kStatic = DriveConstants.kStatic;
-        double maxPowerTurn = Math.max(power/2.0,kStatic * 1.5);
-        double slowTurnAngle = Math.toRadians(16);
+        double maxPowerTurn = Math.max(power/1.6,kStatic * 1.5);
+        double slowTurnAngle = Math.toRadians(5);
         drive.targetPose = target;
         drive.targetRadius = error;
         long start = System.currentTimeMillis();
@@ -286,14 +289,14 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
+        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
             Pose2d relError = drive.getRelError(target);
             double sideKStatic = 0;
             if (hugWall){
-                sideKStatic = 0.3 * side;
+                sideKStatic = 0.4 * side;
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError) {
