@@ -693,6 +693,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation);
+                    /*if (slideExtensionLength > Math.min(5,slideExtensionLength - 5)){
+                    }
+                     */
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
                     if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 1 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;Log.e("here","2");} //3
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
