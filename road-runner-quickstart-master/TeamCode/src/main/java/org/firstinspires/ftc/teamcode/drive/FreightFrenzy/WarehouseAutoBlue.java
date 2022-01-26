@@ -178,7 +178,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         int a = 3;
         //TODO: Values here changed
         int b = (numMinerals/(a-1));
-        double angle = ((numMinerals % a) * Math.toRadians(-10)) * Math.signum(endPoint.getY());
+        double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY()); //-10
         double x = lastIntakeX;//45 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,1, 0.9,500,0.5, true);
