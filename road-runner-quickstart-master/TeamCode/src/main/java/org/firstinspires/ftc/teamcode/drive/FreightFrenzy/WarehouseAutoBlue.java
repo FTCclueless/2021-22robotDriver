@@ -321,12 +321,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             double currentPower = maxPower;
             double sidePower = 0;
             if (drive.intakeHit){
-                /*
-                sidePower = Math.min(maxPower*0.6,0.35) * side * -1;
-                currentPower *= 0.3;
-                currentPower = Math.min(currentPower,0.2);
-                 */
-                currentPower = 0;
+                currentPower = - maxPower/2.0;
             }
             double turn = 0;
             double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn) + Math.abs(sidePower)),1);

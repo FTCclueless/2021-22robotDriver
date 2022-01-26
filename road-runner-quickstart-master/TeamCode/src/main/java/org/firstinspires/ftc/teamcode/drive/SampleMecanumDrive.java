@@ -615,7 +615,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: intakeSensorLoops = 1; sumIntakeSensor = 0;break; // rotate the servo down
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3:
-                    intake.setPower(intakePower * 0.85);
+                    intake.setPower(intakePower);
+                    //intake.setPower(intakePower * 0.85);
                     if(currentIntake == 1){servos.get(1).setPosition(leftIntakeRaise);}
                     if(currentIntake == -1){servos.get(0).setPosition(rightIntakeRaise);}
                     break; // lift up the servo
@@ -917,7 +918,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
         }
-        if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 1000){
+        if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
             intakeDepositTransfer = false;
         }
 
@@ -952,7 +953,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 startIntakeDepositTransfer = System.currentTimeMillis();
             }
         }
-        if (intakeHit && System.currentTimeMillis() - startIntakeHit > 1000){
+        if (intakeHit && System.currentTimeMillis() - startIntakeHit > 200){
             intakeHit = false;
         }
         packet.put("intake Current Draw", intakeCurrent);
