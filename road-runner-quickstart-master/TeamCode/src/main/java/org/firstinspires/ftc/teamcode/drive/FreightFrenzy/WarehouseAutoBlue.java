@@ -46,7 +46,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     int previousTagCounter = 0;
     /* END CAMERA PARAMETERS */
 
-    double lastIntakeX = 45;
+    double lastIntakeX = 42;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -57,7 +57,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
         Pose2d endPoint = new Pose2d(12,65.25 * side,0);
 
         int capNum = 2;
-
 
         drive.currentIntake = side;
         drive.transferMineral = true;
@@ -177,9 +176,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.startIntake(side == -1);
         int a = 3;
         //TODO: Values here changed
-        int b = (numMinerals/(a-1));
         double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY()); //-10
-        double x = lastIntakeX;//45 + b * 4;
+        double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,1, 0.9,500,0.5, true);
         driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,3, 0.8,300,1, true);
