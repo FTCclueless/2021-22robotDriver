@@ -928,7 +928,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double averageIntakeCurrent = 0;
         double intakeCurrentCriticalVal = 0;
         double intakeDeltaCurrent = 0;
-        if (intakeCase == 2){
+        if (2 <= intakeCase && intakeCase <= 7){
             intakeCurrent = intake.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
             intakeHistory.add(intakeCurrent);
             if (intakeHistory.size() > 150){

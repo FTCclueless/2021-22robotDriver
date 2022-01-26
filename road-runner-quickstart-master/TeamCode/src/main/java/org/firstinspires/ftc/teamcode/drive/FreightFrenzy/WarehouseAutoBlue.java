@@ -46,7 +46,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     int previousTagCounter = 0;
     /* END CAMERA PARAMETERS */
 
-    double lastIntakeX = 42;
+    double lastIntakeX = 45;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -155,6 +155,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.slides.setPower(0);
         drive.slides2.setPower(0);
     }
+    /*straight back code
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
         Pose2d intakePoint = new Pose2d(lastIntakeX - 4,endPoint.getY(),0);
@@ -168,29 +169,25 @@ public class WarehouseAutoBlue extends LinearOpMode {
         }
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
     }
-    /* this is old code if we want to revert to it
+     */
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
         int a = 3;
         //TODO: Values here changed
         int b = (numMinerals/(a-1));
         double angle = ((numMinerals % a) * Math.toRadians(-10)) * Math.signum(endPoint.getY());
-        double x = 45 + b * 4;
+        double x = lastIntakeX;//45 + b * 4;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.9,500,0.5, true);
         driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,angle), false,1, 0.8,300,1, true);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle + Math.signum(endPoint.getY()) * Math.toRadians(5)), true,1, 0.75,500,3, false); //0.65
-        for (int i = 0; i < 10; i ++){
-            double power = 0.65 - i * 0.05;
-            intakeMineral(power,40);
-        }
-        intakeMineral(0.35,500);
-        intakeMineralTurn(0.35,500);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle + Math.signum(endPoint.getY()) * Math.toRadians(5)), true,1, 0.75,500,3, false); //0.6
+        intakeMineral(0.35,200);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
+        lastIntakeX += 2;
+        lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
     }
-     */
     public void driveOut(Pose2d endPoint, int numMinerals){
         Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
         double i = 0;
@@ -324,11 +321,11 @@ public class WarehouseAutoBlue extends LinearOpMode {
             double sidePower = 0;
             if (drive.intakeHit){
                 /*
+                sidePower = Math.min(maxPower*0.6,0.35) * side * -1;
                 currentPower *= 0.3;
                 currentPower = Math.min(currentPower,0.2);
                  */
                 currentPower = 0;
-                //sidePower = Math.min(maxPower*0.6,0.35) * side * -1;
             }
             double turn = 0;
             double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn) + Math.abs(sidePower)),1);
