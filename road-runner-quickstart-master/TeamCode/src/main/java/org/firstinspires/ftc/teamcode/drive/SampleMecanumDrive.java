@@ -683,14 +683,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                         fastDeposit = true;
                     }
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    if (l < 6) { //10
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.5 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35 * 10.0/6.0); //0.65, 0.35
+                    if (l < 10) {
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.55 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
                         if (fastDeposit &&  l < 3){
                             setDepositAngle(Math.toRadians(155)); //165
                         }
                     } else {
                         setDepositAngle(depositTransferAngle);
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.85); //1
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.9); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
