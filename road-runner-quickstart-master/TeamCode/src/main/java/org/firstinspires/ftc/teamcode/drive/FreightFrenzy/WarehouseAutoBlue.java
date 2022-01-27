@@ -202,12 +202,12 @@ public class WarehouseAutoBlue extends LinearOpMode {
             case 4: case 5: case 6: case 7:
                 newEnd = new Pose2d(endPoint.getX() + 1, endPoint.getY(), endPoint.getHeading());
                 i = -2;
-                drive.slidesOffset = 5.75;
+                drive.slidesOffset = 2.25;
                 break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         drive.fastDeposit = true;
-        driveToPoint(new Pose2d(38.5, newEnd.getY(),0), new Pose2d(36.5, newEnd.getY(),0), false,1, 0.8,1000,1,true);
+        driveToPoint(new Pose2d(37.5, newEnd.getY(),0), new Pose2d(16.5, newEnd.getY(),0), false,1, 0.8,1000,1,true);//35.5
         driveToPoint(newEnd, false,2, 0.65,1000,3, true);
         waitForDeposit(newEnd);
     }
@@ -317,17 +317,30 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void intakeMineral(double power, long maxTime){
         long startingTime = System.currentTimeMillis();
         double maxPower = power;
+        long intakeDejam = System.currentTimeMillis();
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double currentPower = maxPower;
             double sidePower = 0;
             if (drive.intakeHit){
-                currentPower = - maxPower/2.0;
+                //currentPower = - 0.5;
+                if (System.currentTimeMillis() - intakeDejam >= 400){
+                    drive.intake.setPower(1.0);//-0.75
+                }
+                else {
+                    drive.intake.setPower(-1.0);
+                    //drive.intake.setPower((double)(intakeDejam-System.currentTimeMillis())/1200.0 - 0.75);
+                }
+            }
+            else{
+                intakeDejam = System.currentTimeMillis();
+                drive.intake.setPower(-1);
             }
             double turn = 0;
             double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn) + Math.abs(sidePower)),1);
             drive.pinMotorPowers((currentPower+turn-sidePower)*multiplier,(currentPower+turn+sidePower)*multiplier,(currentPower-turn-sidePower)*multiplier,(currentPower-turn+sidePower)*multiplier);
             drive.update();
         }
+        drive.intake.setPower(-1);
         drive.setMotorPowers(0,0,0,0);
     }
     public void intakeMineralTurn(double power, long maxTime){
