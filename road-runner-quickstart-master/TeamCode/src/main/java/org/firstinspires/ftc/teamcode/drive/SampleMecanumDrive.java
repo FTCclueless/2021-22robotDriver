@@ -629,6 +629,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     intake.setPower(transfer2Power);
                 break;
                 case 8:
+                    setV4barOrientation(Math.toRadians(90));
                     setDepositAngle(depositTransferAngle);
                     setSlidesLength(2.5,0.2);
                     break;
