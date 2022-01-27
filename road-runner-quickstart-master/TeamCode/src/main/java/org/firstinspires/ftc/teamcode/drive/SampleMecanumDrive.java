@@ -747,7 +747,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateV4barAngle(double loopSpeed){
-        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 0.75 * loopSpeed;
+        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 0.95 * loopSpeed; //TODO: Changed it from 0.75 seconds for 180 degrees to 0.95 sec
         if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(10)){
             currentV4barAngle = targetV4barAngle;
         }
