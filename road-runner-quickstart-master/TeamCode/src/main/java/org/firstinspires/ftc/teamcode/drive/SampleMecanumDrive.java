@@ -676,6 +676,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
+                    setV4barOrientation(targetV4barOrientation);
                     if (deposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) > 10) {
                         effectiveDepositTime = openDepositTime - 75;
                         fastDeposit = true;
@@ -691,7 +692,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,0.85); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
-                    setV4barOrientation(targetV4barOrientation);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
                     if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 1 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;Log.e("here","2");} //3
                     if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
@@ -856,23 +856,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             trajectorySequenceRunner.updateT265(localizer.T265Pose);
         }
 
+        updateDepositAngle();
+        updateV4barAngle(loopSpeed);
+
         updateSensor();
         updateVisualizer();
 
         updateSlidesLength();
         updateTurretLength();
-
-        updateDepositAngle();
-        updateV4barAngle(loopSpeed);
-
-        /* This is code use to active roadrunner it is commented out in order to allow our own packets
-        DriveSignal signal = trajectorySequenceRunner.update(currentPose, relCurrentVelocity, r);
-        if (signal != null) {
-            updateDriveMotors(signal);
-        }
-         */
-
-
+        
         TelemetryPacket packet = new TelemetryPacket();
         Canvas fieldOverlay = packet.fieldOverlay();
 
