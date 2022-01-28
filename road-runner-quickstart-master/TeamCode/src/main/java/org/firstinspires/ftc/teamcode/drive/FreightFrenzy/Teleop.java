@@ -74,6 +74,8 @@ public class Teleop extends LinearOpMode {
 
     boolean lastTrigger = false;
 
+    long lastArmDown = System.currentTimeMillis();
+
     Pose2d sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
     Pose2d allianceHubEndpoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
 
@@ -273,6 +275,10 @@ public class Teleop extends LinearOpMode {
         }
         else if (out && !lastOut){
             armIn = false;
+            if (System.currentTimeMillis() - lastArmDown <= 500){
+                first = true;
+            }
+            lastArmDown = System.currentTimeMillis();
         }
         lastIn = in;
         lastOut = out;
