@@ -103,8 +103,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     ArrayList<Double> depositHistory, intakeHistory;
     public double currentIntake = 0;
     double rightIntakeVal, leftIntakeVal, depositVal, sumIntakeSensor, intakeSensorLoops;
-    int intakeMinValRight = 15;
-    int intakeMinValLeft = 15;
+    int intakeMinValRight = 800;//15
+    int intakeMinValLeft = 80;//15
     public int intakeCase, lastIntakeCase;
     private long intakeTime, slideTime;
     public boolean transferMineral;
@@ -192,6 +192,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     long intakeDelay;
     long depositDelay;
     long slidesDelay;
+
+    public double loopSpeed = 0;
 
     long lastLoopTime = System.nanoTime();
 
@@ -631,7 +633,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 8:
                     setV4barOrientation(Math.toRadians(90));
                     setDepositAngle(depositTransferAngle);
-                    setSlidesLength(2.5,0.2);
+                    setSlidesLength(5,0.2);
                     break;
                 case 9:
                     intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
@@ -661,9 +663,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
                 break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
-            case 5: if (slideExtensionLength < 0 || System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
-            case 6: if (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time){intakeCase ++;}break;
-            case 7: if (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time){intakeCase ++;}break;
+            case 5: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
+            case 6: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time) && System.currentTimeMillis() - intakeTime >= transfer1Time/2.0){intakeCase ++;}break;
+            case 7: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;}break;
             case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break;
         }
     }
@@ -684,13 +686,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     if (l < 10) {
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.55 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.47 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
                         if (fastDeposit &&  l < 3){
                             setDepositAngle(Math.toRadians(155)); //165
                         }
                     } else {
                         setDepositAngle(depositTransferAngle);
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.9); //1
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.82); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
@@ -845,7 +847,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (loops == 1){
             lastLoopTime = currentTime;
         }
-        double loopSpeed = (currentTime - lastLoopTime)/1000000000.0;
+        loopSpeed = (currentTime - lastLoopTime)/1000000000.0;
         lastLoopTime = currentTime;
 
         if (display3WheelOdo){
@@ -1228,7 +1230,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         if (((leftSensor && m == side) || (rightSensor && m == -1 * side)) && Math.abs(currentPose.getX()) > maxDetectionLocation) {
                             isKnownX = true;
                             //teleports the robot to the wall closest to where it currently is
-                            localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentYDist)) * side * gain);
+                            localizer.setX(currentPose.getX() * (1.0 - gain) + (72 - Math.abs(currentXDist)) * side * gain);
                         }
                     }
                 }

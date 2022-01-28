@@ -58,9 +58,9 @@ public class Teleop extends LinearOpMode {
     int lastLocVal = 0;
     int locVal = 0;
 
-    double armInPos = 0.237;
-    double armOutPos = 0.403;
-    double armOutGrabPos = 0.803;
+    double armInPos = 0.0;
+    double armOutPos = 0.172;
+    double armOutGrabPos = 0.52;
     boolean first = true;
     boolean lastIn = false;
     boolean lastOut = false;
@@ -201,7 +201,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(Math.abs(gamepad2.right_stick_y) > 0.25) { // Updates the slide length
-                drive.slidesOffset -= gamepad2.right_stick_y * 0.4;
+                drive.slidesOffset -= gamepad2.right_stick_y * 0.2;
                 double maxPossibleSlideExtension = 52;//Todo: fix value
                 if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
                     drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
@@ -230,34 +230,36 @@ public class Teleop extends LinearOpMode {
     public void updateEndgame(){
         endgame.update(gamepad2.left_bumper);
         if (System.currentTimeMillis() - start >= 90000){
-            endgame.toggleState = true;
+            //endgame.toggleState = true;
         }
         if (endgame.getToggleState()){
             drive.servos.get(7).setPosition(0.467);
             spin.update(gamepad2.y);
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
-                if (a < 900){
+                if (a < 1100){ //900
                     drive.duckSpin.setPower(duckSpinPower * side);
                     drive.duckSpin2.setPower(-duckSpinPower * side);
-                    duckSpinPower += 0.00012;
+                    duckSpinPower += drive.loopSpeed * 0.25; //0.00012
 
                 }
                 else{
                     drive.duckSpin.setPower(1 * side);
                     drive.duckSpin2.setPower(-1 * side);
                 }
-                if (a > 1500){
+                if (a > 1600){//1500
                     spin.toggleState = false;
                 }
             }
             else{
-                drive.servos.get(7).setPosition(0.938);
                 drive.duckSpin.setPower(0);
                 drive.duckSpin2.setPower(0);
                 startDuckSpin = System.currentTimeMillis();
-                duckSpinPower = 0.35;
+                duckSpinPower = 0.30;
             }
+        }
+        else{
+            drive.servos.get(7).setPosition(0.938);
         }
     }
     public void capstone(){
@@ -360,24 +362,25 @@ public class Teleop extends LinearOpMode {
                 }
                 if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(18.5, endPoint.getY(), endPoint.getHeading()),3000);
-                        driveToPoint(new Pose2d(38.5, endPoint.getY(), endPoint.getHeading()),3000);
+                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(18.5, endPoint.getY(), endPoint.getHeading()),3000,false);
+                        driveToPoint(new Pose2d(38.5, endPoint.getY(), endPoint.getHeading()),3000,false);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), 18.5 * side, endPoint.getHeading()),3000);
-                        driveToPoint(new Pose2d(endPoint.getX(), 38.5 * side, endPoint.getHeading()),3000);
+                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), 18.5 * side, endPoint.getHeading()),3000,true);
+                        driveToPoint(new Pose2d(endPoint.getX(), 38.5 * side, endPoint.getHeading()),3000,true);
                     }
                 }
             }
             else { //This is for going toward deposit area
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (hub == 1) {
-                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000);
-                    driveToPoint(allianceHubEndpoint,1000);
+                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000,false);
+                    driveToPoint(allianceHubEndpoint,1000,false);
                 }
                 if (hub == 0) {
-                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000);
-                    driveToPoint(sharedHubEndpoint,1000);
+                    Log.e("here","leaving area");
+                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000,true);
+                    driveToPoint(sharedHubEndpoint,1000,true);
                 }
             }
         }
@@ -405,7 +408,7 @@ public class Teleop extends LinearOpMode {
         switch(hub) {
             case 0:
                 endPoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
-                hubLocation = new Pose2d(42, 0);
+                hubLocation = new Pose2d(48, 0);
                 if (firstUpdate) {
                     drive.currentIntake = -side;
                 }
@@ -445,28 +448,37 @@ public class Teleop extends LinearOpMode {
                 break;
         }
     }
-    public void driveToPoint(Pose2d target, long maxTime){
-        driveToPoint(target,target,maxTime);
+    public void driveToPoint(Pose2d target, long maxTime, boolean shared){
+        driveToPoint(target,target,maxTime,shared);
     }
-    public void driveToPoint(Pose2d target, Pose2d target2, long maxTime){
-        double maxPowerForward = 0.8;
-        double maxPowerTurn = 0.4;
-        double slowDownDist = 4;
-        double slowTurnAngle = Math.toRadians(8);
+    public void driveToPoint(Pose2d target, Pose2d target2, long maxTime, boolean shared){
         double error = 2;
+        double power = 0.8;
+        double slowDownDist = 4;
+        boolean hugWall = true;
+        double kStatic = DriveConstants.kStatic;
+        double maxPowerTurn = Math.max(power/1.6,kStatic * 1.5);
+        double slowTurnAngle = Math.toRadians(5);
+        double m = 1;
+        if (shared){
+            m = -1;
+        }
         drive.targetPose = target;
         drive.targetRadius = error;
-        double sideError = 0.3;
         long start = System.currentTimeMillis();
+        double sideError = 0.3;
+        drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && auto.getToggleState() && System.currentTimeMillis() - start < maxTime){
-            auto.update(gamepad1.a);
+        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
             Pose2d relError = drive.getRelError(target);
-            double sideKStatic = 0.3 * side;
+            double sideKStatic = 0;
+            if (hugWall){
+                sideKStatic = 0.4 * side * m;
+            }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError) {
                     relError = new Pose2d(relError.getX(), 0, relError.getHeading());
@@ -476,7 +488,7 @@ public class Teleop extends LinearOpMode {
                     relError = new Pose2d(0, relError.getY(), relError.getHeading());
                 }
             }
-            drive.updateMotors(relError, maxPowerForward, maxPowerTurn, slowDownDist, Math.toRadians(slowTurnAngle), sideError, sideKStatic);
+            drive.updateMotors(relError,power,maxPowerTurn,slowDownDist,slowTurnAngle,sideError,sideKStatic);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
