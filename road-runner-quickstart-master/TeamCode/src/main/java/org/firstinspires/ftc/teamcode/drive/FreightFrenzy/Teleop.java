@@ -61,7 +61,7 @@ public class Teleop extends LinearOpMode {
     double armInPos = 0.0;
     double armOutPos = 0.172;
     double armOutGrabPos = 0.52;
-    boolean first = true;
+    boolean first = false; //true;
     boolean lastIn = false;
     boolean lastOut = false;
     boolean armIn = true;
@@ -231,9 +231,9 @@ public class Teleop extends LinearOpMode {
     }
     public void updateEndgame(){
         endgame.update(gamepad2.left_bumper);
-        if (System.currentTimeMillis() - start >= 90000){
+        //if (System.currentTimeMillis() - start >= 90000){
             //endgame.toggleState = true;
-        }
+        //}
         if (endgame.getToggleState()){
             drive.servos.get(7).setPosition(0.467);
             spin.update(gamepad2.y);
