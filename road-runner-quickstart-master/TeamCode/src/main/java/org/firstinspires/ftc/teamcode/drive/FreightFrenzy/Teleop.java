@@ -4,17 +4,14 @@ import android.util.Log;
 import android.widget.ToggleButton;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.DriveConstants;
-import org.firstinspires.ftc.teamcode.drive.Logger;
 import org.firstinspires.ftc.teamcode.drive.Reader;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 /**
  * This is a simple teleop routine for testing localization. Drive the robot around like a normal
@@ -165,7 +162,6 @@ public class Teleop extends LinearOpMode {
             if (gamepad2.right_trigger >= 0.5){//Makes it deposit
                 firstUpdate = true;
                 drive.deposit();
-                Log.e("deposit", "depositCalled");
                 //Updates the target location for auto movement upon deposit
                 if (auto.getToggleState()) {
                     if (hub == 1) {
