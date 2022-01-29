@@ -46,7 +46,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     int previousTagCounter = 0;
     /* END CAMERA PARAMETERS */
 
-    double lastIntakeX = 42;
+    double lastIntakeX = 39; //42
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -139,6 +139,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         a.close();
 
         long start = System.currentTimeMillis();
+        drive.servos.get(5).setPosition(0);
         drive.slidesOffset = 0;
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
@@ -180,9 +181,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,1, 0.9,500,0.5, true);
-        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,3, 0.8,300,1, true);
-        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.75,500,3, false); //0.6
-        intakeMineral(0.35,2000);
+        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,1, 0.8,300,1, true);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.6,500,3, false); //75
+        intakeMineral(0.3,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
@@ -322,12 +323,13 @@ public class WarehouseAutoBlue extends LinearOpMode {
             double currentPower = maxPower;
             double sidePower = 0;
             if (drive.intakeHit){
+                currentPower = maxPower/2.0;
                 //currentPower = - 0.5;
                 if (System.currentTimeMillis() - intakeDejam >= 400){
-                    drive.intake.setPower(1.0);//-0.75
+                    //drive.intake.setPower(1.0);//-0.75
                 }
                 else {
-                    drive.intake.setPower(-1.0);
+                    //drive.intake.setPower(-1.0);
                     //drive.intake.setPower((double)(intakeDejam-System.currentTimeMillis())/1200.0 - 0.75);
                 }
             }

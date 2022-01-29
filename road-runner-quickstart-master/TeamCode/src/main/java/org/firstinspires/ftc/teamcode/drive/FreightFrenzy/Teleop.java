@@ -73,6 +73,8 @@ public class Teleop extends LinearOpMode {
 
     long lastArmDown = System.currentTimeMillis();
 
+    double speedSlowMultiplier = 1;
+
     Pose2d sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
     Pose2d allianceHubEndpoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
 
@@ -126,6 +128,7 @@ public class Teleop extends LinearOpMode {
         start = System.currentTimeMillis();
 
         while (!isStopRequested()) {
+            updateEndgame();
             drive.update();
 
             if (gamepad1.b){ //Stops everything and makes turret face forward
@@ -139,8 +142,6 @@ public class Teleop extends LinearOpMode {
                 drive.servos.get(0).setPosition(drive.rightIntakeRaise);
                 drive.intakeCase = 6;
             }
-
-            updateEndgame();
 
             if(gamepad1.right_bumper) {//Starts the deposit sequence
                 firstUpdate = true;
@@ -206,9 +207,9 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
-            double forward = gamepad1.left_stick_y * -1;
-            double left = gamepad1.left_stick_x;
-            double turn = gamepad1.right_stick_x * 0.4;
+            double forward = gamepad1.left_stick_y * -1 * speedSlowMultiplier;
+            double left = gamepad1.left_stick_x * speedSlowMultiplier;
+            double turn = gamepad1.right_stick_x * 0.4 * speedSlowMultiplier;
             if (!gamepad1.left_stick_button){ //Normal mode (press button to sprint)
                 forward *= 0.6;
                 left *= 0.6;
@@ -227,25 +228,25 @@ public class Teleop extends LinearOpMode {
     }
     public void updateEndgame(){
         endgame.update(gamepad2.left_bumper);
-        //if (System.currentTimeMillis() - start >= 90000){
-            //endgame.toggleState = true;
-        //}
         if (endgame.getToggleState()){
             drive.servos.get(7).setPosition(0.467);
             spin.update(gamepad2.y);
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
-                if (a < 1100){ //900
+                if (a < 1300){ //900
                     drive.duckSpin.setPower(duckSpinPower * side);
                     drive.duckSpin2.setPower(-duckSpinPower * side);
-                    duckSpinPower += drive.loopSpeed * 0.25; //0.00012
+                    duckSpinPower += drive.loopSpeed * 0.2;
 
                 }
                 else{
                     drive.duckSpin.setPower(1 * side);
                     drive.duckSpin2.setPower(-1 * side);
                 }
-                if (a > 1600){//1500
+                if (a > 2000){//1500
+                    drive.duckSpin.setPower(0);
+                    drive.duckSpin2.setPower(0);
+                    startDuckSpin = System.currentTimeMillis();
                     spin.toggleState = false;
                 }
             }
@@ -287,8 +288,10 @@ public class Teleop extends LinearOpMode {
             }
             armInPos = Math.max(Math.min(armInPos,1.0),0);
             drive.servos.get(5).setPosition(armInPos);
+            speedSlowMultiplier = 1;
         }
         else {
+            speedSlowMultiplier = 0.5;
             if (first){
                 if (gamepad2.dpad_left){
                     armOutGrabPos += 0.001;

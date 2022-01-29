@@ -104,7 +104,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double currentIntake = 0;
     double rightIntakeVal, leftIntakeVal, depositVal, sumIntakeSensor, intakeSensorLoops;
     int intakeMinValRight = 800;//15
-    int intakeMinValLeft = 80;//15
+    int intakeMinValLeft = 500;//15
     public int intakeCase, lastIntakeCase;
     private long intakeTime, slideTime;
     public boolean transferMineral;
@@ -284,7 +284,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides2.setDirection(DcMotorSimple.Direction.REVERSE);
         turret.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        turret.setTargetPosition(0);
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //TODO: was run without encoder
         slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -680,7 +679,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 5: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
             case 6: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time) && System.currentTimeMillis() - intakeTime >= transfer1Time/2.0){intakeCase ++;}break;
             case 7: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;}break;
-            case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break;
+            case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime && targetV4barOrientation == currentV4barAngle){intakeCase ++;}break;
         }
     }
 
