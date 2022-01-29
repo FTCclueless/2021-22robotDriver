@@ -179,13 +179,13 @@ public class Teleop extends LinearOpMode {
 
             odo.update(gamepad2.b);//updates the lifting of the odometry
             if (odo.getToggleState()){ //Lifts up odo and tells robot we no longer know where we are
-                drive.servos.get(3).setPosition(0.668);
+                drive.raiseOdo();
                 drive.isKnownY = false;
                 drive.isKnownX = false;
                 auto.toggleState = false; //Since we don't know where we are, we cannot run auto
             }
             else { //drops down odo
-                drive.servos.get(3).setPosition(0.48);
+                drive.dropOdo();
             }
 
             updateAuto();
@@ -382,7 +382,9 @@ public class Teleop extends LinearOpMode {
                 if (hub == 0) {
                     Log.e("here","leaving area");
                     driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000,true);
+                    Log.e("here","leaving area 1");
                     driveToPoint(sharedHubEndpoint,1000,true);
+                    Log.e("here","leaving area 2");
                 }
             }
         }
@@ -472,7 +474,7 @@ public class Teleop extends LinearOpMode {
         drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
+        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && System.currentTimeMillis() - start < maxTime){
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());

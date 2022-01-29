@@ -307,6 +307,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 5: servos.add(hardwareMap.servo.get("rightCapstone")); break;
                 case 6: servos.add(hardwareMap.servo.get("leftCapstone")); break;
                 case 7: servos.add(hardwareMap.servo.get("duckSpinSpin")); break;
+                case 8: servos.add(hardwareMap.servo.get("rightOdo")); break;
+                case 9: servos.add(hardwareMap.servo.get("leftOdo")); break;
             }
         }
         duckSpin = hardwareMap.crservo.get("duckSpin");
@@ -365,8 +367,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
         setV4barDeposit(depositInterfaceAngle,v4barInterfaceAngle);
-        servos.get(3).setPosition(0.48);
 
+        dropOdo();
         servos.get(7).setPosition(0.938);
 
         setSlidesLength(returnSlideLength);
@@ -597,6 +599,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         Log.e("deposit", "depositFunction");
         deposit = true;
         depositDelay = System.currentTimeMillis();
+    }
+
+    public void dropOdo(){
+        servos.get(3).setPosition(0.48);
+        servos.get(9).setPosition(0.748);
+        servos.get(8).setPosition(0.155);
+    }
+
+    public void raiseOdo(){
+        servos.get(3).setPosition(0.668);
+        servos.get(9).setPosition(0.01);
+        servos.get(8).setPosition(0.884);
     }
 
     public void updateIntake(){
@@ -1258,7 +1272,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     tiltForward = imuAngle.thirdAngle > 0;
                     tiltBackward = !tiltForward;
                     firstOffBarrier = true;
-                    servos.get(3).setPosition(0.668);
+                    raiseOdo();
                 }
             }
             else{
@@ -1293,7 +1307,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     tiltForward = false;
                     tiltBackward = false;
-                    servos.get(3).setPosition(0.48);
+                    dropOdo();
                 }
             }
         }
