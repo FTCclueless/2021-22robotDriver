@@ -170,6 +170,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     double targetDepositAngle = 0;
 
+    double voltage = 0;
+    long voltageStart = System.currentTimeMillis();
+
     double tF = 32767.0 / (1150.0 / 60.0 * 145.1);
     double tP = tF * 0.1 + 0.2;
     double tI = tF * 0.01;
@@ -679,7 +682,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 5: if (System.currentTimeMillis() - intakeTime >= 300){intakeCase ++;}break;
             case 6: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time) && System.currentTimeMillis() - intakeTime >= transfer1Time/2.0){intakeCase ++;}break;
             case 7: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;}break;
-            case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime && targetV4barOrientation == currentV4barAngle){intakeCase ++;}break;
+            case 8: if (System.currentTimeMillis() - intakeTime >= closeDepositTime){intakeCase ++;}break; //&& targetV4barOrientation == currentV4barAngle
         }
     }
 
@@ -698,14 +701,18 @@ public class SampleMecanumDrive extends MecanumDrive {
                         fastDeposit = true;
                     }
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
+                    double slidePower = 0.82;
+                    if (System.currentTimeMillis() - voltageStart >= 1000){
+                        slidePower = 0.67;
+                    }
                     if (l < 10) {
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.47 + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35);
                         if (fastDeposit &&  l < 3){
                             setDepositAngle(Math.toRadians(155)); //165
                         }
                     } else {
                         setDepositAngle(depositTransferAngle);
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,0.82); //1
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,slidePower); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
@@ -723,7 +730,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (slidesCase >= 6) {
-                        setSlidesLength(returnSlideLength, 0.7);
+                        if (targetV4barOrientation != currentV4barAngle){
+                            setSlidesLength(returnSlideLength + 5, 0.7);
+                        }
+                        else{
+                            setSlidesLength(returnSlideLength, 0.7);
+                        }
                     }
                     if (slidesCase <= 6) {
                         setTurretTarget(targetTurretHeading + turretOffset);
@@ -982,6 +994,13 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         updateScoring();
         updateIMU = false;
+
+        if (loops % 10 == 0){
+            voltage = getBatteryVoltage();
+        }
+        if (voltage >= 13){
+            voltageStart = System.currentTimeMillis();
+        }
     }
 
     public void drawRobot(Canvas fieldOverlay, robotComponents r, Pose2d poseEstimate){

@@ -176,8 +176,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
         int a = 3;
-        //TODO: Values here changed
-        double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY()); //-10
+        double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY());
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,1, 0.9,500,0.5, true);
@@ -198,12 +197,12 @@ public class WarehouseAutoBlue extends LinearOpMode {
             case 2: case 3:
                 newEnd = new Pose2d(endPoint.getX() - 1.5, endPoint.getY(), endPoint.getHeading());
                 i = 0.5;
-                drive.slidesOffset = 4.5;
+                drive.slidesOffset = 2.5;//4.5
                 break;
             case 4: case 5: case 6: case 7:
                 newEnd = new Pose2d(endPoint.getX() + 1, endPoint.getY(), endPoint.getHeading());
                 i = -2;
-                drive.slidesOffset = 2.25;
+                drive.slidesOffset = 1.1;//2.25
                 break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
