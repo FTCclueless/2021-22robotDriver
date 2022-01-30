@@ -115,8 +115,8 @@ public class Teleop extends LinearOpMode {
             drive.update();
         }
 
-        Pose2d sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
-        Pose2d allianceHubEndpoint = new Pose2d(12, 65.125 * side, Math.toRadians(0));
+        sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
+        allianceHubEndpoint = new Pose2d(12, 65.125 * side, Math.toRadians(0));
 
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
@@ -135,6 +135,7 @@ public class Teleop extends LinearOpMode {
                 drive.slidesCase = 0;
                 drive.intakeCase = 0;
                 drive.currentIntake = 0;
+                drive.transferMineral = false;
                 firstUpdate = false;
             }
             if (gamepad1.x){ //Finish intaking
@@ -193,9 +194,14 @@ public class Teleop extends LinearOpMode {
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
                 drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.25;
-                double maxPossibleTurretAngle = Math.toRadians(100); //Todo: fix value
-                if (Math.abs(drive.targetTurretHeading + drive.turretOffset) > maxPossibleTurretAngle){
-                    drive.turretOffset = Math.abs(maxPossibleTurretAngle - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
+                //-1.0703392733416528
+                // 1.1274009793517894
+                if (drive.targetTurretHeading + drive.turretOffset > 1.1274009793517894){
+                    drive.turretOffset = Math.abs(1.1274009793517894 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
+                }
+                else if (drive.targetTurretHeading + drive.turretOffset < -1.0703392733416528){
+                    drive.turretOffset = Math.abs(-1.0703392733416528 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
+
                 }
             }
 
@@ -240,8 +246,8 @@ public class Teleop extends LinearOpMode {
 
                 }
                 else{
-                    drive.duckSpin.setPower(1 * side);
-                    drive.duckSpin2.setPower(-1 * side);
+                    drive.duckSpin.setPower(0.85 * side);
+                    drive.duckSpin2.setPower(-0.85 * side);
                 }
                 if (a > 2000){//1500
                     drive.duckSpin.setPower(0);
@@ -254,11 +260,11 @@ public class Teleop extends LinearOpMode {
                 drive.duckSpin.setPower(0);
                 drive.duckSpin2.setPower(0);
                 startDuckSpin = System.currentTimeMillis();
-                duckSpinPower = 0.30;
+                duckSpinPower = 0.25;
             }
         }
         else{
-            drive.servos.get(7).setPosition(0.938);
+            drive.servos.get(7).setPosition(0.863);
         }
     }
     public void capstone(){
@@ -383,11 +389,8 @@ public class Teleop extends LinearOpMode {
                     driveToPoint(allianceHubEndpoint,1000,false);
                 }
                 if (hub == 0) {
-                    Log.e("here","leaving area");
                     driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000,true);
-                    Log.e("here","leaving area 1");
                     driveToPoint(sharedHubEndpoint,1000,true);
-                    Log.e("here","leaving area 2");
                 }
             }
         }
