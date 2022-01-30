@@ -152,7 +152,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int closeDepositTime = 250;
     public int openDepositTime = 400;
     public int effectiveDepositTime = openDepositTime;
-    public double returnSlideLength = 1.0; //1.0
+    public double returnSlideLength = 0.75; //1.0
 
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
@@ -715,8 +715,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation);
                     if (deposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) > 10) {
-                        effectiveDepositTime = openDepositTime - 75;
-                        fastDeposit = true;
+                        //effectiveDepositTime = openDepositTime - 75;
+                        //fastDeposit = true;
                     }
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     double slidePower = 0.65;//0.82

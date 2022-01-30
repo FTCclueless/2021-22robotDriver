@@ -48,6 +48,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
 
     double lastIntakeX = 39; //42
 
+    long start = System.currentTimeMillis();
+
     @Override
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
@@ -138,8 +140,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
         a.update();
         a.close();
 
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         drive.servos.get(5).setPosition(0);
+        drive.servos.get(6).setPosition(0.89);
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
@@ -155,6 +158,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.setMotorPowers( 0 , 0, 0, 0);
         drive.slides.setPower(0);
         drive.slides2.setPower(0);
+        drive.turret.setPower(0);
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
@@ -175,8 +179,10 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void driveOut(Pose2d endPoint, int numMinerals){
         Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
         double i = 0;
+        if (numMinerals >= 2){
+            drive.slidesOffset = 2;
+        }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        //drive.fastDeposit = true;
         driveToPoint(new Pose2d(37.5, newEnd.getY(),0), new Pose2d(16.5, newEnd.getY(),0), false,3, 0.75,1000,1,true);//35.5
         driveToPoint(newEnd, false,2, 0.65,1000,3, true);
         waitForDeposit(newEnd);
@@ -184,28 +190,29 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void depositFirst(int capNum, Pose2d endPoint){
         double h = 20;
         double r = 6;
+        double offset = 0;
         switch (capNum) {
-            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -1.5; break;
+            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -3; break; //-1.5
             case 1: r = 7; h = 7.125; break;
             case 2: r = 3; h = 13.5; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
-        waitForDepositSlow();
+        waitForDepositSlow(offset);
         drive.slidesOffset = 0;
     }
-    public void waitForDepositSlow(){
+    public void waitForDepositSlow(double offset){
         while (drive.slidesCase < 3 && opModeIsActive()){
             drive.update();
             if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
             if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
         }
         while (drive.slidesCase <= 4 && opModeIsActive()) {
+            drive.slidesOffset = offset;
             drive.deposit();
             drive.update();
             if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
             if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
         }
-
     }
     public void waitForDeposit(){
         while (drive.slidesCase <= 4 && opModeIsActive()) {
@@ -233,11 +240,15 @@ public class WarehouseAutoBlue extends LinearOpMode {
                 drive.deposit();
                 drive.setMotorPowers(0,0,0,0);
             }
+            /*
             if (drive.intakeCase == 9){
                 if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
                 if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
             }
+             */
         }
+        if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+        if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
         drive.targetPose = null;
         drive.targetRadius = 1;
     }
@@ -252,7 +263,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
+        while (opModeIsActive() && System.currentTimeMillis() - start <= 29900 && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
@@ -302,19 +313,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
             drive.update();
         }
         drive.intake.setPower(-1);
-        drive.setMotorPowers(0,0,0,0);
-    }
-    public void intakeMineralTurn(double power, long maxTime){
-        long startingTime = System.currentTimeMillis();
-        while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
-            double turn = 0.4 * side;
-            if (Math.abs(Math.toRadians(drive.currentPose.getHeading())) >= 40){
-                turn = -0.4 * side;
-            }
-            double multiplier = Math.min(1.0/(Math.abs(power) + Math.abs(turn)),1);
-            drive.pinMotorPowers((power+turn)*multiplier,(power+turn)*multiplier,(power-turn)*multiplier,(power-turn)*multiplier);
-            drive.update();
-        }
         drive.setMotorPowers(0,0,0,0);
     }
     public void setUp(Pose2d startingPose){

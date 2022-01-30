@@ -55,9 +55,12 @@ public class Teleop extends LinearOpMode {
     int lastLocVal = 0;
     int locVal = 0;
 
-    double armInPos = 0.0;
-    double armOutPos = 0.172;
-    double armOutGrabPos = 0.52;
+    double armInPosRight = 0.0;
+    double armOutPosRight = 0.172;
+    double armOutGrabPosRight = 0.52;
+    double armInPosLeft = 0.89;
+    double armOutPosLeft = 0.685;
+    double armOutGrabPosLeft = 0.347;
     boolean first = false; //true;
     boolean lastIn = false;
     boolean lastOut = false;
@@ -287,36 +290,48 @@ public class Teleop extends LinearOpMode {
         lastOut = out;
         if (armIn){
             if (gamepad2.dpad_left){
-                armInPos += 0.001;
+                armInPosRight += 0.001;
+                armInPosLeft -= 0.001;
             }
             else if (gamepad2.dpad_right){
-                armInPos -= 0.001;
+                armInPosRight -= 0.001;
+                armInPosLeft += 0.001;
             }
-            armInPos = Math.max(Math.min(armInPos,1.0),0);
-            drive.servos.get(5).setPosition(armInPos);
+            armInPosRight = Math.max(Math.min(armInPosRight,1.0),0);
+            drive.servos.get(5).setPosition(armInPosRight);
+            armInPosLeft = Math.max(Math.min(armInPosLeft,1.0),0);
+            drive.servos.get(6).setPosition(armInPosLeft);
             speedSlowMultiplier = 1;
         }
         else {
             speedSlowMultiplier = 0.5;
             if (first){
                 if (gamepad2.dpad_left){
-                    armOutGrabPos += 0.001;
+                    armOutGrabPosRight += 0.001;
+                    armOutGrabPosLeft -= 0.001;
                 }
                 else if (gamepad2.dpad_right){
-                    armOutGrabPos -= 0.001;
+                    armOutGrabPosRight -= 0.001;
+                    armOutGrabPosLeft += 0.001;
                 }
-                armOutGrabPos = Math.max(Math.min(armOutGrabPos,1.0),0);
-                drive.servos.get(5).setPosition(armOutGrabPos);
+                armOutGrabPosRight = Math.max(Math.min(armOutGrabPosRight,1.0),0);
+                drive.servos.get(5).setPosition(armOutGrabPosRight);
+                armOutGrabPosLeft = Math.max(Math.min(armOutGrabPosLeft,1.0),0);
+                drive.servos.get(6).setPosition(armOutGrabPosLeft);
             }
             else {
                 if (gamepad2.dpad_left){
-                    armOutPos += 0.001;
+                    armOutPosRight += 0.001;
+                    armOutPosLeft -= 0.001;
                 }
                 else if (gamepad2.dpad_right){
-                    armOutPos -= 0.001;
+                    armOutPosRight -= 0.001;
+                    armOutPosLeft += 0.001;
                 }
-                armOutPos = Math.max(Math.min(armOutPos,1.0),0);
-                drive.servos.get(5).setPosition(armOutPos);
+                armOutPosRight = Math.max(Math.min(armOutPosRight,1.0),0);
+                drive.servos.get(5).setPosition(armOutPosRight);
+                armOutPosLeft = Math.max(Math.min(armOutPosLeft,1.0),0);
+                drive.servos.get(6).setPosition(armOutPosLeft);
             }
         }
     }
