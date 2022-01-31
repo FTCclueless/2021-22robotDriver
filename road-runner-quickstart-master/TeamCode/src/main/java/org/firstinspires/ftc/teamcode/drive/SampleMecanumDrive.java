@@ -80,6 +80,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
+    public static double kPSlides = 0.1, kISlides = 0.01, slidesI = 0;
+
     private final List<DcMotorEx> motors;
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
@@ -139,7 +141,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double depositInterfaceAngle = Math.toRadians(65);
     public double depositTransferAngle = Math.toRadians(115);//135
 
-    double targetSlidesPose = 0, slidesPower = 0, targetTurretPose = 0, turretPower = 0;
+    double targetSlidesPose = 0, slidesSpeed = 0, targetTurretPose = 0, turretPower = 0;
+    double currentTargetSlidesPose = 0;
 
     public int dropIntakeTime = 300;
     public double intakePower = -1;
@@ -799,19 +802,34 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void setSlidesLength(double inches){
         targetSlidesPose = inches;
-        slidesPower = 1;
+        slidesSpeed = 1;
     }
 
-    public void setSlidesLength(double inches, double power){
+    public void setSlidesLength(double inches, double speed){
         targetSlidesPose = inches;
-        slidesPower = power;
+        slidesSpeed = speed;
     }
 
     public void updateSlidesLength(){
+        double maxSlideSpeed = 42; //42 inches per second
+        double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength);
+        currentTargetSlidesPose += kStatic * slidesSpeed * loopSpeed * maxSlideSpeed;
+        if (Math.abs(currentTargetSlidesPose - targetSlidesPose) <= 3){
+            currentTargetSlidesPose = targetSlidesPose;
+        }
+        kStatic *= slidesSpeed/2.0;
+        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 3){
+            kStatic = 0;
+        }
+        slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed;
+        double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
+        double i = slidesI * kISlides;
+        slides.setPower(kStatic + p + i);
+        /*
         if (Math.abs(targetSlidesPose - slideExtensionLength) >= 4){
             if (targetSlidesPose > slideExtensionLength) {
-                slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 100.0)));
-                slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesPower) + Math.abs(slideExtensionLength / 100.0)));
+                slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesSpeed) + Math.abs(slideExtensionLength / 100.0)));
+                slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesSpeed) + Math.abs(slideExtensionLength / 100.0)));
             }
             else {
                 slides.setPower(-0.45);
@@ -826,6 +844,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.01);
             slides2.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.01);
         }
+        */
     }
 
     public void setTurretTarget(double radians){
@@ -965,7 +984,6 @@ public class SampleMecanumDrive extends MecanumDrive {
             averageIntakeCurrent = sumIntake/intakeHistory.size();
             intakeDeltaCurrent = intakeCurrent/averageIntakeCurrent;
             if (intakeDeltaCurrent > intakeCurrentCriticalValTop && System.currentTimeMillis() - intakeTime >= 100){
-                //Log.e("intake","stack detected");
                 intakeHit = true;
                 startIntakeHit = System.currentTimeMillis();
             }
@@ -983,15 +1001,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("intakeCurrentCriticalValBottom", intakeCurrentCriticalValBottom);
         packet.put("intakeDeltaCurrent", intakeDeltaCurrent);
 
-        /*
-        double expansion1 = expansionHub1.getTotalModuleCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
-        double expansion2 = expansionHub2.getTotalModuleCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
-        packet.put("currentDraw1",expansion1);
-        packet.put("currentDraw2",expansion2);
-        double totalExpansion = expansion1 + expansion2;
-        packet.put("currentDrawTotal", totalExpansion);
-        Log.e("totalExpansion", totalExpansion + "");
-         */
         packet.put("leftIntake", leftIntakeVal);
         packet.put("rightIntake", rightIntakeVal);
 
