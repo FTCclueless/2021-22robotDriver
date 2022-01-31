@@ -721,7 +721,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     double slidePower = 0.65;//0.82
                     if (System.currentTimeMillis() - voltageStart >= 3000 || !fastDeposit){
-                        slidePower = 0.47;
+                        slidePower = 0.52;//47
                     }
                     if (l < 15) {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.45) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35); //0.35

@@ -139,6 +139,7 @@ public class Teleop extends LinearOpMode {
                 drive.intakeCase = 0;
                 drive.currentIntake = 0;
                 drive.transferMineral = false;
+                auto.toggleState = false;
                 firstUpdate = false;
             }
             if (gamepad1.x){ //Finish intaking
@@ -350,15 +351,19 @@ public class Teleop extends LinearOpMode {
         if (a != lastLocVal && a != 0){ //Testing for new input
             if ((a == 1 && locVal == 1) || (a == 1 && locVal == 4) || (a == 4 && locVal == 1)){ //right
                 drive.localizer.setPoseEstimate(new Pose2d(24,-65.25,Math.toRadians(0)));
+                hub = 1;
             }
             if ((a == 2 && locVal == 2) || (a == 2 && locVal == 4) || (a == 4 && locVal == 2)){ //left
                 drive.localizer.setPoseEstimate(new Pose2d(24,65.25,Math.toRadians(0)));
+                hub = 1;
             }
             if ((a == 1 && locVal == 3) || (a == 3 && locVal == 1)){ //top right
                 drive.localizer.setPoseEstimate(new Pose2d(65.25,-24,Math.toRadians(-90)));
+                hub = 0;
             }
             if ((a == 2 && locVal == 3) || (a == 3 && locVal == 2)){ //top left
                 drive.localizer.setPoseEstimate(new Pose2d(65.25,24,Math.toRadians(90)));
+                hub = 0;
             }
             locVal = a;
         }
@@ -495,7 +500,16 @@ public class Teleop extends LinearOpMode {
         drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && System.currentTimeMillis() - start < maxTime){
+        while (auto.getToggleState() && opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && System.currentTimeMillis() - start < maxTime){
+            auto.update(gamepad1.a);
+            if (gamepad1.b){ //Stops everything and makes turret face forward
+                drive.slidesCase = 0;
+                drive.intakeCase = 0;
+                drive.currentIntake = 0;
+                drive.transferMineral = false;
+                auto.toggleState = false;
+                firstUpdate = false;
+            }
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
