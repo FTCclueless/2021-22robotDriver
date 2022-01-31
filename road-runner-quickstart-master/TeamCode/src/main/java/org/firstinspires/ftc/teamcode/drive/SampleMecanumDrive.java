@@ -812,19 +812,18 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateSlidesLength(){
         double maxSlideSpeed = 42; //42 inches per second
-        double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength);
-        currentTargetSlidesPose += kStatic * slidesSpeed * loopSpeed * maxSlideSpeed;
-        if (Math.abs(currentTargetSlidesPose - targetSlidesPose) <= 3){
+        double dif = (targetSlidesPose + slidesOffset) - currentTargetSlidesPose;
+        currentTargetSlidesPose += Math.signum(dif) * slidesSpeed * loopSpeed * maxSlideSpeed;
+        if (Math.abs(dif) <= 3){
             currentTargetSlidesPose = targetSlidesPose;
         }
-        kStatic *= slidesSpeed/2.0;
+        double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
         if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 3){
             kStatic = 0;
         }
-        slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed;
+        slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
         double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
-        double i = slidesI * kISlides;
-        slides.setPower(kStatic + p + i);
+        slides.setPower(kStatic + p + slidesI);
         /*
         if (Math.abs(targetSlidesPose - slideExtensionLength) >= 4){
             if (targetSlidesPose > slideExtensionLength) {
