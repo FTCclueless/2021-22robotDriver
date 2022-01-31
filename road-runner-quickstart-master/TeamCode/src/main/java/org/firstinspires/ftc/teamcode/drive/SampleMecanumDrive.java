@@ -163,7 +163,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double turretTickToRadians = 578.3213;
     double currentV4barAngle = 0;
     double targetV4barAngle = 0;
-    public boolean fastDeposit = false;
 
     public boolean intakeDepositTransfer = false, intakeHit = false;
     long startIntakeDepositTransfer, startIntakeHit;
@@ -714,20 +713,10 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (a) {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation);
-                    if (deposit && Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset) > 10) {
-                        //effectiveDepositTime = openDepositTime - 75;
-                        //fastDeposit = true;
-                    }
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    double slidePower = 0.65;//0.82
-                    if (System.currentTimeMillis() - voltageStart >= 3000 || !fastDeposit){
-                        slidePower = 0.52;//47
-                    }
+                    double slidePower = 0.52;
                     if (l < 15) {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.45) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35); //0.35
-                        if (fastDeposit &&  l < 3){
-                            setDepositAngle(Math.toRadians(135)); //165
-                        }
                     } else {
                         setDepositAngle(depositTransferAngle);
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,slidePower); //1
@@ -769,7 +758,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 8 && Math.abs(slideExtensionLength) <= 1 + returnSlideLength){slidesCase ++;Log.e("here", "8");}
                     break;
                 case 9: //resets the slidesCase & officially says mineral has not been transferred
-                    transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; fastDeposit = false; effectiveDepositTime = openDepositTime;
+                    transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; effectiveDepositTime = openDepositTime;
                     break;
             }
         }
