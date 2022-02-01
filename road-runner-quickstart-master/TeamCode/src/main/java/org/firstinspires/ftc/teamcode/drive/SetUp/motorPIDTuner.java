@@ -68,7 +68,7 @@ public class motorPIDTuner extends LinearOpMode {
                         targetPos = 5;
                         start = System.currentTimeMillis();
                     }
-                    drive.setSlidesLength(targetPos,1);
+                    drive.setSlidesLength(targetPos,0.3);
                     break;
                 case "turret":
                     currentPos = Math.toDegrees(drive.turretHeading);

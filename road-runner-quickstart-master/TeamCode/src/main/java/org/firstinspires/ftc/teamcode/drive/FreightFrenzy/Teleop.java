@@ -71,8 +71,6 @@ public class Teleop extends LinearOpMode {
     double duckSpinPower = 0.35;
     long start;
 
-    boolean lastTrigger = false;
-
     long lastArmDown = System.currentTimeMillis();
 
     double speedSlowMultiplier = 1;
@@ -215,10 +213,10 @@ public class Teleop extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper){
-                drive.v4barOffset -= Math.toRadians(0.1);
+                drive.v4barOffset -= Math.toRadians(1.2);
             }
             if (gamepad2.left_trigger >= 0.5){
-                drive.v4barOffset += Math.toRadians(0.1);
+                drive.v4barOffset += Math.toRadians(1.2);
             }
 
             if (gamepad2.a){
@@ -233,6 +231,13 @@ public class Teleop extends LinearOpMode {
             if (!gamepad1.left_stick_button){ //Normal mode (press button to sprint)
                 forward *= 0.6;
                 left *= 0.6;
+            }
+            if (gamepad1.left_bumper){
+                double m1 = -1;
+                if (hub == 0){
+                    m1 = 1;
+                }
+                left = 0.6 * side * m1;
             }
             //Sets power for all of the drive motors
             double p1 = forward+left+turn;

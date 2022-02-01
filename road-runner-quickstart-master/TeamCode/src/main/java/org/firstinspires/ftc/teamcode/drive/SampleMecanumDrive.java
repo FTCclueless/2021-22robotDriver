@@ -80,7 +80,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
-    public static double kPSlides = 0.1, kISlides = 0.01, slidesI = 0;
+    public static double kPSlides = 0.2, kISlides = 0.001, slidesI = 0;
 
     private final List<DcMotorEx> motors;
     RevBulkData bulkData;
@@ -719,9 +719,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    double slidePower = 0.52;
-                    if (l < 15) {
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.45) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35); //0.35
+                    double slidePower = 0.7; //0.52
+                    if (l < 10) { //15
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35); //0.35
                     } else {
                         setDepositAngle(depositTransferAngle);
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,slidePower); //1
@@ -813,39 +813,28 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateSlidesLength(){
-        double maxSlideSpeed = 42; //42 inches per second
-        double dif = (targetSlidesPose + slidesOffset) - currentTargetSlidesPose;
+        double maxSlideSpeed = 42/0.5; //42 inches per second
+        double dif = (targetSlidesPose) - currentTargetSlidesPose;
         currentTargetSlidesPose += Math.signum(dif) * slidesSpeed * loopSpeed * maxSlideSpeed;
-        if (Math.abs(dif) <= 3){
+        if (Math.abs(dif) <= 1){
             currentTargetSlidesPose = targetSlidesPose;
         }
         double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
         if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 3){
-            kStatic = 0;
+            kStatic = Math.signum(targetSlidesPose - slideExtensionLength) * (slidesSpeed/4.0 + Math.abs(currentTargetSlidesPose - slideExtensionLength)/3 * slidesSpeed/4.0);
         }
-        slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
         double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
-        slides.setPower(kStatic + p + slidesI);
-        /*
-        if (Math.abs(targetSlidesPose - slideExtensionLength) >= 4){
-            if (targetSlidesPose > slideExtensionLength) {
-                slides.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesSpeed) + Math.abs(slideExtensionLength / 100.0)));
-                slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * (Math.abs(slidesSpeed) + Math.abs(slideExtensionLength / 100.0)));
+        if (Math.abs(slideExtensionLength - targetSlidesPose) > 1) {
+            if (loops >= 2) {
+                slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
             }
-            else {
-                slides.setPower(-0.45);
-                slides2.setPower(-0.45);
-            }
+            slides.setPower(kStatic + p + slidesI);
+            slides2.setPower(kStatic + p + slidesI);
         }
-        else if (Math.abs(targetSlidesPose - slideExtensionLength) >= 0.35){
-            slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.175);//225
-            slides2.setPower(Math.signum(targetSlidesPose - slideExtensionLength) * 0.175);
+        else{
+            slides.setPower((currentTargetSlidesPose - slideExtensionLength));
+            slides2.setPower((currentTargetSlidesPose - slideExtensionLength));
         }
-        else {
-            slides.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.01);
-            slides2.setPower(Math.signum(targetSlidesPose  - slideExtensionLength) * 0.01);
-        }
-        */
     }
 
     public void setTurretTarget(double radians){
@@ -943,6 +932,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("depositVal", depositVal);
         packet.put("turret Heading", turretHeading);
         packet.put("slides length", slideExtensionLength);
+        packet.put("target Slide Length 1", currentTargetSlidesPose);
         packet.put("target Slide Length", targetSlidesPose);
 
         depositHistory.add(depositVal);
