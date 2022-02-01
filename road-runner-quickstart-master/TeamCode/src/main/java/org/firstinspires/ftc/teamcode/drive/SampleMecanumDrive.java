@@ -819,22 +819,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (Math.abs(dif) <= 1){
             currentTargetSlidesPose = targetSlidesPose;
         }
-        double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
-        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 3){
-            kStatic = Math.signum(targetSlidesPose - slideExtensionLength) * (slidesSpeed/4.0 + Math.abs(currentTargetSlidesPose - slideExtensionLength)/3 * slidesSpeed/4.0);
-        }
         double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
-        if (Math.abs(slideExtensionLength - targetSlidesPose) > 2) {
-            if (loops >= 2) {
-                slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
-            }
-            slides.setPower(kStatic + p + slidesI);
-            slides2.setPower(kStatic + p + slidesI);
+        if (loops >= 2) {
+            slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
         }
-        else{
-            slides.setPower((currentTargetSlidesPose - slideExtensionLength) + slideExtensionLength * 0.03);
-            slides2.setPower((currentTargetSlidesPose - slideExtensionLength) + slideExtensionLength * 0.03);
+        double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
+        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 2){
+            p = 0;
+            kStatic = Math.signum(targetSlidesPose - slideExtensionLength) * (slidesSpeed/4.0 + Math.abs(currentTargetSlidesPose - slideExtensionLength)/2.0 * slidesSpeed/4.0);
         }
+        slides.setPower(kStatic + p + slidesI);
+        slides2.setPower(kStatic + p + slidesI);
     }
 
     public void setTurretTarget(double radians){
