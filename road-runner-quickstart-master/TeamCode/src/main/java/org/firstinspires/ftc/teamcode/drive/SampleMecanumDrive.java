@@ -824,7 +824,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             kStatic = Math.signum(targetSlidesPose - slideExtensionLength) * (slidesSpeed/4.0 + Math.abs(currentTargetSlidesPose - slideExtensionLength)/3 * slidesSpeed/4.0);
         }
         double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
-        if (Math.abs(slideExtensionLength - targetSlidesPose) > 1) {
+        if (Math.abs(slideExtensionLength - targetSlidesPose) > 2) {
             if (loops >= 2) {
                 slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
             }
@@ -832,8 +832,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             slides2.setPower(kStatic + p + slidesI);
         }
         else{
-            slides.setPower((currentTargetSlidesPose - slideExtensionLength));
-            slides2.setPower((currentTargetSlidesPose - slideExtensionLength));
+            slides.setPower((currentTargetSlidesPose - slideExtensionLength) + slideExtensionLength * 0.03);
+            slides2.setPower((currentTargetSlidesPose - slideExtensionLength) + slideExtensionLength * 0.03);
         }
     }
 
