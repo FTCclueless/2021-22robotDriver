@@ -32,7 +32,6 @@ public class Teleop extends LinearOpMode {
     Pose2d hubLocation = new Pose2d();
     double height = 0;
     double radius = 0;
-    int level = 3;
 
     double side = 1;
     boolean intake = false;
@@ -198,8 +197,6 @@ public class Teleop extends LinearOpMode {
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
                 drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.25;
-                //-1.0703392733416528
-                // 1.1274009793517894
                 if (drive.targetTurretHeading + drive.turretOffset > 1.1274009793517894){
                     drive.turretOffset = Math.abs(1.1274009793517894 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
@@ -217,6 +214,19 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
+            if (gamepad2.left_bumper){
+                drive.v4barOffset -= Math.toRadians(0.1);
+            }
+            if (gamepad2.left_trigger >= 0.5){
+                drive.v4barOffset += Math.toRadians(0.1);
+            }
+
+            if (gamepad2.a){
+                drive.v4barOffset = 0;
+                drive.slidesOffset = 0;
+                drive.turretOffset = 0;
+            }
+
             double forward = gamepad1.left_stick_y * -1 * speedSlowMultiplier;
             double left = gamepad1.left_stick_x * speedSlowMultiplier;
             double turn = gamepad1.right_stick_x * 0.4 * speedSlowMultiplier;
@@ -232,12 +242,11 @@ public class Teleop extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             telemetry.addData("hub", hub);
-            telemetry.addData("level", level);
             telemetry.update();
         }
     }
     public void updateEndgame(){
-        endgame.update(gamepad2.left_bumper);
+        endgame.update(gamepad2.right_bumper);
         if (endgame.getToggleState()){
             drive.servos.get(7).setPosition(0.467);
             spin.update(gamepad2.y);
@@ -453,22 +462,8 @@ public class Teleop extends LinearOpMode {
                 else {
                     endPoint = new Pose2d(-56, 60 * side, Math.toRadians(180));
                 }
-                boolean up = gamepad1.left_bumper;
-                boolean down = gamepad1.left_trigger > 0.5;
-                if (!lastDown && up){
-                    level = Math.min(level + 1,3);
-                }
-                else if (!lastUp && down){
-                    level = Math.max(level - 1,1);
-                }
-                lastUp = up;
-                lastUp = down;
-
-                switch (level){
-                    case 1: radius = 8.5; height = 6; break;
-                    case 2: radius = 7; height = 12.13; break;
-                    case 3: radius = 3; height = 14; break;
-                }
+                radius = 3;
+                height = 14;
                 hubLocation = new Pose2d(-12.0, 24.0*side);
 
                 intake = side == -1;

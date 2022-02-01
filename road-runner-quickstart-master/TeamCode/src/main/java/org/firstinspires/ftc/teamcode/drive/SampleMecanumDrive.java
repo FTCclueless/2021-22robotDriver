@@ -190,6 +190,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public double turretOffset;
     public double slidesOffset;
+    public double v4barOffset;
 
     ArrayList<Pose2d> poseHistory;
     private final FtcDashboard dashboard;
@@ -356,6 +357,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         turretOffset = 0;
         slidesOffset = 0;
+        v4barOffset = 0;
 
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
@@ -715,7 +717,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    setV4barOrientation(targetV4barOrientation);
+                    setV4barOrientation(targetV4barOrientation + v4barOffset);
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     double slidePower = 0.52;
                     if (l < 15) {
@@ -727,14 +729,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
                     if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 1 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;Log.e("here","2");} //3
-                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barOrientation == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
                     break;
                 case 4:
                     if (System.currentTimeMillis()-slideTime >= 120) {//70
                         setDepositAngle(Math.toRadians(180) - depositAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
-                    setV4barOrientation(targetV4barOrientation);
+                    setV4barOrientation(targetV4barOrientation + v4barOffset);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime + 70){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;Log.e("here", "4");}
                     break;
