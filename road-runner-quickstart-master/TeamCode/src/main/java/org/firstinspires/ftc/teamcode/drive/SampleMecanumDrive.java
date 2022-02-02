@@ -721,10 +721,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     double slidePower = 0.7; //0.52
                     if (l < 10) { //15
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength) * 0.35); //0.35
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
                         setDepositAngle(depositTransferAngle);
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,slidePower); //1
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset - 8,slidePower); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
@@ -824,9 +824,19 @@ public class SampleMecanumDrive extends MecanumDrive {
             slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
         }
         double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
-        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 2){
-            p = 0;
-            kStatic = Math.signum(targetSlidesPose - slideExtensionLength) * (slidesSpeed/4.0 + Math.abs(currentTargetSlidesPose - slideExtensionLength)/2.0 * slidesSpeed/4.0);
+        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 5){
+            p /= 2;
+            kStatic /= 2;
+            slidesI = 0;
+            if (currentTargetSlidesPose - slideExtensionLength >= 0){
+                p = 0;
+                kStatic = 0.05;
+            }
+            else {
+                if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // -1
+                    kStatic = -0.3;
+                }
+            }
         }
         slides.setPower(kStatic + p + slidesI);
         slides2.setPower(kStatic + p + slidesI);
