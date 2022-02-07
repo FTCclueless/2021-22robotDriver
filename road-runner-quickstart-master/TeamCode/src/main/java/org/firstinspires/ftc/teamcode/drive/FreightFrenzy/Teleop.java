@@ -84,7 +84,8 @@ public class Teleop extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        drive.servos.get(5).setPosition(0.237); //Capstone servo
+        drive.servos.get(5).setPosition(armInPosRight);
+        drive.servos.get(6).setPosition(armInPosLeft);
 
         Reader r = new Reader();
         String info = r.readFile("Alliance");
