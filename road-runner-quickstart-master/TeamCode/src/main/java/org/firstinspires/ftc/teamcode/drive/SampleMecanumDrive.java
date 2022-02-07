@@ -155,7 +155,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int closeDepositTime = 250;
     public int openDepositTime = 400;
     public int effectiveDepositTime = openDepositTime;
-    public double returnSlideLength = 0.75; //1.0
+    public double returnSlideLength = 1.0; //0.75
 
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
@@ -393,6 +393,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER); //TODO: was run without encoder
         slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+    public void resetSlides(){
+        slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slides.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slides2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
     }
 
     public void initT265(HardwareMap hardwareMap){
@@ -730,7 +737,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    double slidePower = 0.85; //0.7
+                    double slidePower = 0.75; //0.7
                     if (l < 10) { //15
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
@@ -838,12 +845,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             kStatic /= 2;
             slidesI = 0;
             if (currentTargetSlidesPose - slideExtensionLength >= 0){
-                p = 0;
+                //p = 0;
                 kStatic = 0.05;
             }
             else {
                 if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // -1
                     kStatic = -0.3;
+                }
+                else{
+                    p = 0;
                 }
             }
         }

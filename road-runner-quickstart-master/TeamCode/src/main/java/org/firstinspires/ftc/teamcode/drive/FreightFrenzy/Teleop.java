@@ -56,10 +56,10 @@ public class Teleop extends LinearOpMode {
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
-    double armOutGrabPosRight = 0.52;
+    double armOutGrabPosRight = 0.521;
     double armInPosLeft = 0.89;
     double armOutPosLeft = 0.685;
-    double armOutGrabPosLeft = 0.347;
+    double armOutGrabPosLeft = 0.356;
     boolean first = false; //true;
     boolean lastIn = false;
     boolean lastOut = false;
@@ -130,6 +130,9 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             updateEndgame();
             drive.update();
+            if (gamepad2.x){
+                drive.resetSlides();
+            }
 
             if (gamepad1.b){ //Stops everything and makes turret face forward
                 drive.slidesCase = 0;
