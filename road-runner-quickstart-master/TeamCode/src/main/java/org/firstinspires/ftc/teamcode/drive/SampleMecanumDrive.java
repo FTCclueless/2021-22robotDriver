@@ -148,8 +148,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double intakePower = -1;
     public int liftIntakeTime = 500;
     //TODO: Values here changed
-    public int transfer1Time = 300; //350
-    public int transfer2Time = 300; // 250
+    public int transfer1Time = 500; //300
+    public int transfer2Time = 500; //300
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78; //0.85
     public int closeDepositTime = 250;
