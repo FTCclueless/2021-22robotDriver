@@ -619,7 +619,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void deposit(){
-        //Log.e("deposit", "depositFunction");
         deposit = true;
         depositDelay = System.currentTimeMillis();
     }
@@ -696,7 +695,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 9:
                     intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
-                    //Log.e("Average Intake Val",sumIntakeSensor/intakeSensorLoops + "");
                     break; // turn off the intake
             }
             intakeTime = System.currentTimeMillis();
@@ -756,9 +754,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setSlidesLength(targetSlideExtensionLength + slidesOffset - 8,slidePower); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
-                    if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;Log.e("here","1");}
-                    if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;Log.e("here","2");} //3
-                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;Log.e("here", "3");}
+                    if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
+                    if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;}
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;}
                     break;
                 case 4:
                     if (System.currentTimeMillis()-slideTime >= 0) {//120
@@ -767,7 +765,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
-                    if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;Log.e("here", "4");} // + 70
+                    if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} // + 70
                     break;
                 case 5 : case 6: case 7: case 8:
                     if (targetV4barAngle != currentV4barAngle){
@@ -775,7 +773,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     else{
                         setSlidesLength(returnSlideLength, 0.4);
-                        if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){slidesCase ++;Log.e("here", "8");}
+                        if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){slidesCase ++;}
                     }
                     if (slidesCase <= 6) {
                         setTurretTarget(targetTurretHeading + turretOffset);
@@ -785,9 +783,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                     setV4barOrientation(v4barInterfaceAngle);
                     setDepositAngle(depositInterfaceAngle);
-                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;Log.e("here", "5");}
-                    if (slidesCase == 6 && Math.abs(slideExtensionLength-returnSlideLength) <= 10){slidesCase ++;Log.e("here", "6");}
-                    if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;Log.e("here", "7");}
+                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
+                    if (slidesCase == 6 && Math.abs(slideExtensionLength-returnSlideLength) <= 10){slidesCase ++;}
+                    if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
                     break;
                 case 9: //resets the slidesCase & officially says mineral has not been transferred
                     transferMineral = false; slidesCase = 0; lastSlidesCase = 0; deposit = false; effectiveDepositTime = openDepositTime;
@@ -982,6 +980,21 @@ public class SampleMecanumDrive extends MecanumDrive {
         for (double v: depositHistory){
             sumDeposit += v;
         }
+        double average = sumDeposit/depositHistory.size();
+        double e = 0;
+        for (double v: depositHistory){
+            e += Math.pow(average - v, 2);
+        }
+        e = Math.sqrt(e);
+        double criticalVal = average - e * 2;
+        if (depositVal < criticalVal){
+            intakeDepositTransfer = true;
+            startIntakeDepositTransfer = System.currentTimeMillis();
+        }
+        if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
+            intakeDepositTransfer = false;
+        }
+        /*
         double criticalVal = Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
         criticalVal += (1.0-criticalVal)*0.3;
         if (depositVal/(sumDeposit/depositHistory.size()) < criticalVal){
@@ -991,10 +1004,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
             intakeDepositTransfer = false;
         }
+         */
 
-        packet.put("criticalDepositVal", criticalVal);
-        packet.put("averageDepositVal", sumDeposit/50.0);
-        packet.put("depositValDelta", depositVal/(sumDeposit/50.0));
+        packet.put("depositValCritical", criticalVal);
+        packet.put("depositValAverage", average);
+        packet.put("depositValDelta", depositVal);
 
         double intakeCurrent = 0;
         double averageIntakeCurrent = 0;
