@@ -7,6 +7,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.DriveConstants;
@@ -411,12 +412,12 @@ public class Teleop extends LinearOpMode {
                 }
                 if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(16.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(18.5, endPoint.getY(), endPoint.getHeading()),3000,false);
-                        driveToPoint(new Pose2d(38.5, endPoint.getY(), endPoint.getHeading()),3000,false);
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(allianceHubEndpoint.getX() + 6.5, endPoint.getY(), endPoint.getHeading()),3000,false);
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),3000,false);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(), 16.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), 18.5 * side, endPoint.getHeading()),3000,true);
-                        driveToPoint(new Pose2d(endPoint.getX(), 38.5 * side, endPoint.getHeading()),3000,true);
+                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),3000,true);
+                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),3000,true);
                     }
                 }
             }
@@ -425,10 +426,12 @@ public class Teleop extends LinearOpMode {
                 if (hub == 1) {
                     driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000,false);
                     driveToPoint(allianceHubEndpoint,1000,false);
+                    waitForDeposit(allianceHubEndpoint);
                 }
                 if (hub == 0) {
                     driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000,true);
                     driveToPoint(sharedHubEndpoint,1000,true);
+                    waitForDeposit(sharedHubEndpoint);
                 }
             }
         }
@@ -440,6 +443,43 @@ public class Teleop extends LinearOpMode {
             flag = 0;
             done = false;
         }
+    }
+    public void waitForDeposit(Pose2d target){
+        drive.targetPose = target;
+        drive.targetRadius = 0.25;
+        boolean stop = (
+                gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
+                Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
+                gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
+                gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left ||
+                gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y ||
+                Math.abs(gamepad2.left_stick_x) >= 0.5 || Math.abs(gamepad2.left_stick_y) >= 0.5 || Math.abs(gamepad2.right_stick_x) >= 0.5 || Math.abs(gamepad2.right_stick_y) >= 0.5 ||
+                gamepad2.left_bumper || gamepad2.right_bumper || gamepad2.right_trigger >= 0.5 || gamepad2.left_trigger >= 0.5 ||
+                gamepad2.dpad_up || gamepad2.dpad_down || gamepad2.dpad_right || gamepad2.dpad_left
+        );
+        while (!stop && opModeIsActive()) {
+            stop = (
+                    gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
+                    Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
+                    gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
+                    gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left ||
+                    gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y ||
+                    Math.abs(gamepad2.left_stick_x) >= 0.5 || Math.abs(gamepad2.left_stick_y) >= 0.5 || Math.abs(gamepad2.right_stick_x) >= 0.5 || Math.abs(gamepad2.right_stick_y) >= 0.5 ||
+                    gamepad2.left_bumper || gamepad2.right_bumper || gamepad2.right_trigger >= 0.5 || gamepad2.left_trigger >= 0.5 ||
+                    gamepad2.dpad_up || gamepad2.dpad_down || gamepad2.dpad_right || gamepad2.dpad_left
+            );
+            drive.update();
+            Pose2d error = drive.getRelError(target);
+            double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
+            if (dist > 1) {
+                drive.updateMotors(error, 0.25, 0.25,4, Math.toRadians(8), 1, 0);
+            }
+            else {
+                drive.setMotorPowers(0,0,0,0);
+            }
+        }
+        drive.targetPose = null;
+        drive.targetRadius = 1;
     }
     public void updateHub(){
         boolean toggleHub = gamepad1.y;
