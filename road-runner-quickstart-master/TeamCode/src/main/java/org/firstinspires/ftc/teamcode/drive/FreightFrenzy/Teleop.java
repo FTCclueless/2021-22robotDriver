@@ -66,6 +66,9 @@ public class Teleop extends LinearOpMode {
 
     double speedSlowMultiplier = 1;
 
+    boolean firstShared = false;
+    boolean firstAlliance = false;
+
     Pose2d sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
     Pose2d allianceHubEndpoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
 
@@ -192,7 +195,6 @@ public class Teleop extends LinearOpMode {
                 }
                 else if (drive.targetTurretHeading + drive.turretOffset < -1.0703392733416528){
                     drive.turretOffset = Math.abs(-1.0703392733416528 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
-
                 }
             }
 
@@ -461,16 +463,28 @@ public class Teleop extends LinearOpMode {
         lastToggleHub = toggleHub;
         switch(hub) {
             case 0:
+                firstAlliance = true;
                 endPoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
                 hubLocation = new Pose2d(48, 0);
                 if (firstUpdate) {
                     drive.currentIntake = -side;
+                    if (firstShared) {
+                        if (side == -1) {
+                            drive.turretOffset = 1.1274009793517894;
+                        } else {
+                            drive.turretOffset = -1.0703392733416528;
+                        }
+                        drive.slidesOffset = 0;
+                        drive.v4barOffset = 0;
+                    }
                 }
                 intake = side == 1;
                 height = 2;
                 radius = 2;
+                firstShared = false;
                 break;
             case 1: case 2:
+                firstShared = true;
                 if (hub == 1) {
                     endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
                 }
@@ -484,7 +498,13 @@ public class Teleop extends LinearOpMode {
                 intake = side == -1;
                 if (firstUpdate) {
                     drive.currentIntake = side;
+                    if (firstAlliance) {
+                        drive.turretOffset = 0;
+                        drive.slidesOffset = 0;
+                        drive.v4barOffset = 0;
+                    }
                 }
+                firstAlliance = false;
                 break;
         }
     }

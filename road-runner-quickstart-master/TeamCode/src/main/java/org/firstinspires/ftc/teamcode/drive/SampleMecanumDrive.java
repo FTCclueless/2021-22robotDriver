@@ -88,7 +88,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
-    public AnalogInput rightIntake, leftIntake, depositSensor, dist, mag1;
+    public AnalogInput rightIntake, leftIntake, depositSensor, distLeft, distRight, magLeft, magRight;
     public CRServo duckSpin, duckSpin2;
     public ColorSensor color, leftWall, rightWall;
     public BNO055IMU imu;
@@ -197,8 +197,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     double deleteLater = 0;
 
-    double distVal = 0;
-    double mag1Val = 0;
+    double distValLeft = 0, distValRight = 0;
+    double magValLeft = 0, magValRight = 0;
 
     ArrayList<Pose2d> poseHistory;
     private final FtcDashboard dashboard;
@@ -329,8 +329,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
         depositSensor = hardwareMap.analogInput.get("depositSensor");
-        dist = hardwareMap.analogInput.get("dist");
-        mag1 = hardwareMap.analogInput.get("magLeft");
+        distLeft = hardwareMap.analogInput.get("distLeft");
+        distRight = hardwareMap.analogInput.get("distRight");
+        magLeft = hardwareMap.analogInput.get("magLeft");
+        magRight = hardwareMap.analogInput.get("magRight");
         rightIntakeVal = 0;
         leftIntakeVal = 0;
 
@@ -449,8 +451,10 @@ public class SampleMecanumDrive extends MecanumDrive {
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides2)/slideTickToInch;
             deleteLater = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
-            distVal = bulkData.getAnalogInputValue(dist);
-            mag1Val = bulkData.getAnalogInputValue(mag1);
+            distValLeft = bulkData.getAnalogInputValue(distLeft);
+            distValRight = bulkData.getAnalogInputValue(distRight);
+            magValLeft = bulkData.getAnalogInputValue(magLeft);
+            magValRight = bulkData.getAnalogInputValue(magRight);
         }
     }
 
@@ -777,14 +781,20 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setSlidesLength(returnSlideLength, 0.4);
                         if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){slidesCase ++;}
                     }
-                    if (slidesCase <= 6) {
-                        setTurretTarget(targetTurretHeading + turretOffset);
-                    }
-                    else {
+                    if (slidesCase == 7) {
                         setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
                     }
-                    setV4barOrientation(v4barInterfaceAngle);
-                    setDepositAngle(depositInterfaceAngle);
+                    else {
+                        setTurretTarget(targetTurretHeading + turretOffset);
+                    }
+                    if (slidesCase != 5) {
+                        setV4barOrientation(v4barInterfaceAngle);
+                        setDepositAngle(depositInterfaceAngle);
+                    }
+                    else {
+                        setDepositAngle(Math.toRadians(180) - depositAngle);
+                        setV4barOrientation(targetV4barOrientation + v4barOffset);
+                    }
                     if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
                     if (slidesCase == 6 && Math.abs(slideExtensionLength-returnSlideLength) <= 10){slidesCase ++;}
                     if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
@@ -969,8 +979,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("slides length", slideExtensionLength);
         packet.put("slides length2", deleteLater);
         packet.put("slides length2", deleteLater);
-        packet.put("mag1", mag1Val);
-        packet.put("dist",distVal/6.4);
+        packet.put("mag Left", magValLeft);
+        packet.put("mag Right", magValRight);
+        packet.put("dist Left",distValLeft/6.4);
+        packet.put("dist Right",distValRight/6.4);
         packet.put("target Slide Length 1", currentTargetSlidesPose);
         packet.put("target Slide Length", targetSlidesPose);
 
