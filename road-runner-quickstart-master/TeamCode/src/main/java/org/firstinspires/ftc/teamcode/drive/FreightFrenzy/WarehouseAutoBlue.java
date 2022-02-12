@@ -60,6 +60,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
 
         int capNum = 2;
 
+        drive.intakeTurretInterfaceHeading = 1.1274009793517894;
         drive.currentIntake = side;
         drive.transferMineral = true;
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
@@ -133,6 +134,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         }
 
         setUp(startingPose);
+        drive.intakeTurretInterfaceHeading = Math.toRadians(57.5);
 
         Logger a = new Logger("Alliance",false);
         String b = "blue";
