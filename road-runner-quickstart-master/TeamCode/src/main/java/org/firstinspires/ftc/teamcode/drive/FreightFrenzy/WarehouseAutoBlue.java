@@ -145,6 +145,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.servos.get(6).setPosition(0.89);
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
+        drive.intakeLiftDelay = 600;
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
             long lastCycleStart = System.currentTimeMillis();
             driveIn(endPoint,numMinerals);

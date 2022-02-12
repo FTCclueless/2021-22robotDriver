@@ -86,7 +86,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     RevBulkData bulkData;
     ExpansionHubEx expansionHub1, expansionHub2;
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
-    public AnalogInput rightIntake, leftIntake, depositSensor;
+    public AnalogInput rightIntake, leftIntake, depositSensor, dist, mag1;
     public CRServo duckSpin, duckSpin2;
     public ColorSensor color, leftWall, rightWall;
     public BNO055IMU imu;
@@ -149,11 +149,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int liftIntakeTime = 500;
     //TODO: Values here changed
     public int transfer1Time = 500; //300
-    public int transfer2Time = 500; //300
+    public int transfer2Time = 700; //300
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78; //0.85
     public int closeDepositTime = 250;
     public int openDepositTime = 400;
+    public int intakeLiftDelay = 100;
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 1.0; //0.75
 
@@ -191,6 +192,11 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double turretOffset;
     public double slidesOffset;
     public double v4barOffset;
+
+    double deleteLater = 0;
+
+    double distVal = 0;
+    double mag1Val = 0;
 
     ArrayList<Pose2d> poseHistory;
     private final FtcDashboard dashboard;
@@ -321,6 +327,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         rightIntake = hardwareMap.analogInput.get("rightIntake");
         leftIntake = hardwareMap.analogInput.get("leftIntake");
         depositSensor = hardwareMap.analogInput.get("depositSensor");
+        dist = hardwareMap.analogInput.get("dist");
+        mag1 = hardwareMap.analogInput.get("magLeft");
         rightIntakeVal = 0;
         leftIntakeVal = 0;
 
@@ -365,9 +373,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftIntakeDrop = 0.0;
         leftIntakeRaise = 0.72;//0.655
         leftIntakeMid = 0.646;
-        rightIntakeDrop = 0.751;
-        rightIntakeRaise = 0.063;//0.202
-        rightIntakeMid = 0.137;
+        rightIntakeDrop = 0.796;
+        rightIntakeRaise = 0.08;//0.202
+        rightIntakeMid = 0.191;
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
@@ -420,7 +428,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
         leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
-        depositVal = 0; //bulkData.getAnalogInputValue(depositSensor);
+        depositVal = bulkData.getAnalogInputValue(depositSensor);
 
         if (intakeCase >= 1 && intakeCase <= 4){
             if(currentIntake == 1){
@@ -436,8 +444,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         // you can set the bulkData to the other expansion hub to get data from the other one
         if (!(slidesCase == 0) || intakeCase == 4 || intakeCase == 5 || expansion2){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
             RevBulkData bulkData = expansionHub2.getBulkInputData();
-            slideExtensionLength = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
+            slideExtensionLength = bulkData.getMotorCurrentPosition(slides2)/slideTickToInch;
+            deleteLater = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
+            distVal = bulkData.getAnalogInputValue(dist);
+            mag1Val = bulkData.getAnalogInputValue(mag1);
         }
     }
 
@@ -635,7 +646,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 setSlidesLength(returnSlideLength + 8, 0.4);
             }
             else{
-                setSlidesLength(returnSlideLength, 0.2);
+                setSlidesLength(returnSlideLength, 0.4);
             }
             switch ((int) currentIntake) {
                 case -1:
@@ -661,7 +672,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: intakeSensorLoops = 1; sumIntakeSensor = 0;break; // rotate the servo down
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
                 case 3:
-                    if (System.currentTimeMillis() - intakeTime >= 100) {
+                    if (System.currentTimeMillis() - intakeTime >= intakeLiftDelay) {
                         if (currentIntake == 1) {
                             servos.get(1).setPosition(leftIntakeRaise);
                         }
@@ -701,7 +712,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 if(currentIntake == -1){servos.get(0).setPosition(rightIntakeDrop);}
             break; // wait for block in
             case 3:
-                if (System.currentTimeMillis() - intakeTime >= liftIntakeTime + 150 && !transferMineral){
+                if (System.currentTimeMillis() - intakeTime >= liftIntakeTime + intakeLiftDelay && !transferMineral){
                     intakeCase ++;
                 }
                 if (!transferMineral){
@@ -737,7 +748,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    double slidePower = 0.75; //0.7
+                    double slidePower = 0.5;//0.95
                     if (l < 10) { //15
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
@@ -763,7 +774,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setSlidesLength(returnSlideLength + 8, 0.4);
                     }
                     else{
-                        setSlidesLength(returnSlideLength, 0.2);
+                        setSlidesLength(returnSlideLength, 0.4);
                         if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){slidesCase ++;Log.e("here", "8");}
                     }
                     if (slidesCase <= 6) {
@@ -956,6 +967,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("depositVal", depositVal);
         packet.put("turret Heading", turretHeading);
         packet.put("slides length", slideExtensionLength);
+        packet.put("slides length2", deleteLater);
+        packet.put("slides length2", deleteLater);
+        packet.put("mag1", mag1Val);
+        packet.put("dist",distVal/6.4);
         packet.put("target Slide Length 1", currentTargetSlidesPose);
         packet.put("target Slide Length", targetSlidesPose);
 

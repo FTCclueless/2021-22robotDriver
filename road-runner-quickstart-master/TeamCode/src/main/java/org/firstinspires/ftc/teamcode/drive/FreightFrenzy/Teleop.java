@@ -1,13 +1,9 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
-import android.util.Log;
-import android.widget.ToggleButton;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.DriveConstants;
@@ -40,8 +36,6 @@ public class Teleop extends LinearOpMode {
     boolean done = false;
     int flag = 0;
 
-    boolean lastUp = false;
-    boolean lastDown = false;
     boolean lastToggleHub = false;
 
     ButtonToggle auto = new ButtonToggle();
@@ -50,10 +44,6 @@ public class Teleop extends LinearOpMode {
     ButtonToggle endgame = new ButtonToggle();
     ButtonToggle spin = new ButtonToggle();
     ButtonToggle odo = new ButtonToggle();
-
-    long startReposition = System.currentTimeMillis();
-    int lastLocVal = 0;
-    int locVal = 0;
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
@@ -132,9 +122,6 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             updateEndgame();
             drive.update();
-            if (gamepad2.x){
-                drive.resetSlides();
-            }
 
             if (gamepad1.b){ //Stops everything and makes turret face forward
                 drive.slidesCase = 0;
@@ -150,7 +137,7 @@ public class Teleop extends LinearOpMode {
                 drive.intakeCase = 6;
             }
 
-            if(gamepad1.right_bumper) {//Starts the deposit sequence
+            if(gamepad2.x) {//Starts the deposit sequence
                 firstUpdate = true;
                 drive.startDeposit(endPoint, hubLocation, height, radius);
             }
@@ -230,10 +217,10 @@ public class Teleop extends LinearOpMode {
                 drive.turretOffset = 0;
             }
 
-            double forward = gamepad1.left_stick_y * -1 * speedSlowMultiplier;
-            double left = gamepad1.left_stick_x * speedSlowMultiplier;
+            double forward = Math.pow(gamepad1.left_stick_y,3) * -1 * speedSlowMultiplier;
+            double left = Math.pow(gamepad1.left_stick_x,3) * speedSlowMultiplier;
             double turn = gamepad1.right_stick_x * 0.4 * speedSlowMultiplier;
-            if (!gamepad1.left_stick_button){ //Normal mode (press button to sprint)
+            if (gamepad1.left_stick_button){ //Normal mode (press button to sprint)
                 forward *= 0.6;
                 left *= 0.6;
             }
@@ -262,17 +249,17 @@ public class Teleop extends LinearOpMode {
             spin.update(gamepad2.y);
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
-                if (a < 1300){ //900
-                    drive.duckSpin.setPower(duckSpinPower * side);
-                    drive.duckSpin2.setPower(duckSpinPower * side);
-                    duckSpinPower += drive.loopSpeed * 0.2;
+                if (a < 900){ //900
+                    drive.duckSpin.setPower(-duckSpinPower * side);//1.1
+                    drive.duckSpin2.setPower(-duckSpinPower * side);
+                    duckSpinPower += drive.loopSpeed * 0.13;
 
                 }
                 else{
-                    drive.duckSpin.setPower(0.85 * side);
-                    drive.duckSpin2.setPower(0.85 * side);
+                    drive.duckSpin.setPower(-0.75 * side);//0.93
+                    drive.duckSpin2.setPower(-0.75 * side);
                 }
-                if (a > 2000){//1500
+                if (a > 1500){//1500
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
                     startDuckSpin = System.currentTimeMillis();
@@ -283,7 +270,7 @@ public class Teleop extends LinearOpMode {
                 drive.duckSpin.setPower(0);
                 drive.duckSpin2.setPower(0);
                 startDuckSpin = System.currentTimeMillis();
-                duckSpinPower = 0.25;
+                duckSpinPower = 0.2;//0.25
             }
         }
         else{
@@ -356,37 +343,16 @@ public class Teleop extends LinearOpMode {
         }
     }
     public void updatePoseLock(){
-        if (startReposition - System.currentTimeMillis() > 1000){ //If over a second since last value input then we stop the ability to add to it
-            locVal = 0;
+        if (gamepad1.dpad_up) {
+            firstUpdate = true;
+            hub = 0;
+            drive.localizer.setPoseEstimate(new Pose2d(65.25,24 * side,Math.toRadians(90)*side));
         }
-        int a = 0;
-        boolean[] gamepad1Dpad = {gamepad1.dpad_right,gamepad1.dpad_left,gamepad1.dpad_up,gamepad1.dpad_down};
-        for(int i = 0; i < gamepad1Dpad.length; i ++){ //Finds the current input
-            if (gamepad1Dpad[i]){
-                a = i + 1;
-                startReposition = System.currentTimeMillis();
-            }
+        if (gamepad1.dpad_down){
+            firstUpdate = true;
+            hub = 1;
+            drive.localizer.setPoseEstimate(new Pose2d(24,65.25 * side,Math.toRadians(0)));
         }
-        if (a != lastLocVal && a != 0){ //Testing for new input
-            if ((a == 1 && locVal == 1) || (a == 1 && locVal == 4) || (a == 4 && locVal == 1)){ //right
-                drive.localizer.setPoseEstimate(new Pose2d(24,-65.25,Math.toRadians(0)));
-                hub = 1;
-            }
-            if ((a == 2 && locVal == 2) || (a == 2 && locVal == 4) || (a == 4 && locVal == 2)){ //left
-                drive.localizer.setPoseEstimate(new Pose2d(24,65.25,Math.toRadians(0)));
-                hub = 1;
-            }
-            if ((a == 1 && locVal == 3) || (a == 3 && locVal == 1)){ //top right
-                drive.localizer.setPoseEstimate(new Pose2d(65.25,-24,Math.toRadians(-90)));
-                hub = 0;
-            }
-            if ((a == 2 && locVal == 3) || (a == 3 && locVal == 2)){ //top left
-                drive.localizer.setPoseEstimate(new Pose2d(65.25,24,Math.toRadians(90)));
-                hub = 0;
-            }
-            locVal = a;
-        }
-        lastLocVal = a;
     }
     public void updateAuto(){
         boolean a = gamepad1.a;
