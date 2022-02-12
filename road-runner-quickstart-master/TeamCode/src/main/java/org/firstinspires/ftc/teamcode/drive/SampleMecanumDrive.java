@@ -80,6 +80,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     private static final TrajectoryVelocityConstraint VEL_CONSTRAINT = getVelocityConstraint(MAX_VEL, MAX_ANG_VEL, TRACK_WIDTH);
     private static final TrajectoryAccelerationConstraint ACCEL_CONSTRAINT = getAccelerationConstraint(MAX_ACCEL);
 
+    public static double intakeCurrentCriticalValTop = 1.2, intakeCurrentCriticalValBottom = 0.875;
+
     public static double kPSlides = 0.2, kISlides = 0.001, slidesI = 0;
 
     private final List<DcMotorEx> motors;
@@ -1012,9 +1014,9 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         double intakeCurrent = 0;
         double averageIntakeCurrent = 0;
-        double intakeCurrentCriticalValTop = 1.2;
-        double intakeCurrentCriticalValBottom = 0.875;
-        double intakeDeltaCurrent = 0;
+        intakeCurrentCriticalValTop = 1.2;
+        intakeCurrentCriticalValBottom = -1.2;
+        double standardDev = 0;
         if (2 <= intakeCase && intakeCase <= 7){
             intakeCurrent = intake.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
             intakeHistory.add(intakeCurrent);
@@ -1026,6 +1028,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                 sumIntake += v;
             }
             averageIntakeCurrent = sumIntake/intakeHistory.size();
+            standardDev = 0;
+            for (double v: intakeHistory){
+                standardDev += Math.pow(averageIntakeCurrent - v, 2);
+            }
+            standardDev = Math.sqrt(standardDev);
+            /*
             intakeDeltaCurrent = intakeCurrent/averageIntakeCurrent;
             if (intakeDeltaCurrent > intakeCurrentCriticalValTop && System.currentTimeMillis() - intakeTime >= 100){
                 intakeHit = true;
@@ -1035,15 +1043,15 @@ public class SampleMecanumDrive extends MecanumDrive {
                 intakeDepositTransfer = true;
                 startIntakeDepositTransfer = System.currentTimeMillis();
             }
+             */
         }
         if (intakeHit && System.currentTimeMillis() - startIntakeHit > 50){
             intakeHit = false;
         }
         packet.put("intake Current Draw", intakeCurrent);
         packet.put("averageIntakeCurrentDraw", averageIntakeCurrent);
-        packet.put("intakeCurrentCriticalValTop", intakeCurrentCriticalValTop);
-        packet.put("intakeCurrentCriticalValBottom", intakeCurrentCriticalValBottom);
-        packet.put("intakeDeltaCurrent", intakeDeltaCurrent);
+        packet.put("intakeCurrentCriticalValTop", averageIntakeCurrent + standardDev * intakeCurrentCriticalValTop);
+        packet.put("intakeCurrentCriticalValBottom", averageIntakeCurrent + standardDev * intakeCurrentCriticalValBottom);
 
         packet.put("leftIntake", leftIntakeVal);
         packet.put("rightIntake", rightIntakeVal);
