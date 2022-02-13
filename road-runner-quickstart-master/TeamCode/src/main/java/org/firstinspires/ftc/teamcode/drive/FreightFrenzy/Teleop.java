@@ -398,8 +398,8 @@ public class Teleop extends LinearOpMode {
             else { //This is for going toward deposit area
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (hub == 1) {
-                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000,false);
-                    driveToPoint(allianceHubEndpoint,1000,false);
+                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading() - Math.toRadians(5) * side),3000,false);
+                    driveToPoint(new Pose2d(allianceHubEndpoint.getX(),allianceHubEndpoint.getY(),allianceHubEndpoint.getHeading() - Math.toRadians(5) * side),1000,false);
                     waitForDeposit(allianceHubEndpoint);
                 }
                 if (hub == 0) {
@@ -426,21 +426,19 @@ public class Teleop extends LinearOpMode {
                 Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
                 gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
                 gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left ||
-                gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y ||
-                Math.abs(gamepad2.left_stick_x) >= 0.5 || Math.abs(gamepad2.left_stick_y) >= 0.5 || Math.abs(gamepad2.right_stick_x) >= 0.5 || Math.abs(gamepad2.right_stick_y) >= 0.5 ||
-                gamepad2.left_bumper || gamepad2.right_bumper || gamepad2.right_trigger >= 0.5 || gamepad2.left_trigger >= 0.5 ||
-                gamepad2.dpad_up || gamepad2.dpad_down || gamepad2.dpad_right || gamepad2.dpad_left
+                gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y
         );
+        /*
+         || Math.abs(gamepad2.left_stick_x) >= 0.5 || Math.abs(gamepad2.left_stick_y) >= 0.5 || Math.abs(gamepad2.right_stick_x) >= 0.5 || Math.abs(gamepad2.right_stick_y) >= 0.5 ||
+         gamepad2.left_bumper || gamepad2.right_bumper || gamepad2.right_trigger >= 0.5 || gamepad2.left_trigger >= 0.5 ||
+         gamepad2.dpad_up || gamepad2.dpad_down || gamepad2.dpad_right || gamepad2.dpad_left
+         */
         while (!stop && opModeIsActive()) {
             stop = (
                     gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
                     Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
                     gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
-                    gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left ||
-                    gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y ||
-                    Math.abs(gamepad2.left_stick_x) >= 0.5 || Math.abs(gamepad2.left_stick_y) >= 0.5 || Math.abs(gamepad2.right_stick_x) >= 0.5 || Math.abs(gamepad2.right_stick_y) >= 0.5 ||
-                    gamepad2.left_bumper || gamepad2.right_bumper || gamepad2.right_trigger >= 0.5 || gamepad2.left_trigger >= 0.5 ||
-                    gamepad2.dpad_up || gamepad2.dpad_down || gamepad2.dpad_right || gamepad2.dpad_left
+                    gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left
             );
             drive.update();
             Pose2d error = drive.getRelError(target);
@@ -450,6 +448,10 @@ public class Teleop extends LinearOpMode {
             }
             else {
                 drive.setMotorPowers(0,0,0,0);
+            }
+            if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){ // Just finished the deposit
+                flag = 0;
+                done = false;
             }
         }
         drive.targetPose = null;
@@ -524,7 +526,7 @@ public class Teleop extends LinearOpMode {
         boolean hugWall = true;
         double kStatic = DriveConstants.kStatic;
         double maxPowerTurn = Math.max(power/1.6,kStatic * 1.5);
-        double slowTurnAngle = Math.toRadians(5);
+        double slowTurnAngle = Math.toRadians(3);//5
         double m = 1;
         if (shared){
             m = -1;
