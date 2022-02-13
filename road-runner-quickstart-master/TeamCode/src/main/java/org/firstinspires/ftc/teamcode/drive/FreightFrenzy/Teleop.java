@@ -254,10 +254,10 @@ public class Teleop extends LinearOpMode {
                 if (a < 900){ //900
                     drive.duckSpin.setPower(-duckSpinPower * side);//1.1
                     drive.duckSpin2.setPower(-duckSpinPower * side);
-                    duckSpinPower += drive.loopSpeed * 0.13;
+                    // duckSpinPower += drive.loopSpeed * 0.13;
 
                 }
-                else{
+                else {
                     drive.duckSpin.setPower(-0.75 * side);//0.93
                     drive.duckSpin2.setPower(-0.75 * side);
                 }
