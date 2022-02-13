@@ -249,7 +249,7 @@ public class Teleop extends LinearOpMode {
     public void updateEndgame(){
         endgame.update(gamepad2.right_bumper);
         if (endgame.getToggleState()){
-            drive.servos.get(7).setPosition(0.467);
+            drive.servos.get(7).setPosition(0);
             spin.update(gamepad2.y);
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
@@ -278,7 +278,7 @@ public class Teleop extends LinearOpMode {
             }
         }
         else{
-            drive.servos.get(7).setPosition(0.863);
+            drive.servos.get(7).setPosition(1);
         }
     }
     public void capstone(){
@@ -518,9 +518,9 @@ public class Teleop extends LinearOpMode {
         driveToPoint(target,target,maxTime,shared);
     }
     public void driveToPoint(Pose2d target, Pose2d target2, long maxTime, boolean shared){
-        double error = 2;
-        double power = 0.8;
-        double slowDownDist = 4;
+        double error = 2;//4
+        double power = 0.95;//0.8
+        double slowDownDist = 2;
         boolean hugWall = true;
         double kStatic = DriveConstants.kStatic;
         double maxPowerTurn = Math.max(power/1.6,kStatic * 1.5);
@@ -552,7 +552,7 @@ public class Teleop extends LinearOpMode {
             Pose2d relError = drive.getRelError(target);
             double sideKStatic = 0;
             if (hugWall){
-                sideKStatic = 0.4 * side * m;
+                sideKStatic = 0.2 * side * m;//0.4
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError) {

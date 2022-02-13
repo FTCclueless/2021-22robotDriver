@@ -752,7 +752,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    double slidePower = 0.5;//0.95
+                    double slidePower = 0.65;//0.5
                     if (l < 10) { //15
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
@@ -795,7 +795,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setDepositAngle(Math.toRadians(180) - depositAngle);
                         setV4barOrientation(targetV4barOrientation + v4barOffset);
                     }
-                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= openDepositTime){slidesCase ++;}
+                    if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= 100){slidesCase ++;}
                     if (slidesCase == 6 && Math.abs(slideExtensionLength-returnSlideLength) <= 10){slidesCase ++;}
                     if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
                     break;
@@ -995,6 +995,17 @@ public class SampleMecanumDrive extends MecanumDrive {
             sumDeposit += v;
         }
         double average = sumDeposit/depositHistory.size();
+        double criticalVal = Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
+        criticalVal += (1.0-criticalVal)*0.3;
+        if (depositVal/(sumDeposit/depositHistory.size()) < criticalVal){
+            intakeDepositTransfer = true;
+            startIntakeDepositTransfer = System.currentTimeMillis();
+        }
+        if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
+            intakeDepositTransfer = false;
+        }
+
+        /*
         double e = 0;
         for (double v: depositHistory){
             e += Math.pow(average - v, 2);
@@ -1008,21 +1019,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
             intakeDepositTransfer = false;
         }
-        /*
-        double criticalVal = Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
-        criticalVal += (1.0-criticalVal)*0.3;
-        if (depositVal/(sumDeposit/depositHistory.size()) < criticalVal){
-            intakeDepositTransfer = true;
-            startIntakeDepositTransfer = System.currentTimeMillis();
-        }
-        if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
-            intakeDepositTransfer = false;
-        }
          */
+
 
         packet.put("depositValCritical", criticalVal);
         packet.put("depositValAverage", average);
-        packet.put("depositValDelta", depositVal);
+        packet.put("depositValDelta", depositVal/(sumDeposit/depositHistory.size()));
 
         double intakeCurrent = 0;
         double averageIntakeCurrent = 0;
