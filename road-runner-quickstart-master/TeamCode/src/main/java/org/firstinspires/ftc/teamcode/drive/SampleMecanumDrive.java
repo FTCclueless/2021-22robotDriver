@@ -1034,7 +1034,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             averageIntakeCurrent = sumIntake/intakeHistory.size();
             standardDev = 0;
             for (double v: intakeHistory){
-                standardDev += Math.pow(averageIntakeCurrent - v, 2);
+                standardDev += Math.pow(averageIntakeCurrent - v, 2)/intakeHistory.size();
             }
             standardDev = Math.sqrt(standardDev);
         }
