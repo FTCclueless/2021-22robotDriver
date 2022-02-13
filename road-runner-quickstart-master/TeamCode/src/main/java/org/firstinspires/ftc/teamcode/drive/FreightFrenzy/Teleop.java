@@ -78,8 +78,10 @@ public class Teleop extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        drive.servos.get(5).setPosition(armInPosRight);
-        drive.servos.get(6).setPosition(armInPosLeft);
+//      drive.servos.get(5).setPosition(armInPosRight);
+//      drive.servos.get(6).setPosition(armInPosLeft);
+        drive.servos.get(5).setPosition(armOutPosRight);
+        drive.servos.get(6).setPosition(armOutPosLeft);
 
         Reader r = new Reader();
         String info = r.readFile("Alliance");
@@ -280,8 +282,8 @@ public class Teleop extends LinearOpMode {
         }
     }
     public void capstone(){
-        boolean in = gamepad2.dpad_down;
-        boolean out = gamepad2.dpad_up;
+        boolean in = gamepad2.dpad_up;
+        boolean out = gamepad2.dpad_down;
         if (in && !lastIn){
             if (!armIn){
                 first = false;
@@ -292,6 +294,9 @@ public class Teleop extends LinearOpMode {
             armIn = false;
             if (System.currentTimeMillis() - lastArmDown <= 500){
                 first = true;
+            }
+            else {
+                first = false;
             }
             lastArmDown = System.currentTimeMillis();
         }
@@ -344,6 +349,7 @@ public class Teleop extends LinearOpMode {
             }
         }
     }
+
     public void updatePoseLock(){
         if (gamepad1.dpad_up) {
             firstUpdate = true;
