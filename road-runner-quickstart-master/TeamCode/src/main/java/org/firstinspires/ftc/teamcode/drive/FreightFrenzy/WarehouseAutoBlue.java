@@ -148,6 +148,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         drive.intakeLiftDelay = 0;
+        drive.v4barOffset = Math.toRadians(-10);
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
             long lastCycleStart = System.currentTimeMillis();
             driveIn(endPoint,numMinerals);
@@ -189,7 +190,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             drive.slidesOffset = 2;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(2) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(2) * side), false,3, 0.75,1000,1,true);
+        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(0) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(0) * side), false,3, 0.75,1000,1,true);
         driveToPoint(new Pose2d(newEnd.getX(),newEnd.getY() + 0.2 * side, 0), false,2, 0.85,1000,3, true); //0.65
         waitForDeposit(newEnd);
     }
@@ -276,7 +277,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             Pose2d relError = drive.getRelError(target);
             double sideKStatic = 0;
             if (hugWall){
-                sideKStatic = 0.4 * side;
+                sideKStatic = 0.5 * side;//0.4
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError) {

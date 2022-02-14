@@ -486,7 +486,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         //max *= (1.0 - kStatic);
         for (int i = 0; i < p.length; i ++){
             p[i] *= max;
-            p[i] += kStatic * Math.signum(p[i]);
+            //p[i] += kStatic * Math.signum(p[i]);
         }
         pinMotorPowers(p[0], p[1], p[2], p[3]);
     }
