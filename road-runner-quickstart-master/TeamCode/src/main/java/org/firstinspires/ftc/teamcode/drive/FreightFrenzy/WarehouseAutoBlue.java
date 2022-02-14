@@ -147,11 +147,11 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.servos.get(6).setPosition(0.89);
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
-        drive.intakeLiftDelay = 600;
+        drive.intakeLiftDelay = 0;
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
             long lastCycleStart = System.currentTimeMillis();
             driveIn(endPoint,numMinerals);
-            if (System.currentTimeMillis() - start <= 30000 - 2270){
+            if (System.currentTimeMillis() - start >= 30000 - 2270){
                 break;
             }
             driveOut(endPoint,numMinerals);
@@ -189,8 +189,8 @@ public class WarehouseAutoBlue extends LinearOpMode {
             drive.slidesOffset = 2;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(37.5, newEnd.getY(),0), new Pose2d(16.5, newEnd.getY(),0), false,3, 0.75,1000,1,true);
-        driveToPoint(newEnd, false,2, 0.65,1000,3, false); //true
+        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(2) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(2) * side), false,3, 0.75,1000,1,true);
+        driveToPoint(new Pose2d(newEnd.getX(),newEnd.getY() + 0.2 * side, 0), false,2, 0.85,1000,3, true); //0.65
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
@@ -261,7 +261,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall){
         double kStatic = DriveConstants.kStatic;
         double maxPowerTurn = Math.max(power/1.6,kStatic * 1.5);
-        double slowTurnAngle = Math.toRadians(5);
+        double slowTurnAngle = Math.toRadians(7);
         drive.targetPose = target;
         drive.targetRadius = error;
         long start = System.currentTimeMillis();
@@ -276,13 +276,13 @@ public class WarehouseAutoBlue extends LinearOpMode {
             Pose2d relError = drive.getRelError(target);
             double sideKStatic = 0;
             if (hugWall){
-                sideKStatic = 0.3 * side;
+                sideKStatic = 0.4 * side;
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError) {
                     relError = new Pose2d(relError.getX(), 0, relError.getHeading());
                     if (hugWall) {
-                        sideKStatic = 0.1 * side;
+                        sideKStatic = 0.2 * side;
                     }
                     else{
                         sideKStatic = 0;
