@@ -191,8 +191,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
             drive.slidesOffset = 2;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(0) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(0) * side), false,3, 0.85,1000,1,true);
-        driveToPoint(new Pose2d(newEnd.getX(),newEnd.getY() + 0.2 * side, 0), false,2, 0.95,1000,3, true); //0.65
+        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(0) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(0) * side), false,4, 0.95,1000,1,true);
+        driveToPoint(new Pose2d(newEnd.getX() + 3,newEnd.getY() + 0.1 * side, 0), false,3, 0.95,1000,2, true);
+        driveToPoint(endPoint, false,3, 0.65,1000,3, false);
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
