@@ -82,7 +82,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public static double intakeCurrentCriticalValTop = 3, intakeCurrentCriticalValBottom = -1;
 
-    public static double kPSlides = 0.2, kISlides = 0.001, slidesI = 0;
+    public static double kPSlides = 0.2, kISlides = 0.08, slidesI = 0;
 
     private final List<DcMotorEx> motors;
     RevBulkData bulkData;
@@ -479,15 +479,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         p[1] = forward+left-turn;
         p[2] = forward-left+turn;
         p[3] = forward+left+turn;
+        /* ToDo: Removed clipping from -1 to 1
         double max = 1;
-        //for (double v : p) {
-            //max = Math.max(Math.abs(v), max);
-        //}
-        //max *= (1.0 - kStatic);
+        for (double v : p) {
+            max = Math.max(Math.abs(v), max);
+        }
+        max *= (1.0 - kStatic);
         for (int i = 0; i < p.length; i ++){
             p[i] *= max;
-            //p[i] += kStatic * Math.signum(p[i]);
+            p[i] += kStatic * Math.signum(p[i]);
         }
+         */
         pinMotorPowers(p[0], p[1], p[2], p[3]);
     }
 
@@ -867,20 +869,20 @@ public class SampleMecanumDrive extends MecanumDrive {
             slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
         }
         double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
-        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 5){
+        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 3){
             p /= 2;
             kStatic /= 2;
-            slidesI = 0;
             if (currentTargetSlidesPose - slideExtensionLength >= 0){
                 //p = 0;
-                kStatic = 0.05;
+                kStatic = 0.075 + slideExtensionLength * 0.002;
             }
             else {
                 if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // -1
                     kStatic = -0.3;
+                    slidesI = 0;
                 }
                 else{
-                    p = 0;
+                    p = 0.05;
                 }
             }
         }
@@ -1015,12 +1017,13 @@ public class SampleMecanumDrive extends MecanumDrive {
             e += Math.pow(v-average,2)/depositHistory.size();
         }
         e = Math.sqrt(e);
-        double criticalVal = average - e * 3;//Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
+        double criticalVal = average - e * 1.65;//Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
         //criticalVal += (1.0-criticalVal)*0.3;
         //if (depositVal/(sumDeposit/depositHistory.size()) < criticalVal){
         if (depositVal < criticalVal){
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
+            Log.e("intakeCancel", "deposit");
         }
 
         packet.put("depositValCritical", criticalVal);
@@ -1054,6 +1057,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             if (averageIntakeCurrent + standardDev * intakeCurrentCriticalValBottom > intakeCurrent){
                 intakeDepositTransfer = true;
                 startIntakeDepositTransfer = System.currentTimeMillis();
+                Log.e("intakeCancel", "intake");
             }
         }
 

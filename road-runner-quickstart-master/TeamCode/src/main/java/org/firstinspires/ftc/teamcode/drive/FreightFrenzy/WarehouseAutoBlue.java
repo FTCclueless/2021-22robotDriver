@@ -145,6 +145,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         start = System.currentTimeMillis();
         drive.servos.get(5).setPosition(0);
         drive.servos.get(6).setPosition(0.89);
+        drive.v4barOffset = Math.toRadians(-10);
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         drive.intakeLiftDelay = 0;
@@ -173,25 +174,25 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY());
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
-        driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.75,500,0.5, true);
-        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,2, 0.8,800,2, false); //true
-        driveToPoint(new Pose2d(x - 4,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.8,500,3, false);
+        driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.95,500,0.5, true);
+        driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,2, 0.9,800,2, false); //true
+        driveToPoint(new Pose2d(x - 4,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.6,500,3, false);
         intakeMineral(0.3,1000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
-        lastIntakeX += 2;
+        lastIntakeX += 3;
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
-        Pose2d newEnd = new Pose2d(endPoint.getX(), endPoint.getY(), endPoint.getHeading());
+        Pose2d newEnd = new Pose2d(endPoint.getX() + 3, endPoint.getY(), endPoint.getHeading());
         double i = 0;
         if (numMinerals >= 2){
             drive.slidesOffset = 2;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(0) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(0) * side), false,3, 0.75,1000,1,true);
-        driveToPoint(new Pose2d(newEnd.getX(),newEnd.getY() + 0.2 * side, 0), false,2, 0.85,1000,3, true); //0.65
+        driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(0) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(0) * side), false,3, 0.85,1000,1,true);
+        driveToPoint(new Pose2d(newEnd.getX(),newEnd.getY() + 0.2 * side, 0), false,2, 0.95,1000,3, true); //0.65
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
