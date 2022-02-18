@@ -524,15 +524,16 @@ public class Teleop extends LinearOpMode {
                 hubLocation = new Pose2d(48, 0);
                 if (firstUpdate) {
                     drive.currentIntake = -side;
-                    if (firstShared) {
-                        if (side == -1) {
-                            drive.turretOffset = 1.1274009793517894;
-                        } else {
-                            drive.turretOffset = -1.0703392733416528;
-                        }
-                        drive.slidesOffset = 0;
-                        drive.v4barOffset = 0;
+                }
+                if (firstShared) {
+                    Log.e("Activate", "Shared");
+                    if (side == -1) {
+                        drive.turretOffset = 1.1274009793517894;
+                    } else {
+                        drive.turretOffset = -1.0703392733416528;
                     }
+                    drive.slidesOffset = 0;
+                    drive.v4barOffset = 0;
                 }
                 intake = side == 1;
                 height = 2;
@@ -554,11 +555,12 @@ public class Teleop extends LinearOpMode {
                 intake = side == -1;
                 if (firstUpdate) {
                     drive.currentIntake = side;
-                    if (firstAlliance) {
-                        drive.turretOffset = 0;
-                        drive.slidesOffset = 0;
-                        drive.v4barOffset = 0;
-                    }
+                }
+                if (firstAlliance) {
+                    Log.e("Activate", "Alliance");
+                    drive.turretOffset = 0;
+                    drive.slidesOffset = 0;
+                    drive.v4barOffset = 0;
                 }
                 firstAlliance = false;
                 break;

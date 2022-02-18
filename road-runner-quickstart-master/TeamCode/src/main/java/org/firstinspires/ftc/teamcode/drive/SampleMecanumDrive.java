@@ -195,6 +195,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double slidesOffset;
     public double v4barOffset;
 
+    double slidesPower = 0;
+
     double deleteLater = 0;
 
     double distValLeft = 0, distValRight = 0;
@@ -886,6 +888,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
             }
         }
+        slidesPower = kStatic + p + slidesI;
         slides.setPower(kStatic + p + slidesI);
         slides2.setPower(kStatic + p + slidesI);
     }
@@ -986,7 +989,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("turret Heading", turretHeading);
         packet.put("slides length", slideExtensionLength);
         packet.put("slides length2", deleteLater);
-        packet.put("slides length2", deleteLater);
+        packet.put("slides Power", slidesPower);
         packet.put("mag Left", magValLeft);
         packet.put("mag Right", magValRight);
         packet.put("dist Left",distValLeft/3.2);
