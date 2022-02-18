@@ -146,10 +146,10 @@ public class Teleop extends LinearOpMode {
                 drive.intakeCase = 6;
             }
 
-            if(gamepad2.x) {//Starts the deposit sequence
-                firstUpdate = true;
-                drive.startDeposit(endPoint, hubLocation, height, radius);
-            }
+            drive.startDeposit(endPoint, hubLocation, height, radius);
+            //if(gamepad2.x) {//Starts the deposit sequence
+                //firstUpdate = true;
+            //}
             boolean currentIntake = gamepad1.right_trigger >= 0.5;
             if(currentIntake && !lastIntake) {//Starts the intake sequence
                 firstUpdate = true;
