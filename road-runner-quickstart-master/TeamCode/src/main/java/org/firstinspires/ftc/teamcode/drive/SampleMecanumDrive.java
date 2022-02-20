@@ -765,7 +765,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 1: case 2: case 3:
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
-                    double slidePower = 0.95;//0.65
+                    double slidePower = 1.0;//0.95
                     if (l < 10) { //15
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
@@ -891,8 +891,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
         else if (targetSlidesPose - slideExtensionLength > 3){
-            kStatic = 1.0;
-            slidesI = 0;
+            kStatic = slidesSpeed;
             p = 0;
         }
         slidesPower = kStatic + p + slidesI;
