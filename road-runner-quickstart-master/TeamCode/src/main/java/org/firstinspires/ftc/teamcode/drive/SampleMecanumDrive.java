@@ -184,6 +184,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     double tD = 0;
     double tPP = 15;
 
+    public static double intakeLightCriticalValue = 1.5;
+
     public double leftIntakeDrop;
     public double leftIntakeRaise;
     public double rightIntakeDrop;
@@ -376,12 +378,12 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
 
-        leftIntakeDrop = 0.0;
-        leftIntakeRaise = 0.724;
-        leftIntakeMid = 0.65;
-        rightIntakeDrop = 0.796;
-        rightIntakeRaise = 0.08;//0.202
-        rightIntakeMid = 0.191;
+        leftIntakeDrop = 0.259;
+        leftIntakeRaise = 0.969;
+        leftIntakeMid = 0.858;
+        rightIntakeDrop = 0.739;
+        rightIntakeRaise = 0.0;
+        rightIntakeMid = 0.1;
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
@@ -434,7 +436,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         rightIntakeVal = bulkData.getAnalogInputValue(rightIntake);
         leftIntakeVal = bulkData.getAnalogInputValue(leftIntake);
-        depositVal = bulkData.getAnalogInputValue(depositSensor);
+        depositVal = Math.pow(2,(double)bulkData.getAnalogInputValue(depositSensor)/100.0);
 
         if (intakeCase >= 1 && intakeCase <= 4){
             if(currentIntake == 1){
@@ -646,7 +648,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateIntake(){
-        if (intakeCase == 0 && slidesCase == 0){
+        if (intakeCase == 0 && !transferMineral){
             setDepositAngle(depositInterfaceAngle);
             setV4barOrientation(v4barInterfaceAngle);
             setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
@@ -888,6 +890,11 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
             }
         }
+        else if (targetSlidesPose - slideExtensionLength > 3){
+            kStatic = 1.0;
+            slidesI = 0;
+            p = 0;
+        }
         slidesPower = kStatic + p + slidesI;
         slides.setPower(kStatic + p + slidesI);
         slides2.setPower(kStatic + p + slidesI);
@@ -969,7 +976,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         poseHistory.add(currentPose);
 
-        if (poseHistory.size() > 100) {
+        if (poseHistory.size() > 20) {
             poseHistory.remove(0);
         }
 
@@ -1007,7 +1014,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         //if (4 <= intakeCase && intakeCase <= 7) {
         //}
         depositHistory.add(depositVal);
-        if (depositHistory.size() > 20) {
+        if (depositHistory.size() > 100) {//20
             depositHistory.remove(0);
         }
         double sumDeposit = 0;
@@ -1020,10 +1027,16 @@ public class SampleMecanumDrive extends MecanumDrive {
             e += Math.pow(v-average,2)/depositHistory.size();
         }
         e = Math.sqrt(e);
-        double criticalVal = average - e * 1.65;//Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
+        double depoVal = 0;
+        for (int i = Math.max(0,depositHistory.size() - 11); i < depositHistory.size()-1; i ++){
+            depoVal += depositHistory.get(i);
+        }
+        depoVal /= 10;
+        double criticalVal = average - e * intakeLightCriticalValue;
+        //Math.pow(10,(sumDeposit/(1000*depositHistory.size()))*0.266769051121 - 0.896739150596);
         //criticalVal += (1.0-criticalVal)*0.3;
         //if (depositVal/(sumDeposit/depositHistory.size()) < criticalVal){
-        if (depositVal < criticalVal){
+        if (depoVal < criticalVal){
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
             Log.e("intakeCancel", "deposit");
@@ -1031,7 +1044,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         packet.put("depositValCritical", criticalVal);
         packet.put("depositValAverage", average);
-        packet.put("depositVal", depositVal);
+        packet.put("depositVal", depoVal);
         packet.put("depositValDelta", depositVal/(sumDeposit/depositHistory.size()));
 
         double intakeCurrent = 0;
