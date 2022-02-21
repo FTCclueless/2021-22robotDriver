@@ -1484,13 +1484,18 @@ public class SampleMecanumDrive extends MecanumDrive {
             double h = clipHeading(currentPose.getHeading());
             if (Math.abs(h) > Math.toRadians(90) && h * Math.signum(currentPose.getY()) >= Math.toRadians(45) && (relCurrentVelocity.getY() <= 8 && relCurrentVelocity.getX() <= 8 && relCurrentVelocity.getHeading() <= Math.toRadians(30))){
                 boolean forward = Math.abs(h) > Math.toRadians(45);
-                //TODO: Make sure we do not try to use when robot is too close to the wall
+                if (forward && currentPose.getX() >= 72 - 12 - 8){
+                    return;
+                }
+                if (!forward && Math.abs(currentPose.getY()) >= 72 - 12 - 8){
+                    return;
+                }
                 double x1;
                 double y1;
                 boolean right = forward ^ Math.signum(currentPose.getY()) == -1;
                 double m1 = -1;
                 if (right) {
-                    x1 = 72 - distValRight * Math.cos(currentPose.getHeading() );
+                    x1 = 72 - distValRight * Math.cos(currentPose.getHeading());
                     y1 = 72 - distValRight * Math.sin(currentPose.getHeading());
                 }
                 else {
