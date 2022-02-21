@@ -177,12 +177,13 @@ public class WarehouseAutoBlue extends LinearOpMode {
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.95,500,0.5, true);
         driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,2, 0.9,800,2, false); //true
         driveToPoint(new Pose2d(x - 4,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.6,500,6,false);
-        intakeMineral(0.3,1000);
+        intakeMineral(0.3,4000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
         lastIntakeX += 3;
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
+        lastIntakeX = Math.min(54.0, lastIntakeX);
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
         Pose2d newEnd = new Pose2d(endPoint.getX() + 3, endPoint.getY(), endPoint.getHeading());
@@ -301,14 +302,23 @@ public class WarehouseAutoBlue extends LinearOpMode {
     public void intakeMineral(double power, long maxTime){
         long startingTime = System.currentTimeMillis();
         double maxPower = power;
+        Pose2d lastPose = drive.currentPose;
+        Long lastGoodIntake = System.currentTimeMillis();
+        boolean first = true;
         while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive()){
             double currentPower = maxPower;
+            drive.intake.setPower(-1);
             double sidePower = 0;
-            if (drive.intakeHit){
+            if (drive.intakeHit || Math.abs(drive.relCurrentVelocity.getX()) <= 1){
                 currentPower = maxPower/2.0;
+                if (first && System.currentTimeMillis() - lastGoodIntake >= 500) {
+                    first = false;
+                    driveToPoint(new Pose2d(lastPose.getX() - 4, lastPose.getY(), lastPose.getHeading()), true, 1, 0.5, 1000, 2, false);
+                }
             }
             else{
-                drive.intake.setPower(-1);
+                lastGoodIntake = System.currentTimeMillis();
+                lastPose = drive.currentPose;
             }
             double turn = 0;
             double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn) + Math.abs(sidePower)),1);

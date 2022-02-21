@@ -196,11 +196,11 @@ public class Teleop extends LinearOpMode {
 
             if(Math.abs(gamepad2.left_stick_x) > 0.25) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
                 drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.15; // 0.25
-                if (drive.targetTurretHeading + drive.turretOffset > 1.1274009793517894){
-                    drive.turretOffset = Math.abs(1.1274009793517894 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
+                if (drive.targetTurretHeading + drive.turretOffset >  Math.toRadians(62.5953)){ //2 degrees less than before = no more stalling
+                    drive.turretOffset = Math.abs(Math.toRadians(62.5953) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
-                else if (drive.targetTurretHeading + drive.turretOffset < -1.0703392733416528){
-                    drive.turretOffset = Math.abs(-1.0703392733416528 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
+                else if (drive.targetTurretHeading + drive.turretOffset < Math.toRadians(-59.3259)){
+                    drive.turretOffset = Math.abs(Math.toRadians(-59.3259) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
             }
 
@@ -528,9 +528,9 @@ public class Teleop extends LinearOpMode {
                 if (firstShared) {
                     Log.e("Activate", "Shared");
                     if (side == -1) {
-                        drive.turretOffset = 1.1274009793517894;
+                        drive.turretOffset = Math.toRadians(64.5953 - 3);
                     } else {
-                        drive.turretOffset = -1.0703392733416528;
+                        drive.turretOffset = -Math.toRadians(61.3259 - 3);
                     }
                     drive.slidesOffset = 0;
                     drive.v4barOffset = 0;
