@@ -194,8 +194,8 @@ public class Teleop extends LinearOpMode {
 
             updateAuto();
 
-            if(Math.abs(gamepad2.left_stick_x) > 0.25) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
-                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.15; // 0.25
+            if(Math.abs(gamepad2.left_stick_x) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
+                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.5; // 0.15
                 if (drive.targetTurretHeading + drive.turretOffset >  Math.toRadians(62.5953)){ //2 degrees less than before = no more stalling
                     drive.turretOffset = Math.abs(Math.toRadians(62.5953) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
@@ -224,9 +224,11 @@ public class Teleop extends LinearOpMode {
                 drive.slidesOffset = 0;
                 drive.turretOffset = 0;
             }
-
-            double forward = Math.pow(gamepad1.left_stick_y,7) * -0.85 * speedSlowMultiplier;
-            double left = Math.pow(gamepad1.left_stick_x,7) * speedSlowMultiplier;
+            double f = gamepad1.left_stick_y;
+            double l = gamepad1.left_stick_x;
+            double kStatic = 0.15;
+            double forward = Math.pow(f,7) * -(0.85 - kStatic) * speedSlowMultiplier + Math.signum(-f) * Math.max(Math.signum(Math.abs(f) - 0.1),0) * kStatic;
+            double left = Math.pow(l,7) * (1.0 - kStatic) * speedSlowMultiplier + Math.signum(l) * Math.max(Math.signum(Math.abs(l) - 0.1),0) * kStatic;
             double turn = gamepad1.right_stick_x * 0.35 * speedSlowMultiplier;//4
             if (gamepad1.right_bumper){ //Normal mode (press button to sprint)
                 forward *= 0.6;
@@ -384,6 +386,7 @@ public class Teleop extends LinearOpMode {
         }
         if (auto.toggleState && !done){
             done = true;
+            drive.updateImuHeading();
             if (flag == 0) {
                 if (drive.intakeCase == 0) {
                     drive.startIntake(intake);
@@ -391,19 +394,19 @@ public class Teleop extends LinearOpMode {
                 if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
                     if (hub == 1) {
                         driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(allianceHubEndpoint.getX() + 6.5, endPoint.getY(), endPoint.getHeading()),3000,false);
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),3000,false);
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(72, 48 * side, endPoint.getHeading()),3000,false);
                     }
                     if (hub == 0) {
                         driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),3000,true);
-                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),3000,true);
+                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),new Pose2d(48, 72 * side, endPoint.getHeading()),3000,true);
                     }
                 }
             }
             else { //This is for going toward deposit area
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (hub == 1) {
-                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading() - Math.toRadians(5) * side),3000,false);
-                    driveToPoint(new Pose2d(allianceHubEndpoint.getX(),allianceHubEndpoint.getY(),allianceHubEndpoint.getHeading() - Math.toRadians(5) * side),1000,false);
+                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000,false);
+                    driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4,allianceHubEndpoint.getY(),allianceHubEndpoint.getHeading()), allianceHubEndpoint,1000,false);
                     waitForDeposit(allianceHubEndpoint);
                 }
                 if (hub == 0) {
@@ -433,11 +436,6 @@ public class Teleop extends LinearOpMode {
                 gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left ||
                 gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y
         );
-        /*
-         || Math.abs(gamepad2.left_stick_x) >= 0.5 || Math.abs(gamepad2.left_stick_y) >= 0.5 || Math.abs(gamepad2.right_stick_x) >= 0.5 || Math.abs(gamepad2.right_stick_y) >= 0.5 ||
-         gamepad2.left_bumper || gamepad2.right_bumper || gamepad2.right_trigger >= 0.5 || gamepad2.left_trigger >= 0.5 ||
-         gamepad2.dpad_up || gamepad2.dpad_down || gamepad2.dpad_right || gamepad2.dpad_left
-         */
         while (flag == 1 && !stop && opModeIsActive()) {
             stop = (
                     gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
@@ -445,8 +443,8 @@ public class Teleop extends LinearOpMode {
                     gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
                     gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left
             );
-            if(Math.abs(gamepad2.left_stick_x) > 0.25) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
-                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.15; // 0.25
+            if(Math.abs(gamepad2.left_stick_x) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
+                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.25; // 0.15
                 if (drive.targetTurretHeading + drive.turretOffset > 1.1274009793517894){
                     drive.turretOffset = Math.abs(1.1274009793517894 - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
@@ -604,12 +602,12 @@ public class Teleop extends LinearOpMode {
             Pose2d relError = drive.getRelError(target);
             double sideKStatic = 0;
             if (hugWall){
-                sideKStatic = 0.2 * side * m;//0.4
+                sideKStatic = 0.4 * side * m;
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError) {
                     relError = new Pose2d(relError.getX(), 0, relError.getHeading());
-                    sideKStatic = 0;
+                    sideKStatic =  0.2 * side * m;
                 }
                 else if (Math.abs(relError.getX()) < error){
                     relError = new Pose2d(0, relError.getY(), relError.getHeading());

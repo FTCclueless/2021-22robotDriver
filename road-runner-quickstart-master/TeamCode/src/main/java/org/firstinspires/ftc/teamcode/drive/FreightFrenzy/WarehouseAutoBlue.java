@@ -149,7 +149,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         drive.intakeLiftDelay = 0;
-        drive.v4barOffset = Math.toRadians(-10);
+        //drive.v4barOffset = Math.toRadians(-10);
         while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
             long lastCycleStart = System.currentTimeMillis();
             driveIn(endPoint,numMinerals);
@@ -176,12 +176,13 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * Math.signum(endPoint.getY());
         driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,3, 0.95,500,0.5, true);
         driveToPoint(new Pose2d(38.5, endPoint.getY(),0), new Pose2d(x,y,0), false,2, 0.9,800,2, false); //true
-        driveToPoint(new Pose2d(x - 4,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.6,500,6,false);
+        driveToPoint(new Pose2d(Math.max(38.5,x - 6),y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.85,500,6,false);
+        driveToPoint(new Pose2d(x,y,angle), new Pose2d(72,24 * Math.signum(endPoint.getY()),angle), true,1, 0.45,500,6,false);
         intakeMineral(0.3,4000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
-        lastIntakeX += 3;
+        lastIntakeX += 2;//3
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
         lastIntakeX = Math.min(54.0, lastIntakeX);
     }
@@ -194,7 +195,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(37.5, newEnd.getY(), - Math.toRadians(0) * side), new Pose2d(16.5, newEnd.getY(), - Math.toRadians(0) * side), false,4, 0.95,1000,1,true);
         driveToPoint(new Pose2d(newEnd.getX() + 3,newEnd.getY() + 0.1 * side, 0), false,3, 0.95,1000,2, true);
-        driveToPoint(endPoint, false,3, 0.65,1000,3, false);
+        driveToPoint(endPoint, false,3, 0.45,1000,3, false);
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
@@ -311,7 +312,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             double sidePower = 0;
             if (drive.intakeHit || Math.abs(drive.relCurrentVelocity.getX()) <= 1){
                 currentPower = maxPower/2.0;
-                if (first && System.currentTimeMillis() - lastGoodIntake >= 500) {
+                if (first && System.currentTimeMillis() - lastGoodIntake >= 100) {
                     first = false;
                     driveToPoint(new Pose2d(lastPose.getX() - 4, lastPose.getY(), lastPose.getHeading()), true, 1, 0.5, 1000, 2, false);
                 }

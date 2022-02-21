@@ -159,6 +159,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int intakeLiftDelay = 100;
     public int effectiveDepositTime = openDepositTime;
     public double returnSlideLength = 1.0; //0.75
+    double turretI = 0;
 
     public double slideExtensionLength = 0;
     public double turretHeading = 0;
@@ -550,7 +551,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         followTrajectorySequenceAsync(trajectorySequence);
         waitForIdle();
     }
-
+    public void updateImuHeading(){
+        updateImuAngle();
+        localizer.updateHeading(imuAngle.firstAngle);
+    }
     public void updateEstimate(){
         getEncoders();
         if (!isKnownX || !isKnownY){
@@ -901,18 +905,20 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void setTurretTarget(double radians){
         targetTurretPose = radians;
-        turretPower = 0.35;
+        turretPower = 0.55;
     }
 
     public void updateTurretLength(){
-        if (Math.abs(targetTurretPose - turretHeading) >= Math.toRadians(3)){
-            turret.setPower(Math.signum(targetTurretPose - turretHeading) * Math.abs(turretPower));
+        turretI += Math.toDegrees(targetTurretPose - turretHeading) * loopSpeed * 0.01;
+        if (Math.abs(targetTurretPose - turretHeading) >= Math.toRadians(5)){
+            turret.setPower(Math.signum(targetTurretPose - turretHeading) * Math.abs(turretPower) + turretI);
         }
-        else if (Math.abs(targetTurretPose - turretHeading) >= Math.toRadians(0.5)){
-            turret.setPower(Math.signum(targetTurretPose - turretHeading) * 0.15);
+        else if (Math.abs(targetTurretPose - turretHeading) >= Math.toRadians(1)){
+            turret.setPower(Math.signum(targetTurretPose - turretHeading) * 0.25 + turretI);
         }
         else {
             turret.setPower(0);
+            turretI = 0;
         }
     }
 
@@ -1006,7 +1012,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (intakeDepositTransfer && System.currentTimeMillis() - startIntakeDepositTransfer > 100){
             intakeDepositTransfer = false;
         }
-        if (intakeHit && System.currentTimeMillis() - startIntakeHit > 50){
+        if (intakeHit && System.currentTimeMillis() - startIntakeHit > 500){
             intakeHit = false;
         }
 
