@@ -456,8 +456,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides2)/slideTickToInch;
             deleteLater = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
-            distValLeft = bulkData.getAnalogInputValue(distLeft);
-            distValRight = bulkData.getAnalogInputValue(distRight);
+            distValLeft = bulkData.getAnalogInputValue(distLeft)/3.2;
+            distValRight = bulkData.getAnalogInputValue(distRight)/3.2;
             magValLeft = bulkData.getAnalogInputValue(magLeft);
             magValRight = bulkData.getAnalogInputValue(magRight);
         }
@@ -1004,8 +1004,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("slides Power", slidesPower);
         packet.put("mag Left", magValLeft);
         packet.put("mag Right", magValRight);
-        packet.put("dist Left",distValLeft/3.2);
-        packet.put("dist Right",distValRight/3.2);
+        packet.put("dist Left",distValLeft);
+        packet.put("dist Right",distValRight);
         packet.put("target Slide Length 1", currentTargetSlidesPose);
         packet.put("target Slide Length", targetSlidesPose);
 
@@ -1330,14 +1330,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                 double currentYDist = Math.cos(heading) * (6.25 + distance) + Math.sin(heading) * (5.0);
                 double gain = 0.6;
                 if (forward || backward) {
-                    if (Math.abs(relCurrentVelocity.getY()) < 0.5){
-                        if (forward){
-                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(currentPose.getHeading() * 9.0 + 0)/10.0));
-                        }
-                        if (backward){
-                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(Math.abs(currentPose.getHeading()) * 9.0 + Math.toRadians(180))/10.0 * Math.signum(currentPose.getHeading())));
-                        }
-                    }
                     double m = 1;
                     if (backward) {
                         m = -1;
@@ -1356,14 +1348,6 @@ public class SampleMecanumDrive extends MecanumDrive {
                     }
                 }
                 if (right || left) {
-                    if (Math.abs(relCurrentVelocity.getY()) < 0.5){
-                        if (right){
-                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(Math.abs(currentPose.getHeading()) * 9.0 + Math.toRadians(-90))/10.0));
-                        }
-                        if (left){
-                            //localizer.setPoseEstimate(new Pose2d(currentPose.getX(),currentPose.getY(),(Math.abs(currentPose.getHeading()) * 9.0 + Math.toRadians(90))/10.0));
-                        }
-                    }
                     double m = 1;
                     if (left) {
                         m = -1;
@@ -1459,7 +1443,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         boolean topLeft = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()-(72-(43.5-1))) < sensorThreshold;
         boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
         double velocity = Math.sqrt(Math.pow(relCurrentVelocity.getX(),2) + Math.pow(relCurrentVelocity.getY(),2));
-        if ((!isKnownX || !isKnownY) || (leftRight || topLeft || topRight && velocity < 3)){
+        if ((!isKnownX || !isKnownY) || ((leftRight || topLeft || topRight) && velocity < 3)){
             detectLine = color.alpha() > threshold;
         }
         boolean updatePose = lastLightReading != detectLine;
@@ -1493,6 +1477,38 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
         lastLightReading = detectLine;
+    }
+
+    public void updateDistanceSensors(){
+        if (Math.abs(currentPose.getY()) >= 48 && currentPose.getX() >= 48){
+            double h = clipHeading(currentPose.getHeading());
+            if (Math.abs(h) > Math.toRadians(90) && h * Math.signum(currentPose.getY()) >= Math.toRadians(45) && (relCurrentVelocity.getY() <= 8 && relCurrentVelocity.getX() <= 8 && relCurrentVelocity.getHeading() <= Math.toRadians(30))){
+                boolean forward = Math.abs(h) > Math.toRadians(45);
+                //TODO: Make sure we do not try to use when robot is too close to the wall
+                double x1;
+                double y1;
+                boolean right = forward ^ Math.signum(currentPose.getY()) == -1;
+                double m1 = -1;
+                if (right) {
+                    x1 = 72 - distValRight * Math.cos(currentPose.getHeading() );
+                    y1 = 72 - distValRight * Math.sin(currentPose.getHeading());
+                }
+                else {
+                    m1 = 1;
+                    x1 = 72 - distValLeft * Math.cos(currentPose.getHeading());
+                    y1 = 72 - distValLeft * Math.sin(currentPose.getHeading());
+                }
+                y1 *= Math.signum(currentPose.getY());
+                x1 -= Math.cos(currentPose.getHeading()) * (8.0) - Math.sin(currentPose.getHeading()) * (6.0) * m1;
+                y1 -= Math.cos(currentPose.getHeading()) * (6.0) * m1 + Math.sin(currentPose.getHeading()) * (8.0);
+                if (Math.abs(currentPose.getX() - x1) <= 3){
+                    localizer.setX(currentPose.getX() * 0.9 + x1 * 0.1);
+                }
+                if (Math.abs(currentPose.getY() - y1) <= 3){
+                    localizer.setY(currentPose.getY() * 0.9 + y1 * 0.1);
+                }
+            }
+        }
     }
 
     public void updateDriveMotors(DriveSignal signal){
