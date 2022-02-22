@@ -122,7 +122,7 @@ public class Teleop extends LinearOpMode {
         drive.intakeCase = 0;
         drive.lastIntakeCase = 0;
         drive.update();
-        Pose2d startingPose = new Pose2d(36.5,65.25 * side,0);
+        Pose2d startingPose = new Pose2d(45,65.25 * side,0);
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
 
