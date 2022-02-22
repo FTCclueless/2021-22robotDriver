@@ -71,7 +71,7 @@ public class Teleop extends LinearOpMode {
     boolean firstShared = false;
     boolean firstAlliance = false;
 
-    Pose2d sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
+    Pose2d sharedHubEndpoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
     Pose2d allianceHubEndpoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
 
     @Override
@@ -393,24 +393,24 @@ public class Teleop extends LinearOpMode {
                 }
                 if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
                     if (hub == 1) {
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(allianceHubEndpoint.getX() + 6.5, endPoint.getY(), endPoint.getHeading()),3000,false);
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(72, 48 * side, endPoint.getHeading()),3000,false);
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 3.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(allianceHubEndpoint.getX() + 6.5, endPoint.getY(), endPoint.getHeading()),1000,false);
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(72, 48 * side, endPoint.getHeading()),1000,false);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),3000,true);
-                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),new Pose2d(48, 72 * side, endPoint.getHeading()),3000,true);
+                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),1000,true);
+                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),new Pose2d(48, 72 * side, endPoint.getHeading()),1000,true);
                     }
                 }
             }
             else { //This is for going toward deposit area
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (hub == 1) {
-                    driveToPoint(new Pose2d(38.5,allianceHubEndpoint.getY(),endPoint.getHeading()),3000,false);
+                    driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY(),endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 25.5,allianceHubEndpoint.getY(),endPoint.getHeading()),1000,false);
                     driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4,allianceHubEndpoint.getY(),allianceHubEndpoint.getHeading()), allianceHubEndpoint,1000,false);
                     waitForDeposit(allianceHubEndpoint);
                 }
                 if (hub == 0) {
-                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),3000,true);
+                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),new Pose2d(sharedHubEndpoint.getX(),40.5*side,endPoint.getHeading()),1000,true);
                     driveToPoint(sharedHubEndpoint,1000,true);
                     waitForDeposit(sharedHubEndpoint);
                 }
