@@ -61,7 +61,7 @@ public class Teleop extends LinearOpMode {
     boolean lastIntake = false;
 
     long startDuckSpin = System.currentTimeMillis();
-    double duckSpinPower = 0.35;
+    double duckSpinPower = 0.25;
     long start;
 
     long lastArmDown = System.currentTimeMillis();
@@ -250,6 +250,8 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("hub", hub);
             telemetry.update();
+
+            //drive.duckSpin.setPower(0);
         }
     }
     public void updateEndgame(){
@@ -262,12 +264,12 @@ public class Teleop extends LinearOpMode {
                 if (a < 900){ //900
                     drive.duckSpin.setPower(-duckSpinPower * side);//1.1
                     drive.duckSpin2.setPower(-duckSpinPower * side);
-                    // duckSpinPower += drive.loopSpeed * 0.13;
+                    duckSpinPower += drive.loopSpeed * 0.2;//0.13
 
                 }
                 else {
-                    drive.duckSpin.setPower(-0.75 * side);//0.93
-                    drive.duckSpin2.setPower(-0.75 * side);
+                    drive.duckSpin.setPower(-1 * side);
+                    drive.duckSpin2.setPower(-1 * side);
                 }
                 if (a > 1500){//1500
                     drive.duckSpin.setPower(0);
@@ -277,10 +279,8 @@ public class Teleop extends LinearOpMode {
                 }
             }
             else{
-                drive.duckSpin.setPower(0);
-                drive.duckSpin2.setPower(0);
                 startDuckSpin = System.currentTimeMillis();
-                duckSpinPower = 0.2;//0.25
+                duckSpinPower = 0.25;
             }
         }
         else{

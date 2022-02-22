@@ -955,6 +955,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (loops == 1){
             lastLoopTime = currentTime;
         }
+
+        if ( loops % 100 == 0){
+            updateImuAngle();
+        }
+
         loopSpeed = (currentTime - lastLoopTime)/1000000000.0;
         lastLoopTime = currentTime;
 
@@ -1106,6 +1111,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         drawRobot(fieldOverlay,r,currentPose);
+
+        fieldOverlay.setStroke("#FF0000");
+        fieldOverlay.strokeCircle(
+                currentPose.getX() + Math.cos(currentPose.getHeading()) * (8.0 + distValRight) - Math.sin(currentPose.getHeading()) * (-6.0),
+                currentPose.getY() + Math.cos(currentPose.getHeading()) * (-6.0) + Math.sin(currentPose.getHeading()) * (8.0 + distValRight),
+                2
+        );
+        fieldOverlay.strokeCircle(
+                currentPose.getX() + Math.cos(currentPose.getHeading()) * (8.0 + distValLeft) - Math.sin(currentPose.getHeading()) * (6.0),
+                currentPose.getY() + Math.cos(currentPose.getHeading()) * (6.0) + Math.sin(currentPose.getHeading()) * (8.0 + distValLeft),
+                2
+        );
 
         dashboard.sendTelemetryPacket(packet);
 
@@ -1306,7 +1323,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public void updateSensor(){
         updateWallDetection();
-        updateLineDetection(); //not working currently (decreases accuracy)
+        updateDistanceSensors();
+        //updateLineDetection(); //not working currently (decreases accuracy)
         //updateOdoOverBarrier(); not working currently
     }
 
@@ -1506,10 +1524,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                 y1 *= Math.signum(currentPose.getY());
                 x1 -= Math.cos(currentPose.getHeading()) * (8.0) - Math.sin(currentPose.getHeading()) * (6.0) * m1;
                 y1 -= Math.cos(currentPose.getHeading()) * (6.0) * m1 + Math.sin(currentPose.getHeading()) * (8.0);
-                if (Math.abs(currentPose.getX() - x1) <= 3){
+                if (Math.abs(currentPose.getX() - x1) <= 4){
                     localizer.setX(currentPose.getX() * 0.9 + x1 * 0.1);
                 }
-                if (Math.abs(currentPose.getY() - y1) <= 3){
+                if (Math.abs(currentPose.getY() - y1) <= 4){
                     localizer.setY(currentPose.getY() * 0.9 + y1 * 0.1);
                 }
             }
