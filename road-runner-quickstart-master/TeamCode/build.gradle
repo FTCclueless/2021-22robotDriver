@@ -18,7 +18,7 @@ apply from: '../build.dependencies.gradle'
 dependencies {
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
-    implementation 'com.google.mlkit:image-labeling-custom:17.0.0'
+    //implementation 'com.google.mlkit:image-labeling-custom:17.0.0'
 
     implementation 'org.apache.commons:commons-math3:3.6.1'
 
@@ -26,9 +26,11 @@ dependencies {
 
     implementation 'org.openftc:rev-extensions-2:1.2'
     
-    implementation 'org.openftc:easyopencv:1.4.4'
+    implementation 'org.openftc:easyopencv:1.5.1'
 
     implementation 'com.spartronics4915.lib:ftc265:2.1.9'
+
+    implementation 'org.openftc:apriltag:1.0.0'
 }
 repositories {
     // This line will already be here; you do not need to add it

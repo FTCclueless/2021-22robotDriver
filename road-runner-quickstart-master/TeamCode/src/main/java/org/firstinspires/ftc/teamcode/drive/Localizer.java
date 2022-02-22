@@ -69,8 +69,8 @@ public class Localizer implements com.acmerobotics.roadrunner.localization.Local
         offsetY = 0;
 
         encoders = new Encoder[3];
-        encoders[0] = new Encoder(new Vector2d(0.125,-4.809341),1.0);
-        encoders[1] = new Encoder(new Vector2d(0.125,4.7688719),  -1.0);
+        encoders[0] = new Encoder(new Vector2d(0.125,-4.809341+0.125),1.0);
+        encoders[1] = new Encoder(new Vector2d(0.125,4.7688719-0.125),  -1.0);
         encoders[2] = new Encoder(new Vector2d(6.09063296,3),  1.0);
         //encoders[2] = new Encoder(new Vector2d(2.311807240850830,-3), -1.0);
     }

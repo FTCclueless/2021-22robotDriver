@@ -41,6 +41,8 @@ public class outreachTeleop extends LinearOpMode {
         drive.servos.get(0).setPosition(drive.rightIntakeDrop);
         drive.servos.get(1).setPosition(drive.leftIntakeDrop);
 
+        drive.intakeCase = -1;
+
         while (!isStopRequested()) {
             drive.update();
             if (!gamepad2.a) {
