@@ -1500,7 +1500,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public void updateDistanceSensors(){
         if (Math.abs(currentPose.getY()) >= 48 && currentPose.getX() >= 48){
             double h = clipHeading(currentPose.getHeading());
-            if (Math.abs(h) > Math.toRadians(90) && h * Math.signum(currentPose.getY()) >= Math.toRadians(45) && (relCurrentVelocity.getY() <= 8 && relCurrentVelocity.getX() <= 8 && relCurrentVelocity.getHeading() <= Math.toRadians(30))){
+            if (Math.abs(h) > Math.toRadians(135) && h * Math.signum(currentPose.getY()) >= Math.toRadians(45) && (relCurrentVelocity.getY() <= 8 && relCurrentVelocity.getX() <= 8 && relCurrentVelocity.getHeading() <= Math.toRadians(30))){
                 boolean forward = Math.abs(h) > Math.toRadians(45);
                 if (forward && currentPose.getX() >= 72 - 12 - 8){
                     return;
