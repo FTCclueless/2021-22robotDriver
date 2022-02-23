@@ -199,6 +199,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double slidesOffset;
     public double v4barOffset;
 
+    double currentDepositAngle = 0;
+
     double slidesPower = 0;
 
     double deleteLater = 0;
@@ -455,7 +457,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (!(slidesCase == 0) || intakeCase == 4 || intakeCase == 5 || expansion2){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
             RevBulkData bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides2)/slideTickToInch;
-            //deleteLater = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
+            deleteLater = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
             distValLeft = bulkData.getAnalogInputValue(distLeft)/3.2;
             distValRight = bulkData.getAnalogInputValue(distRight)/3.2;
@@ -780,11 +782,16 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
                     if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;}
-                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;}
+                    if (slidesCase == 3 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;currentDepositAngle = depositTransferAngle;}
                     break;
                 case 4:
-                    if (System.currentTimeMillis()-slideTime >= 120) {//120
-                        setDepositAngle(Math.toRadians(180) - effectiveDepositAngle);
+                    double depoAngle = Math.toRadians(180) - effectiveDepositAngle;
+                    if (System.currentTimeMillis()-slideTime >= 60) {
+                        currentDepositAngle += Math.signum(depoAngle - currentDepositAngle) * (depoAngle - depositTransferAngle) / ((effectiveDepositTime - 120.0) / 1000.0) * loopSpeed;
+                        if (Math.abs(currentDepositAngle - depoAngle) <= Math.toRadians(5)){
+                            currentDepositAngle =  Math.toRadians(180) - effectiveDepositAngle;
+                        }
+                        setDepositAngle(currentDepositAngle);
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     setV4barOrientation(targetV4barOrientation + v4barOffset);
@@ -1044,10 +1051,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         e = Math.sqrt(e);
         double depoVal = 0;
-        for (int i = Math.max(0,depositHistory.size() - 11); i < depositHistory.size()-1; i ++){
+        double a = 4;
+        for (int i = Math.max(0,depositHistory.size() - (int)(a + 1)); i < depositHistory.size()-1; i ++){
             depoVal += depositHistory.get(i);
         }
-        depoVal /= 10;
+        depoVal /= a;
         double criticalVal = average - e * intakeLightCriticalValue;
         if (depoVal < criticalVal){
             intakeDepositTransfer = true;
@@ -1090,7 +1098,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                 Log.e("intakeCancel", "intake");
             }
         }
-
+        if (rightIntakeVal >= intakeMinValRight || leftIntakeVal >= intakeMinValLeft) {
+            expansionHub1.setLedColor(35, 74, 51);
+            expansionHub2.setLedColor(35, 74, 51);
+        }
+        else {
+            expansionHub1.setLedColor(255, 0, 0);
+            expansionHub2.setLedColor(255, 0, 0);
+        }
         if (intakeDepositTransfer) {
             packet.put("fast Transfer", 1);
         }
@@ -1105,6 +1120,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         packet.put("leftIntake", leftIntakeVal);
         packet.put("rightIntake", rightIntakeVal);
+
+        packet.put("loop speed", loopSpeed);
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
