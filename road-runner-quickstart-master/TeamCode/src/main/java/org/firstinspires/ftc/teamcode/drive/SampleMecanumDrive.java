@@ -704,7 +704,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     intake.setPower(transfer2Power);
                 break;
                 case 8:
-                    setSlidesLength(7,0.35);
+                    setSlidesLength(7,0.35);//7 TODO: see if fixes the problem
                     break;
                 case 9:
                     intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
@@ -754,7 +754,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setV4barOrientation(Math.toRadians(90));
                     setDepositAngle(depositTransferAngle);
                 }
-                if (System.currentTimeMillis() - intakeTime >= closeDepositTime){
+                if (System.currentTimeMillis() - intakeTime >= closeDepositTime && Math.abs(slideExtensionLength - targetSlidesPose) <= 3){
                     intakeCase ++;
                 }
                 break; //&& targetV4barOrientation == currentV4barAngle
@@ -787,7 +787,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 4:
                     double depoAngle = Math.toRadians(180) - effectiveDepositAngle;
                     if (System.currentTimeMillis()-slideTime >= 60) {
-                        currentDepositAngle += Math.signum(depoAngle - currentDepositAngle) * (depoAngle - depositTransferAngle) / ((effectiveDepositTime - 120.0) / 1000.0) * loopSpeed;
+                        currentDepositAngle += Math.signum(depoAngle - currentDepositAngle) * (depoAngle - depositTransferAngle) / ((effectiveDepositTime - 180.0) / 1000.0) * loopSpeed;
                         if (Math.abs(currentDepositAngle - depoAngle) <= Math.toRadians(5)){
                             currentDepositAngle =  Math.toRadians(180) - effectiveDepositAngle;
                         }
