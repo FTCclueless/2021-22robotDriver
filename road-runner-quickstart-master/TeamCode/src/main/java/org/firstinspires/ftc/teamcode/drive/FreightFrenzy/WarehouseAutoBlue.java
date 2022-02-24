@@ -260,6 +260,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
             Pose2d error = drive.getRelError(target);
             double dist = error.getX();
             if (dist > 2 && System.currentTimeMillis() - a <= 500) {
+                if (Math.abs(error.getY()) <= 0.5){
+                    error = new Pose2d(error.getX(), 0, 0);
+                }
                 drive.updateMotors(error, 0.4, 0.25,4, Math.toRadians(8), 1, 0);
             }
             else {

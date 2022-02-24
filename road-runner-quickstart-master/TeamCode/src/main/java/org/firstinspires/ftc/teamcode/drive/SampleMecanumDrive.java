@@ -1092,11 +1092,13 @@ public class SampleMecanumDrive extends MecanumDrive {
                 intakeHit = true;
                 startIntakeHit = System.currentTimeMillis();
             }
+            /*
             if (averageIntakeCurrent + standardDev * intakeCurrentCriticalValBottom > intakeCurrent){
                 intakeDepositTransfer = true;
                 startIntakeDepositTransfer = System.currentTimeMillis();
                 Log.e("intakeCancel", "intake");
             }
+             */
         }
         if (rightIntakeVal >= intakeMinValRight || leftIntakeVal >= intakeMinValLeft) {
             expansionHub1.setLedColor(35, 74, 51);
