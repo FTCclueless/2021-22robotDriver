@@ -481,9 +481,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         double powerAdjust = power-kStatic;
         double turnAdjust = maxPowerTurn-kStatic;
         double sideAdjust = Math.min(0.7,power)-kStatic;
-        double forward = (Math.min(Math.abs(relError.getX())/slowDownDist,1.0) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error),0) * Math.signum(relError.getX());
+        double forward = (Math.min(Math.abs(relError.getX())/slowDownDist,1.0) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error/2.0),0) * Math.signum(relError.getX());
                 //Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
-        double left = (Math.min(Math.abs(relError.getY())/slowDownDist,1.0) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError),0) * Math.signum(relError.getY()) + sideKStatic;
+        double left = (Math.min(Math.abs(relError.getY())/slowDownDist,1.0) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError/2.0),0) * Math.signum(relError.getY()) + sideKStatic;
                 //Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-sideAdjust),sideAdjust) + Math.signum(relError.getY()) * kStatic * Math.max(Math.signum(Math.abs(relError.getY()) - error),0) + sideKStatic;
         double turn = (Math.min(Math.abs(relError.getHeading())/slowTurnAngle,1.0) * turnAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(3)),0) * Math.signum(relError.getHeading());
                 //Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - slowTurnAngle),0);
