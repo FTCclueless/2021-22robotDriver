@@ -56,7 +56,7 @@ public class SensorTest extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             long startTime = System.nanoTime();
-            int rli = drive.color.alpha();
+            int rli = 0;//drive.color.alpha();
             //Orientation orientation = drive.imu.getAngularOrientation();
             //double angle = drive.imu.getAngularOrientation().secondAngle;
             //double current = drive.rightRear.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);

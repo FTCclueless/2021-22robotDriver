@@ -90,7 +90,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake, depositSensor, distLeft, distRight, magLeft, magRight;
     public CRServo duckSpin, duckSpin2;
-    public ColorSensor color, leftWall, rightWall;
+    public ColorSensor leftWall, rightWall; //color,
     public BNO055IMU imu;
     public ArrayList<Servo> servos;
     private final VoltageSensor batteryVoltageSensor;
@@ -137,6 +137,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private boolean display3WheelOdo;
 
+    long transferTime = System.currentTimeMillis();
+
     public double intakeTurretInterfaceHeading = Math.toRadians(57.5);
     public double v4barInterfaceAngle = Math.toRadians(10);
     public double depositAngle = Math.toRadians(-45);
@@ -156,10 +158,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78; //0.85
     public int closeDepositTime = 250;
-    public int openDepositTime = 300;//400
+    public int openDepositTime = 350;//400
     public int intakeLiftDelay = 100;
     public int effectiveDepositTime = openDepositTime;
-    public double returnSlideLength = 1.0; //0.75
+    public double returnSlideLength = 0.75; //1
     double turretI = 0;
 
     public double slideExtensionLength = 0;
@@ -261,10 +263,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
 
-        color = hardwareMap.colorSensor.get("cs");
+        //color = hardwareMap.colorSensor.get("cs");
         leftWall = hardwareMap.colorSensor.get("leftWall");
         rightWall = hardwareMap.colorSensor.get("rightWall");
-        color.enableLed(true);
+        //color.enableLed(true);
 
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         leftFront =     (ExpansionHubMotor) hardwareMap.dcMotor.get("lf");
@@ -394,7 +396,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         setV4barDeposit(depositInterfaceAngle,v4barInterfaceAngle);
 
         dropOdo();
-        servos.get(7).setPosition(0.863);
+        servos.get(7).setPosition(1);
 
         setSlidesLength(returnSlideLength);
 
@@ -414,6 +416,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //TODO: was run using encoder
         slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+
     public void resetSlides(){
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -474,14 +477,16 @@ public class SampleMecanumDrive extends MecanumDrive {
         );
     }
 
-    public void updateMotors(Pose2d relError, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error, double sideKStatic){
+    public void updateMotors(Pose2d relError, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error, double sideError, double sideKStatic){
         double powerAdjust = power-kStatic;
         double turnAdjust = maxPowerTurn-kStatic;
-        double maxPowerSide = Math.min(0.4,power);
-        double sideAdjust = maxPowerSide-kStatic;
-        double forward = Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
-        double left = Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-sideAdjust),sideAdjust) + Math.signum(relError.getY()) * kStatic * Math.max(Math.signum(Math.abs(relError.getY()) - error),0) + sideKStatic;
-        double turn = Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - slowTurnAngle),0);
+        double sideAdjust = Math.min(0.7,power)-kStatic;
+        double forward = (Math.min(Math.abs(relError.getX())/slowDownDist,1.0) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error),0) * Math.signum(relError.getX());
+                //Math.min(Math.max(relError.getX()*power/slowDownDist,-powerAdjust),powerAdjust) + Math.signum(relError.getX()) * kStatic * Math.max(Math.signum(Math.abs(relError.getX()) - error),0);
+        double left = (Math.min(Math.abs(relError.getY())/slowDownDist,1.0) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError),0) * Math.signum(relError.getY()) + sideKStatic;
+                //Math.min(Math.max(relError.getY()*maxPowerSide/slowDownDist,-sideAdjust),sideAdjust) + Math.signum(relError.getY()) * kStatic * Math.max(Math.signum(Math.abs(relError.getY()) - error),0) + sideKStatic;
+        double turn = (Math.min(Math.abs(relError.getHeading())/slowTurnAngle,1.0) * turnAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(3)),0) * Math.signum(relError.getHeading());
+                //Math.min(Math.max(relError.getHeading()*maxPowerTurn/slowTurnAngle,-turnAdjust),turnAdjust) + Math.signum(relError.getHeading()) * kStatic * Math.max(Math.signum(Math.abs(relError.getHeading()) - slowTurnAngle),0);
         double [] p = new double[4];
         p[0] = forward-left-turn;
         p[1] = forward+left-turn;
@@ -689,8 +694,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             switch (intakeCase) {
                 case 1: intakeSensorLoops = 1; sumIntakeSensor = 0;break; // rotate the servo down
                 case 2: intake.setPower(intakePower); break; // turn on the intake (forward)
-                case 3:
-                    break; // lift up the servo
+                case 3: transferTime = System.currentTimeMillis();break; // lift up the servo
                 case 4:
                 case 5:
                     setTurretTarget(intakeTurretInterfaceHeading * currentIntake); setSlidesLength(returnSlideLength);
@@ -698,13 +702,16 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setV4barOrientation(v4barInterfaceAngle);
                     break;
                 case 6:
+                    Log.e("liftTime" , (System.currentTimeMillis() - transferTime) + "");
+                    transferTime = System.currentTimeMillis();
                     intake.setPower(transfer1Power);
                 break;
                 case 7:
                     intake.setPower(transfer2Power);
                 break;
                 case 8:
-                    setSlidesLength(7,0.35);//7 TODO: see if fixes the problem
+                    Log.e("transferTime" , (System.currentTimeMillis() - transferTime) + "");
+                    setSlidesLength(7,1.0);//7 TODO: see if fixes the problem
                     break;
                 case 9:
                     intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
@@ -747,14 +754,14 @@ public class SampleMecanumDrive extends MecanumDrive {
                 break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
             case 5: if (targetV4barAngle == currentV4barAngle){intakeCase ++;}break;
-            case 6: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time) && System.currentTimeMillis() - intakeTime >= transfer1Time/2.0){intakeCase ++;}break;
-            case 7: if ((intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;}break;
+            case 6: if (System.currentTimeMillis() - intakeTime >= 120 && (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time)){intakeCase ++;}break; // && System.currentTimeMillis() - intakeTime >= transfer1Time/3.0
+            case 7: if (System.currentTimeMillis() - intakeTime >= 120 && (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;}break;
             case 8:
                 if (System.currentTimeMillis() - intakeTime >= closeDepositTime/2.0) {
                     setV4barOrientation(Math.toRadians(90));
-                    setDepositAngle(depositTransferAngle);
                 }
-                if (System.currentTimeMillis() - intakeTime >= closeDepositTime && Math.abs(slideExtensionLength - targetSlidesPose) <= 3){
+                setDepositAngle(depositTransferAngle);
+                if (Math.abs(slideExtensionLength - targetSlidesPose) <= 4.5){ //System.currentTimeMillis() - intakeTime >= closeDepositTime &&
                     intakeCase ++;
                 }
                 break; //&& targetV4barOrientation == currentV4barAngle
@@ -770,14 +777,14 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    setV4barOrientation(targetV4barOrientation + v4barOffset);
+                    setV4barOrientation(targetV4barOrientation + v4barOffset - Math.toRadians(10));
                     double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
                     double slidePower = 1.0;//0.95
                     if (l < 10) { //15
                         setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
                         setDepositAngle(depositTransferAngle);
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset - 8,slidePower); //1
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset - 6,slidePower); //1
                     }
                     setTurretTarget(targetTurretHeading + turretOffset);
                     if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(15)){slidesCase ++;}
@@ -786,15 +793,20 @@ public class SampleMecanumDrive extends MecanumDrive {
                     break;
                 case 4:
                     double depoAngle = Math.toRadians(180) - effectiveDepositAngle;
-                    if (System.currentTimeMillis()-slideTime >= 60) {
-                        currentDepositAngle += Math.signum(depoAngle - currentDepositAngle) * (depoAngle - depositTransferAngle) / ((effectiveDepositTime - 180.0) / 1000.0) * loopSpeed;
+                    if (System.currentTimeMillis()-slideTime >= 120) {
+                        currentDepositAngle += Math.signum(depoAngle - currentDepositAngle) * (depoAngle - depositTransferAngle) / ((effectiveDepositTime - 200.0) / 1000.0) * loopSpeed;
                         if (Math.abs(currentDepositAngle - depoAngle) <= Math.toRadians(5)){
                             currentDepositAngle =  Math.toRadians(180) - effectiveDepositAngle;
                         }
-                        setDepositAngle(currentDepositAngle);
                     }
+                    if (System.currentTimeMillis()-slideTime >= effectiveDepositTime - 150) {
+                        setV4barOrientation(targetV4barOrientation + v4barOffset - Math.toRadians(20));
+                    }
+                    else{
+                        setV4barOrientation(targetV4barOrientation + v4barOffset);
+                    }
+                    setDepositAngle(currentDepositAngle);
                     setTurretTarget(targetTurretHeading + turretOffset);
-                    setV4barOrientation(targetV4barOrientation + v4barOffset);
                     setSlidesLength(targetSlideExtensionLength + slidesOffset);
                     if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} // + 70
                     break;
@@ -806,7 +818,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         setSlidesLength(returnSlideLength, 0.4);
                         if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){slidesCase ++;}
                     }
-                    if (slidesCase == 7) {
+                    if (slidesCase >= 7) {
                         setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
                     }
                     else {
@@ -881,16 +893,15 @@ public class SampleMecanumDrive extends MecanumDrive {
             currentTargetSlidesPose = targetSlidesPose;
         }
         double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
-        if (loops >= 2) {
-            slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
-        }
         double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
-        if (Math.abs(currentTargetSlidesPose - slideExtensionLength) <= 3){
+        if (Math.abs(targetSlidesPose - slideExtensionLength) <= 3){
             p /= 2;
             kStatic /= 2;
             if (currentTargetSlidesPose - slideExtensionLength >= 0){
-                //p = 0;
                 kStatic = 0.075 + slideExtensionLength * 0.002;
+                if (loops >= 2) {
+                    slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
+                }
             }
             else {
                 if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // -1
@@ -898,7 +909,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     slidesI = 0;
                 }
                 else{
-                    p = 0.05;
+                    p = 0.085;
                 }
             }
         }
@@ -907,8 +918,8 @@ public class SampleMecanumDrive extends MecanumDrive {
             p = 0;
         }
         slidesPower = kStatic + p + slidesI;
-        slides.setPower(kStatic + p + slidesI);
-        slides2.setPower(kStatic + p + slidesI);
+        slides.setPower(slidesPower);
+        slides2.setPower(slidesPower);
     }
 
     public void setTurretTarget(double radians){
@@ -1060,7 +1071,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (depoVal < criticalVal){
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
-            Log.e("intakeCancel", "deposit");
+            //Log.e("intakeCancel", "deposit");
         }
 
         packet.put("depositValCritical", criticalVal);
@@ -1357,8 +1368,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         double extraOffset = 5.0;
         double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
         if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.argb() >= 400000000;
-            boolean rightSensor = rightWall.argb() >= 400000000;
+            boolean leftSensor = leftWall.argb() >= 200000000;
+            boolean rightSensor = rightWall.argb() >= 200000000;
             double heading = clipHeading(currentPose.getHeading());
             if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
                 double angleOffset = 15;
@@ -1485,7 +1496,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         boolean topRight = Math.abs(currentPose.getX()-(72-robotWidth/2.0)) < sensorThreshold && Math.abs(currentPose.getY()+(72-(43.5-1))) < sensorThreshold;
         double velocity = Math.sqrt(Math.pow(relCurrentVelocity.getX(),2) + Math.pow(relCurrentVelocity.getY(),2));
         if ((!isKnownX || !isKnownY) || ((leftRight || topLeft || topRight) && velocity < 3)){
-            detectLine = color.alpha() > threshold;
+            detectLine = false; //color.alpha() > threshold;
         }
         boolean updatePose = lastLightReading != detectLine;
         double multiplier = -1;

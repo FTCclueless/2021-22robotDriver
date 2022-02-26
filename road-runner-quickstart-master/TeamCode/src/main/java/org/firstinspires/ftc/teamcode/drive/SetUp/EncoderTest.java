@@ -30,6 +30,8 @@ public class EncoderTest extends LinearOpMode {
                 telemetry.addData("front Encoder", drive.localizer.encoders[3].getCurrentDist());
             }
             telemetry.update();
+            drive.slides.setPower(1.0);
+            drive.slides2.setPower(1.0);
         }
     }
 }
