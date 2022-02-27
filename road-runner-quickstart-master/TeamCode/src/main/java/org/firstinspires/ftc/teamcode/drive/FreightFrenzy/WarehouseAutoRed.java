@@ -153,10 +153,10 @@ public class WarehouseAutoRed extends LinearOpMode {
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
         drive.intakeLiftDelay = 0;
-        while (System.currentTimeMillis() - start <= 30000 - 3270 && opModeIsActive()){
+        while (System.currentTimeMillis() - start <= 30000 - 3500 && opModeIsActive()){
             long lastCycleStart = System.currentTimeMillis();
             driveIn(endPoint,numMinerals);
-            if (System.currentTimeMillis() - start >= 30000 - 2270){
+            if (System.currentTimeMillis() - start >= 30000 - 3000){
                 break;
             }
             driveOut(endPoint,numMinerals);
@@ -169,6 +169,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         while (opModeIsActive() && System.currentTimeMillis() - start <= 29900) {
             driveToPoint(new Pose2d(45, endPoint.getY(), 0), false, 1, 0.3, 1000, 3, true);
         }
+        drive.setDepositAngle(Math.toRadians(225));
         drive.setMotorPowers( 0 , 0, 0, 0);
         drive.slides.setPower(0);
         drive.slides2.setPower(0);

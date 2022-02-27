@@ -711,7 +711,12 @@ public class SampleMecanumDrive extends MecanumDrive {
                 break;
                 case 8:
                     Log.e("transferTime" , (System.currentTimeMillis() - transferTime) + "");
-                    setSlidesLength(7,1.0);//7 TODO: see if fixes the problem
+                    if (targetSlideExtensionLength >= 10) {
+                        setSlidesLength(10, 1.0);//7 TODO: see if fixes the problem
+                    }
+                    else {
+                        setSlidesLength(7,0.4);
+                    }
                     break;
                 case 9:
                     intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
@@ -757,12 +762,16 @@ public class SampleMecanumDrive extends MecanumDrive {
             case 6: if (System.currentTimeMillis() - intakeTime >= 120 && (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time)){intakeCase ++;}break; // && System.currentTimeMillis() - intakeTime >= transfer1Time/3.0
             case 7: if (System.currentTimeMillis() - intakeTime >= 120 && (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;}break;
             case 8:
-                if (System.currentTimeMillis() - intakeTime >= closeDepositTime/2.0) {
-                    setV4barOrientation(Math.toRadians(90));
+                //if (System.currentTimeMillis() - intakeTime >= closeDepositTime/2.0) {
+                if (slideExtensionLength >= 3){
+                    setV4barOrientation(Math.toRadians(115));
                 }
                 setDepositAngle(depositTransferAngle);
                 if (Math.abs(slideExtensionLength - targetSlidesPose) <= 4.5){ //System.currentTimeMillis() - intakeTime >= closeDepositTime &&
                     intakeCase ++;
+                    if (slidesCase == 1 && targetSlideExtensionLength >= 10){
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset - 6,1.0);
+                    }
                 }
                 break; //&& targetV4barOrientation == currentV4barAngle
         }

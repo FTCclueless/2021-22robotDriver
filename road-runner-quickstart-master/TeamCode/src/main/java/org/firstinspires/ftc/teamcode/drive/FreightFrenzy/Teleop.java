@@ -309,17 +309,19 @@ public class Teleop extends LinearOpMode {
             }
             else {
                 first = false;
+                armOutPosRight = 0.172;
+                armOutPosLeft = 0.685;
             }
             lastArmDown = System.currentTimeMillis();
         }
         lastIn = in;
         lastOut = out;
         if (armIn){
-            if (gamepad2.dpad_left){
+            if (gamepad2.dpad_right){
                 armInPosRight += 0.001;
                 armInPosLeft -= 0.001;
             }
-            else if (gamepad2.dpad_right){
+            else if (gamepad2.dpad_left){
                 armInPosRight -= 0.001;
                 armInPosLeft += 0.001;
             }
@@ -332,11 +334,11 @@ public class Teleop extends LinearOpMode {
         else {
             speedSlowMultiplier = 0.5;
             if (first){
-                if (gamepad2.dpad_left){
+                if (gamepad2.dpad_right){
                     armOutGrabPosRight += 0.001;
                     armOutGrabPosLeft -= 0.001;
                 }
-                else if (gamepad2.dpad_right){
+                else if (gamepad2.dpad_left){
                     armOutGrabPosRight -= 0.001;
                     armOutGrabPosLeft += 0.001;
                 }
@@ -346,13 +348,13 @@ public class Teleop extends LinearOpMode {
                 drive.servos.get(6).setPosition(armOutGrabPosLeft);
             }
             else {
-                if (gamepad2.dpad_left){
-                    armOutPosRight += 0.001;
-                    armOutPosLeft -= 0.001;
+                if (gamepad2.dpad_right){
+                    armOutPosRight += 0.002;
+                    armOutPosLeft -= 0.002;
                 }
-                else if (gamepad2.dpad_right){
-                    armOutPosRight -= 0.001;
-                    armOutPosLeft += 0.001;
+                else if (gamepad2.dpad_left){
+                    armOutPosRight -= 0.002;
+                    armOutPosLeft += 0.002;
                 }
                 armOutPosRight = Math.max(Math.min(armOutPosRight,1.0),0);
                 drive.servos.get(5).setPosition(armOutPosRight);
