@@ -143,7 +143,7 @@ public class Teleop extends LinearOpMode {
             if (gamepad1.x){ //Finish intaking
                 drive.servos.get(1).setPosition(drive.leftIntakeRaise);
                 drive.servos.get(0).setPosition(drive.rightIntakeRaise);
-                drive.intakeCase = 6;
+                drive.intakeCase = 3;
             }
 
             drive.startDeposit(endPoint, hubLocation, height, radius);
