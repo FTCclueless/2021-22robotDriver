@@ -61,9 +61,12 @@ public class Teleop extends LinearOpMode {
     boolean lastOut = false;
     boolean armIn = true;
 
+    boolean endgameRumble = false;
+    boolean parkRumble = false;
+
     int matchTime = 122000;
     int teleopTime = 92000;
-    int parkTime = 4000;
+    int parkTime = 4500;
 
     boolean lastIntake = false;
 
@@ -271,18 +274,23 @@ public class Teleop extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
-            if (runtime.milliseconds() - teleopTime >= 0){
-                if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
-                    
-                    gamepad1.runRumbleEffect(customRumble);
-                    gamepad2.runRumbleEffect(customRumble);
+            if(endgameRumble == false){
+                if (runtime.milliseconds() - teleopTime >= -500){
+                    if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
+                        gamepad1.runRumbleEffect(customRumble);
+                        gamepad2.runRumbleEffect(customRumble);
+                        endgameRumble = true;
+                    }
                 }
             }
-
-            if (matchTime - runtime.milliseconds() <= parkTime){
-                if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
-                    gamepad1.rumbleBlips(4);
-                    gamepad2.rumbleBlips(4);
+            
+            if(parkRumble == false){
+                if (matchTime - runtime.milliseconds() <= parkTime){
+                    if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
+                        gamepad1.rumbleBlips(4);
+                        gamepad2.rumbleBlips(4);
+                        parkRumble = true;
+                    }
                 }
             }
 
