@@ -139,6 +139,12 @@ public class Teleop extends LinearOpMode {
 
         start = System.currentTimeMillis();
 
+        Gamepad.RumbleEffect customRumble = new Gamepad.RumbleEffect.Builder()
+                .addStep(0.0, 1.0, 500)
+                .addStep(0.0, 0.0, 250)
+                .addStep(1.0, 0.0, 500)
+                .build();
+
         while (!isStopRequested()) {
             updateEndgame();
             drive.update();
@@ -265,21 +271,15 @@ public class Teleop extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
-            customRumble = new Gamepad.RumbleEffect.Builder()
-                .addStep(0.0, 1.0, 500)
-                .addStep(0.0, 0.0, 250)
-                .addStep(1.0, 0.0, 500)
-                .build();
-
-            if (runtime - teleopTime >= 0){
+            if (runtime.milliseconds() - teleopTime >= 0){
                 if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
                     
                     gamepad1.runRumbleEffect(customRumble);
-                    gamepad2.runRumbleEffect(customRumble)
+                    gamepad2.runRumbleEffect(customRumble);
                 }
             }
 
-            if (matchTime - runtime =< parkTime){
+            if (matchTime - runtime.milliseconds() <= parkTime){
                 if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
                     gamepad1.rumbleBlips(4);
                     gamepad2.rumbleBlips(4);
@@ -303,29 +303,29 @@ public class Teleop extends LinearOpMode {
                     drive.duckSpin.setPower(-duckSpinPower * side);//1.1
                     drive.duckSpin2.setPower(-duckSpinPower * side);
                     duckSpinPower += drive.loopSpeed * 0.2;//0.13
-                    drive.expansionHub1.setLedColor(255, 195, 0);
-                    drive.expansionHub2.setLedColor(255, 195, 0);
+                    //drive.expansionHub1.setLedColor(255, 195, 0);
+                    //drive.expansionHub2.setLedColor(255, 195, 0);
                 }
                 else {
                     drive.duckSpin.setPower(-1 * side);
                     drive.duckSpin2.setPower(-1 * side);
-                    drive.expansionHub1.setLedColor(199, 0, 57);
-                    drive.expansionHub2.setLedColor(199, 0, 57);
+                    //drive.expansionHub1.setLedColor(199, 0, 57);
+                    //drive.expansionHub2.setLedColor(199, 0, 57);
                 }
                 if (a > 1500){//1500
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
                     startDuckSpin = System.currentTimeMillis();
                     spin.toggleState = false;
-                    drive.expansionHub1.setLedColor(88, 24, 72);
-                    drive.expansionHub2.setLedColor(88, 24, 72);
+                    //drive.expansionHub1.setLedColor(88, 24, 72);
+                    //drive.expansionHub2.setLedColor(88, 24, 72);
                 }
             }
             else{
                 startDuckSpin = System.currentTimeMillis();
                 duckSpinPower = 0.25;
-                drive.expansionHub1.setLedColor(255, 0, 0);
-                drive.expansionHub2.setLedColor(255, 0, 0);
+                //drive.expansionHub1.setLedColor(255, 0, 0);
+                //drive.expansionHub2.setLedColor(255, 0, 0);
             }
         }
         else{
