@@ -12,6 +12,9 @@ import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.drive.Reader;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 /**
  * This is a simple teleop routine for testing localization. Drive the robot around like a normal
  * teleop routine and make sure the robot's estimated pose matches the robot's actual pose (slight
@@ -58,6 +61,10 @@ public class Teleop extends LinearOpMode {
     boolean lastOut = false;
     boolean armIn = true;
 
+    int matchTime = 122000;
+    int teleopTime = 92000;
+    int parkTime = 4000;
+
     boolean lastIntake = false;
 
     long startDuckSpin = System.currentTimeMillis();
@@ -73,6 +80,8 @@ public class Teleop extends LinearOpMode {
 
     Pose2d sharedHubEndpoint = new Pose2d(65.25, 16 * side, Math.toRadians(90) * side);
     Pose2d allianceHubEndpoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
+
+    ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -100,6 +109,8 @@ public class Teleop extends LinearOpMode {
                 intake = true;
                 break;
         }
+
+        runtime.reset();
 
         while (!isStarted() && !isStopRequested()){
             if (gamepad1.dpad_up){
@@ -254,6 +265,27 @@ public class Teleop extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
+            customRumble = new Gamepad.RumbleEffect.Builder()
+                .addStep(0.0, 1.0, 500)
+                .addStep(0.0, 0.0, 250)
+                .addStep(1.0, 0.0, 500)
+                .build();
+
+            if (runtime - teleopTime >= 0){
+                if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
+                    
+                    gamepad1.runRumbleEffect(customRumble);
+                    gamepad2.runRumbleEffect(customRumble)
+                }
+            }
+
+            if (matchTime - runtime =< parkTime){
+                if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
+                    gamepad1.rumbleBlips(4);
+                    gamepad2.rumbleBlips(4);
+                }
+            }
+
             telemetry.addData("hub", hub);
             telemetry.update();
 
@@ -271,22 +303,29 @@ public class Teleop extends LinearOpMode {
                     drive.duckSpin.setPower(-duckSpinPower * side);//1.1
                     drive.duckSpin2.setPower(-duckSpinPower * side);
                     duckSpinPower += drive.loopSpeed * 0.2;//0.13
-
+                    drive.expansionHub1.setLedColor(255, 195, 0);
+                    drive.expansionHub2.setLedColor(255, 195, 0);
                 }
                 else {
                     drive.duckSpin.setPower(-1 * side);
                     drive.duckSpin2.setPower(-1 * side);
+                    drive.expansionHub1.setLedColor(199, 0, 57);
+                    drive.expansionHub2.setLedColor(199, 0, 57);
                 }
                 if (a > 1500){//1500
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
                     startDuckSpin = System.currentTimeMillis();
                     spin.toggleState = false;
+                    drive.expansionHub1.setLedColor(88, 24, 72);
+                    drive.expansionHub2.setLedColor(88, 24, 72);
                 }
             }
             else{
                 startDuckSpin = System.currentTimeMillis();
                 duckSpinPower = 0.25;
+                drive.expansionHub1.setLedColor(255, 0, 0);
+                drive.expansionHub2.setLedColor(255, 0, 0);
             }
         }
         else{
