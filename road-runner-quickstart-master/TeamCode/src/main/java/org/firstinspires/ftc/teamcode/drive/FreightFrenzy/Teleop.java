@@ -86,6 +86,9 @@ public class Teleop extends LinearOpMode {
 
     ElapsedTime runtime = new ElapsedTime();
 
+    boolean startDuck = false;
+    long startDuckTime = System.currentTimeMillis();
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -164,6 +167,7 @@ public class Teleop extends LinearOpMode {
                 drive.servos.get(1).setPosition(drive.leftIntakeRaise);
                 drive.servos.get(0).setPosition(drive.rightIntakeRaise);
                 drive.intakeCase = 3;
+                firstUpdate = false;
             }
 
             drive.startDeposit(endPoint, hubLocation, height, radius);
@@ -305,8 +309,30 @@ public class Teleop extends LinearOpMode {
         if (endgame.getToggleState()){
             drive.servos.get(7).setPosition(0.06);
             spin.update(gamepad2.y);
+            if (drive.intakeCase == 2){
+                if (System.currentTimeMillis() - startDuckTime <= 1750){
+                    drive.intake.setPower(drive.intakePower * 0.4);
+                }
+                else {
+                    drive.intake.setPower(drive.intakePower);
+                    if (System.currentTimeMillis() - startDuckTime <= 1850 + 500){
+                        //drive.pinMotorPowers(0.5,0.5,0.5,0.5);
+                    }
+                    else if (System.currentTimeMillis() - startDuckTime <= 1850 + 1000){
+
+                    }
+                    else if (System.currentTimeMillis() - startDuckTime <= 1850 + 1500){
+                        //drive.pinMotorPowers(-0.5,-0.5,-0.5,-0.5);
+                    }
+                }
+            }
+
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
+                if (startDuck == false){
+                    startDuck = true;
+                    startDuckTime = System.currentTimeMillis();
+                }
                 if (a < 900){ //900
                     drive.duckSpin.setPower(-duckSpinPower * side);//1.1
                     drive.duckSpin2.setPower(-duckSpinPower * side);
@@ -314,13 +340,17 @@ public class Teleop extends LinearOpMode {
                     //drive.expansionHub1.setLedColor(255, 195, 0);
                     //drive.expansionHub2.setLedColor(255, 195, 0);
                 }
-                else {
+                else if (a < 1300) {
                     drive.duckSpin.setPower(-1 * side);
                     drive.duckSpin2.setPower(-1 * side);
                     //drive.expansionHub1.setLedColor(199, 0, 57);
                     //drive.expansionHub2.setLedColor(199, 0, 57);
                 }
-                if (a > 1500){//1500
+                else {
+                    drive.duckSpin.setPower(-0.2 * side);
+                    drive.duckSpin2.setPower(-0.2 * side);
+                }
+                if (a > 1550){//1500
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
                     startDuckSpin = System.currentTimeMillis();
@@ -330,6 +360,7 @@ public class Teleop extends LinearOpMode {
                 }
             }
             else{
+                startDuck = false;
                 startDuckSpin = System.currentTimeMillis();
                 duckSpinPower = 0.25;
                 //drive.expansionHub1.setLedColor(255, 0, 0);
@@ -623,13 +654,12 @@ public class Teleop extends LinearOpMode {
         driveToPoint(target,target,maxTime,shared);
     }
     public void driveToPoint(Pose2d target, Pose2d target2, long maxTime, boolean shared){
-        double error = 2;//4
-        double power = 0.95;//0.8
-        double slowDownDist = 2;
+        double error = 3.5;
+        double power = 0.95;
+        double slowDownDist = 10;
         boolean hugWall = true;
-        double kStatic = DriveConstants.kStatic;
-        double maxPowerTurn = Math.max(power/1.6,kStatic * 1.5);
-        double slowTurnAngle = Math.toRadians(7);//5
+        double maxPowerTurn = 0.35;
+        double slowTurnAngle = Math.toRadians(15);
         double m = 1;
         if (shared){
             m = -1;
@@ -669,11 +699,8 @@ public class Teleop extends LinearOpMode {
                     }
                     relError = new Pose2d(relError.getX(), 0, heading);
                 }
-                else if (Math.abs(relError.getX()) < error){
-                    relError = new Pose2d(0, relError.getY(), relError.getHeading());
-                }
             }
-            drive.updateMotors(relError,power,maxPowerTurn,slowDownDist,slowTurnAngle,error,sideError,sideKStatic);
+            drive.updateMotors(relError,power,maxPowerTurn,slowDownDist,slowTurnAngle,0.5,sideError,sideKStatic);
 
             if (drive.intakeCase == 3 && drive.lastIntakeCase == 2){ // Just took in a block
                 flag = 1;
