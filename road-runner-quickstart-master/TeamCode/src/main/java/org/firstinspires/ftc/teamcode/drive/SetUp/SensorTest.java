@@ -83,6 +83,8 @@ public class SensorTest extends LinearOpMode {
             telemetry.addData("right Intake", drive.rightIntake.getVoltage());
             telemetry.addData("depo", drive.depositSensor.getVoltage());
             telemetry.addData("dist",drive.distLeft.getVoltage());
+            telemetry.addData("a",drive.intakePos);
+            telemetry.addData("rotations",drive.intakePos/ (((1.0+(46.0/11.0)) * 28.0)) * 26.0/19.0);
             telemetry.addData("mag", drive.magLeft.getVoltage());
             telemetry.addData("rli", rli);
             //telemetry.addData("ReadTime", elapsedTimeRLI);

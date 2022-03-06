@@ -164,6 +164,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     double turretI = 0;
 
     public double slideExtensionLength = 0;
+    public double intakePos = 0;
     public double turretHeading = 0;
     public double targetSlideExtensionLength = 0;
     public double targetTurretHeading = 0;
@@ -437,6 +438,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         encoders[0] = bulkData.getMotorCurrentPosition(rightFront);
         encoders[1] = bulkData.getMotorCurrentPosition(leftFront);
         encoders[2] = bulkData.getMotorCurrentPosition(rightRear);
+        intakePos = bulkData.getMotorCurrentPosition(leftRear);
         if (encoders.length == 4) {
             encoders[3] = bulkData.getMotorCurrentPosition(leftRear);
         }
@@ -761,10 +763,12 @@ public class SampleMecanumDrive extends MecanumDrive {
             int a = slidesCase;
             switch (a) {
                 case 1: case 2: case 3:
-                    setTurretTarget(targetTurretHeading + turretOffset);
+                    if (slidesCase >= 2) {
+                        setTurretTarget(targetTurretHeading + turretOffset);
+                    }
 
                     setDepositAngle(depositTransferAngle);
-                    if (slideExtensionLength >= 3){
+                    if (slideExtensionLength >= 3 || slidesCase >= 2){
                         setV4barOrientation(targetV4barOrientation + v4barOffset - Math.toRadians(10));
                     }
 
@@ -773,19 +777,18 @@ public class SampleMecanumDrive extends MecanumDrive {
                         slidePower = 0.4;
                     }
 
-                    double l = (Math.abs(slideExtensionLength - targetSlideExtensionLength - slidesOffset));
+                    double l = Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset));
 
                     if (slidesCase == 1){
                         setSlidesLength(10,slidesSpeed);
-                    }
-                    else if (l < 10) {
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + (targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
+                    } else if (l < 10) {
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,(slidePower - 0.35) + Math.abs(targetSlideExtensionLength + slidesOffset - slideExtensionLength)/10.0 * 0.35);
                     } else {
-                        setSlidesLength(targetSlideExtensionLength + slidesOffset - 6,slidePower);
+                        setSlidesLength(targetSlideExtensionLength + slidesOffset,slidePower);
                     }
-                    if (slidesCase == 1 && Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) && Math.abs(slideExtensionLength - 10) <= 4){slidesCase ++;}
-                    if (slidesCase == 2 && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;}
-                    if (slidesCase == 3 && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;currentDepositAngle = depositTransferAngle + Math.toRadians(20);}
+                    if (slidesCase == 1 && Math.abs(slideExtensionLength - 10) <= 4){slidesCase ++;}
+                    if (slidesCase == 2 && (Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;}
+                    if (slidesCase == 3 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;currentDepositAngle = depositTransferAngle + Math.toRadians(20);}
                     break;
                 case 4:
                     double depoAngle = Math.toRadians(180) - effectiveDepositAngle;
@@ -1023,6 +1026,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("turret Heading", turretHeading);
         packet.put("slides length", slideExtensionLength);
         packet.put("slides length2", deleteLater);
+        packet.put("slides current", slides.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
+        packet.put("slides current2", slides2.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS));
         packet.put("slides Power", slidesPower);
         packet.put("mag Left", magValLeft);
         packet.put("mag Right", magValRight);
