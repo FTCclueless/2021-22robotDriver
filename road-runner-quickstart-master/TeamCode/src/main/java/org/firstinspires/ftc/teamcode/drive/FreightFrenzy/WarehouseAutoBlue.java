@@ -177,10 +177,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY());
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
-        //driveToPoint(new Pose2d(16.5, endPoint.getY(),0), new Pose2d(38.5, endPoint.getY(),0), false,2, 0.95,500,10, true,cutoff);
         drive.startIntake(side == -1);
-        driveToPoint(new Pose2d(35.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,10, true,cutoff);
-        driveToPoint(new Pose2d(Math.max(x - 10,38.5), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 15, false,cutoff);
+        driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
+        driveToPoint(new Pose2d(Math.max(x - 8,31.5), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 10, false,cutoff);
         driveToPoint(new Pose2d(x-3,y,angle), new Pose2d(72,24 * side,angle), true,2, 0.35,600,6,false,cutoff);
         intakeMineral(0.25,2000);
         if (drive.intakeCase == 2){
@@ -198,7 +197,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(38.5, newEnd.getY(), 0), new Pose2d(40.5, newEnd.getY() - side, 0), false,4, 0.95,500,10,true,cutoff);
         driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,15, true,cutoff);
-        //driveToPoint(newEnd, false,1, 0.35,1000,5, false,cutoff);
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){

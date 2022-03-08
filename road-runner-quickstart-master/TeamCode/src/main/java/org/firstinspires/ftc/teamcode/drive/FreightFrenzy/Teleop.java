@@ -95,10 +95,8 @@ public class Teleop extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//      drive.servos.get(5).setPosition(armInPosRight);
-//      drive.servos.get(6).setPosition(armInPosLeft);
-        drive.servos.get(5).setPosition(armOutPosRight);
-        drive.servos.get(6).setPosition(armOutPosLeft);
+        drive.servos.get(5).setPosition(armInPosRight);
+        drive.servos.get(6).setPosition(armInPosLeft);
 
         drive.v4barOffset = Math.toRadians(-10);
 
@@ -252,16 +250,10 @@ public class Teleop extends LinearOpMode {
                 f *= 0.6;
                 l *= 0.6;
             }
-            /*
-            if (drive.intakeCase == 2 && hub == 1 && drive.currentPose.getX() >= 72 - 43.5){
-                f *= 0.5;
-                l *= 0.5;
-            }
-             */
 
             double forward = Math.pow(f,7) * -(0.85 - kStatic) * speedSlowMultiplier + Math.signum(-f) * Math.max(Math.signum(Math.abs(f) - 0.1),0) * kStatic;
             double left = Math.pow(l,7) * (1.0 - kStatic) * speedSlowMultiplier + Math.signum(l) * Math.max(Math.signum(Math.abs(l) - 0.1),0) * kStatic;
-            double turn = gamepad1.right_stick_x * 0.35 * speedSlowMultiplier;
+            double turn = gamepad1.right_stick_x * 0.45 * speedSlowMultiplier;
 
             if (gamepad1.left_bumper){
                 double m1 = -1;
@@ -278,7 +270,7 @@ public class Teleop extends LinearOpMode {
             double p4 = forward-left-turn;
             drive.pinMotorPowers(p1, p2, p3, p4);
 
-            if(endgameRumble == false){
+            if(!endgameRumble){
                 if (runtime.milliseconds() - teleopTime >= -500){
                     if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
                         gamepad1.runRumbleEffect(customRumble);
@@ -288,7 +280,7 @@ public class Teleop extends LinearOpMode {
                 }
             }
             
-            if(parkRumble == false){
+            if(!parkRumble){
                 if (matchTime - runtime.milliseconds() <= parkTime){
                     if(!gamepad1.isRumbling() && !gamepad2.isRumbling()){
                         gamepad1.rumbleBlips(4);
@@ -300,8 +292,6 @@ public class Teleop extends LinearOpMode {
 
             telemetry.addData("hub", hub);
             telemetry.update();
-
-            //drive.duckSpin.setPower(0);
         }
     }
     public void updateEndgame(){
@@ -314,9 +304,7 @@ public class Teleop extends LinearOpMode {
             }
             if (drive.intakeCase == 2){
                 if (System.currentTimeMillis() - startDuckTime <= 1550){
-                    double a = 	((1.0+(46.0/11.0)) * 28.0) / (26.0/19.0);
-                    double t = Math.abs(drive.intakePos) % a;
-                    if (t <= a - 10) { // mad cause bad
+                    if (drive.intakePos <= (330.0/360.0)) {
                         drive.intake.setPower(drive.intakePower * 0.15);
                     }
                     else {
@@ -325,36 +313,34 @@ public class Teleop extends LinearOpMode {
                 }
                 else {
                     drive.intake.setPower(drive.intakePower);
+                    /*Drive in to intake
                     if (System.currentTimeMillis() - startDuckTime <= 1850 + 500){
-                        //drive.pinMotorPowers(0.5,0.5,0.5,0.5);
+                        drive.pinMotorPowers(0.5,0.5,0.5,0.5);
                     }
                     else if (System.currentTimeMillis() - startDuckTime <= 1850 + 1000){
 
                     }
                     else if (System.currentTimeMillis() - startDuckTime <= 1850 + 1500){
-                        //drive.pinMotorPowers(-0.5,-0.5,-0.5,-0.5);
+                        drive.pinMotorPowers(-0.5,-0.5,-0.5,-0.5);
                     }
+                     */
                 }
             }
 
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
-                if (startDuck == false){
+                if (!startDuck){
                     startDuck = true;
                     startDuckTime = System.currentTimeMillis();
                 }
                 if (a < 900){ //900
-                    drive.duckSpin.setPower(-duckSpinPower * side);//1.1
+                    drive.duckSpin.setPower(-duckSpinPower * side);
                     drive.duckSpin2.setPower(-duckSpinPower * side);
-                    duckSpinPower += drive.loopSpeed * 0.2;//0.13
-                    //drive.expansionHub1.setLedColor(255, 195, 0);
-                    //drive.expansionHub2.setLedColor(255, 195, 0);
+                    duckSpinPower += drive.loopSpeed * 0.2;
                 }
                 else if (a < 1000) {//13
                     drive.duckSpin.setPower(-1 * side);
                     drive.duckSpin2.setPower(-1 * side);
-                    //drive.expansionHub1.setLedColor(199, 0, 57);
-                    //drive.expansionHub2.setLedColor(199, 0, 57);
                 }
                 else {
                     drive.duckSpin.setPower(-0.2 * side);
@@ -365,18 +351,12 @@ public class Teleop extends LinearOpMode {
                     drive.duckSpin2.setPower(0);
                     startDuckSpin = System.currentTimeMillis();
                     spin.toggleState = false;
-                    //drive.expansionHub1.setLedColor(88, 24, 72);
-                    //drive.expansionHub2.setLedColor(88, 24, 72);
                 }
             }
             else{
-                //drive.duckSpin.setPower(0);
-                //drive.duckSpin2.setPower(0);
                 startDuck = false;
                 startDuckSpin = System.currentTimeMillis();
                 duckSpinPower = 0.25;
-                //drive.expansionHub1.setLedColor(255, 0, 0);
-                //drive.expansionHub2.setLedColor(255, 0, 0);
             }
         }
         else{
@@ -504,6 +484,9 @@ public class Teleop extends LinearOpMode {
             else { //This is for going toward deposit area
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (hub == 1) {
+                    if (Math.abs(drive.clipHeading(drive.currentPose.getHeading())) >= Math.toRadians(45)){
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 32,allianceHubEndpoint.getY() - 10 * side,endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY() - 8 * side,endPoint.getHeading()),1000,false);
+                    }
                     driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY(),endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 25.5,allianceHubEndpoint.getY(),endPoint.getHeading()),1000,false);
                     driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4,allianceHubEndpoint.getY(),allianceHubEndpoint.getHeading()), allianceHubEndpoint,1000,false);
                     waitForDeposit(allianceHubEndpoint);
@@ -671,8 +654,8 @@ public class Teleop extends LinearOpMode {
         double power = 0.95;
         double slowDownDist = 10;
         boolean hugWall = true;
-        double maxPowerTurn = 0.35;
-        double slowTurnAngle = Math.toRadians(15);
+        double maxPowerTurn = 0.55;
+        double slowTurnAngle = Math.toRadians(25);
         double m = 1;
         if (shared){
             m = -1;
@@ -684,7 +667,7 @@ public class Teleop extends LinearOpMode {
         drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (auto.getToggleState() && opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(3)) && System.currentTimeMillis() - start < maxTime){
+        while (auto.getToggleState() && opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && System.currentTimeMillis() - start < maxTime){
             auto.update(gamepad1.a);
             if (gamepad1.b){ //Stops everything and makes turret face forward
                 drive.slidesCase = 0;
