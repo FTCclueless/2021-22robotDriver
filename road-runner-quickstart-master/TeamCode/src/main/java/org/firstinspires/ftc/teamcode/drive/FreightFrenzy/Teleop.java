@@ -303,9 +303,12 @@ public class Teleop extends LinearOpMode {
                 spin.update(gamepad2.y);
             }
             if (drive.intakeCase == 2){
-                if (System.currentTimeMillis() - startDuckTime <= 1550){
-                    if (drive.intakePos <= (330.0/360.0)) {
-                        drive.intake.setPower(drive.intakePower * 0.15);
+                if (System.currentTimeMillis() - startDuckTime <= 2177){
+                    if (drive.intakePos <= 0.45){
+                        drive.intake.setPower(drive.intakePower * -0.25);
+                    }
+                    if (drive.intakePos <= 0.9) {
+                        drive.intake.setPower(drive.intakePower * 0.25);
                     }
                     else {
                         drive.intake.setPower(0);
@@ -332,7 +335,7 @@ public class Teleop extends LinearOpMode {
                 if (!startDuck){
                     startDuck = true;
                     startDuckTime = System.currentTimeMillis();
-                }
+                }/*
                 if (a < 900){ //900
                     drive.duckSpin.setPower(-duckSpinPower * side);
                     drive.duckSpin2.setPower(-duckSpinPower * side);
@@ -346,7 +349,10 @@ public class Teleop extends LinearOpMode {
                     drive.duckSpin.setPower(-0.2 * side);
                     drive.duckSpin2.setPower(-0.2 * side);
                 }
-                if (a > 2000){//1550
+                */
+                drive.duckSpin.setPower(-0.20 * side);
+                drive.duckSpin2.setPower(-0.20 * side);
+                if (a > 2500){//1550
                     drive.duckSpin.setPower(0);
                     drive.duckSpin2.setPower(0);
                     startDuckSpin = System.currentTimeMillis();
