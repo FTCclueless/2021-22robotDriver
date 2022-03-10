@@ -49,6 +49,7 @@ public class Teleop extends LinearOpMode {
     ButtonToggle endgame = new ButtonToggle();
     ButtonToggle spin = new ButtonToggle();
     ButtonToggle odo = new ButtonToggle();
+    ButtonToggle extendSlides = new ButtonToggle();
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
@@ -93,6 +94,8 @@ public class Teleop extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         drive = new SampleMecanumDrive(hardwareMap);
+
+        extendSlides.toggleState = true;
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.servos.get(5).setPosition(armInPosRight);
@@ -167,8 +170,9 @@ public class Teleop extends LinearOpMode {
                 drive.intakeCase = 3;
                 firstUpdate = false;
             }
-
-            drive.startDeposit(endPoint, hubLocation, height, radius);
+            if (extendSlides.getToggleState()) {
+                drive.startDeposit(endPoint, hubLocation, height, radius);
+            }
             boolean currentIntake = gamepad1.right_trigger >= 0.5;
             if(currentIntake && !lastIntake) {//Starts the intake sequence
                 firstUpdate = true;
@@ -249,6 +253,7 @@ public class Teleop extends LinearOpMode {
             if (gamepad1.right_bumper){ //Normal mode (press button to sprint)
                 f *= 0.6;
                 l *= 0.6;
+                drive.startDeposit(endPoint, hubLocation, height, radius);
             }
 
             double forward = Math.pow(f,7) * -(0.85 - kStatic) * speedSlowMultiplier + Math.signum(-f) * Math.max(Math.signum(Math.abs(f) - 0.1),0) * kStatic;
@@ -289,6 +294,8 @@ public class Teleop extends LinearOpMode {
                     }
                 }
             }
+
+            extendSlides.update(gamepad2.x);
 
             telemetry.addData("hub", hub);
             telemetry.update();
@@ -488,7 +495,9 @@ public class Teleop extends LinearOpMode {
                 }
             }
             else { //This is for going toward deposit area
-                drive.startDeposit(endPoint, hubLocation, height, radius);
+                if (extendSlides.getToggleState()) {
+                    drive.startDeposit(endPoint, hubLocation, height, radius);
+                }
                 if (hub == 1) {
                     if (Math.abs(drive.clipHeading(drive.currentPose.getHeading())) >= Math.toRadians(45)){
                         driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 32,allianceHubEndpoint.getY() - 10 * side,endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY() - 8 * side,endPoint.getHeading()),1000,false);
@@ -521,8 +530,7 @@ public class Teleop extends LinearOpMode {
                 gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
                 Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
                 gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
-                gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left ||
-                gamepad2.a || gamepad2.b || gamepad2.x || gamepad2.y
+                gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left
         );
         while (flag == 1 && !stop && opModeIsActive()) {
             stop = (
@@ -539,6 +547,9 @@ public class Teleop extends LinearOpMode {
                 else if (drive.targetTurretHeading + drive.turretOffset < Math.toRadians(-60.6)){
                     drive.turretOffset = Math.abs(Math.toRadians(-60.6) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
+            }
+            if (gamepad1.right_bumper){
+                drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             if (gamepad2.right_trigger >= 0.5){//Makes it deposit
                 //firstUpdate = true;
@@ -561,6 +572,8 @@ public class Teleop extends LinearOpMode {
                     drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
                 }
             }
+
+            extendSlides.update(gamepad2.x);
 
             if (gamepad2.left_bumper){ //1.2
                 drive.v4barOffset -= Math.toRadians(2);
@@ -682,6 +695,10 @@ public class Teleop extends LinearOpMode {
                 drive.transferMineral = false;
                 auto.toggleState = false;
                 firstUpdate = false;
+            }
+            extendSlides.update(gamepad2.x);
+            if (gamepad1.right_bumper){
+                drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
