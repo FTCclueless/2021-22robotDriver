@@ -168,7 +168,7 @@ public class Teleop extends LinearOpMode {
                 drive.servos.get(1).setPosition(drive.leftIntakeRaise);
                 drive.servos.get(0).setPosition(drive.rightIntakeRaise);
                 drive.intakeCase = 3;
-                firstUpdate = false;
+                firstUpdate = true;
             }
             if (extendSlides.getToggleState()) {
                 drive.startDeposit(endPoint, hubLocation, height, radius);
@@ -489,8 +489,8 @@ public class Teleop extends LinearOpMode {
                         driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(72, 48 * side, endPoint.getHeading()),1000,false);
                     }
                     if (hub == 0) {
-                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),1000,true);
-                        driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),new Pose2d(48, 72 * side, endPoint.getHeading()),1000,true);
+                        //driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),1000,true);
+                        //driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),new Pose2d(48, 72 * side, endPoint.getHeading()),1000,true);
                     }
                 }
             }

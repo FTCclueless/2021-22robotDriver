@@ -77,6 +77,7 @@ public class SensorTest extends LinearOpMode {
 
             telemetry.addData("left Wall", val1);
             telemetry.addData("right Wall", val2);
+            drive.updateImuHeading();
             telemetry.addData("left Color",drive.leftWall.argb()/1000000.0);
             telemetry.addData("right Color",drive.rightWall.argb()/1000000.0);
             telemetry.addData("left Intake", drive.leftIntake.getVoltage());
