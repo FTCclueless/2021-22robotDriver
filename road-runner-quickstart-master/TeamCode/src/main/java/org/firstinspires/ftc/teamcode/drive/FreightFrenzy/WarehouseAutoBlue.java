@@ -179,14 +179,14 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
-        driveToPoint(new Pose2d(Math.max(x - 8,31.5), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 10, false,cutoff);
+        driveToPoint(new Pose2d(Math.max(x - 12,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 15, false,cutoff);
         driveToPoint(new Pose2d(x-3,y,angle), new Pose2d(72,24 * side,angle), true,2, 0.35,600,6,false,cutoff);
         intakeMineral(0.25,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
-        lastIntakeX = Math.min(54.0, lastIntakeX);
+        lastIntakeX = Math.min(50.0, lastIntakeX);
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
         double i = 0;

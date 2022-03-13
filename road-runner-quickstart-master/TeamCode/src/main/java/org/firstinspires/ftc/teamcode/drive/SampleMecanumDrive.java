@@ -488,7 +488,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double kStatic = 0.08;
         double powerAdjust = power-kStatic;
         double turnAdjust = maxPowerTurn-kStatic;
-        double sideAdjust = Math.min(0.7,power)-kStatic;
+        double sideAdjust = Math.min(0.4,power)-kStatic; //0.7
         double forward = (Math.min(Math.abs(relError.getX())/slowDownDist,1.0) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error/2.0),0) * Math.signum(relError.getX());
         double left = (Math.min(Math.abs(relError.getY())/slowDownDist,1.0) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError/2.0),0) * Math.signum(relError.getY()) + sideKStatic;
         double turn = (Math.min(Math.abs(relError.getHeading())/slowTurnAngle,1.0) * turnAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(5)),0) * Math.signum(relError.getHeading());
@@ -498,8 +498,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         p[2] = forward-left+turn;
         p[3] = forward+left+turn;
         double max = 1;
-        for (double v : p) {
-            max = Math.max(Math.abs(v), max);
+        for (int i = 0; i < p.length; i ++){
+            max = Math.max(Math.abs(p[i]),max);
         }
         for (int i = 0; i < p.length; i ++){
             p[i] /= max;
