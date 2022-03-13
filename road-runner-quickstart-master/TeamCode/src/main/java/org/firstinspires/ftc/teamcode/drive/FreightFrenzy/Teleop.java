@@ -52,6 +52,7 @@ public class Teleop extends LinearOpMode {
     ButtonToggle extendSlides = new ButtonToggle();
     ButtonToggle secondGamepadLevel = new ButtonToggle();
     ButtonToggle secondHubLevel = new ButtonToggle();
+    ButtonToggle roboctopi = new ButtonToggle();
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
@@ -92,6 +93,8 @@ public class Teleop extends LinearOpMode {
 
     boolean startDuck = false;
     long startDuckTime = System.currentTimeMillis();
+
+    boolean lastY = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -158,6 +161,8 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             updateEndgame();
 
+            roboctopi.update(gamepad1.y);
+
             secondGamepadLevel.update(gamepad2.x);
 
             if (gamepad2.a) {
@@ -171,14 +176,18 @@ public class Teleop extends LinearOpMode {
                 }
                 drive.turretOffset = 0;
             }
-
+            boolean y = gamepad2.y;
             if (secondGamepadLevel.getToggleState()) {
                 extendSlides.update(gamepad2.b);
-                boolean y = gamepad2.y;
                 secondHubLevel.update(y);
-                if (y && secondHubLevel.getToggleState()){
-                    drive.v4barOffset = Math.toRadians(10);
+                if (y && !lastY && secondHubLevel.getToggleState()){
+                    drive.v4barOffset = Math.toRadians(20);
                     drive.slidesOffset = -10;
+                    drive.turretOffset = 0;
+                }
+                else if (!y && lastY && !secondHubLevel.getToggleState()){
+                    drive.v4barOffset = Math.toRadians(-10);
+                    drive.slidesOffset = 0;
                     drive.turretOffset = 0;
                 }
                 if (gamepad2.right_bumper){
@@ -188,10 +197,11 @@ public class Teleop extends LinearOpMode {
             else {
                 odo.update(gamepad2.b);//updates the lifting of the odometry
                 if (!spin.getToggleState()) {
-                    spin.update(gamepad2.y);
+                    spin.update(y);
                 }
                 endgame.update(gamepad2.right_bumper);
             }
+            lastY = y;
 
             drive.update();
 
@@ -496,6 +506,14 @@ public class Teleop extends LinearOpMode {
     public void updateAuto(){
         boolean a = gamepad1.a;
         auto.update(a);
+        
+        if (roboctopi.getToggleState()){
+            odo.toggleState = true;
+            auto.toggleState = false;
+            hub = 3;
+            firstUpdate = true;
+        }
+
         if (a){
             firstUpdate = true;
             if (!firstAutoUpdate){ // Only updates on first time
@@ -650,6 +668,7 @@ public class Teleop extends LinearOpMode {
         drive.targetRadius = 1;
     }
     public void updateHub(){
+        /*Hudson no longer uses this functionality
         boolean toggleHub = gamepad1.y;
         if (toggleHub && !lastToggleHub){
             firstAutoUpdate = true; // if you intentionally click the button it thinks you remembered to click the button
@@ -661,6 +680,7 @@ public class Teleop extends LinearOpMode {
             }
         }
         lastToggleHub = toggleHub;
+         */
         switch(hub) {
             case 0:
                 firstAlliance = true;
@@ -678,6 +698,7 @@ public class Teleop extends LinearOpMode {
                     }
                     drive.slidesOffset = 0;
                     drive.v4barOffset = 0;
+                    odo.toggleState = false;
                 }
                 intake = side == 1;
                 height = 2;
@@ -705,8 +726,18 @@ public class Teleop extends LinearOpMode {
                     drive.turretOffset = 0;
                     drive.slidesOffset = 0;
                     drive.v4barOffset = 0;
+                    odo.toggleState = false;
                 }
                 firstAlliance = false;
+                break;
+            case 3:
+                endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
+                hubLocation = new Pose2d(-12, 65.25*side);
+                radius = 3;
+                height = 14;
+                if (firstUpdate) {
+                    drive.currentIntake = side;
+                }
                 break;
         }
     }
