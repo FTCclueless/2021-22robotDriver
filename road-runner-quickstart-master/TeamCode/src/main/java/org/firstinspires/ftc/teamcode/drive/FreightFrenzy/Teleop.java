@@ -50,6 +50,8 @@ public class Teleop extends LinearOpMode {
     ButtonToggle spin = new ButtonToggle();
     ButtonToggle odo = new ButtonToggle();
     ButtonToggle extendSlides = new ButtonToggle();
+    ButtonToggle secondGamepadLevel = new ButtonToggle();
+    ButtonToggle secondHubLevel = new ButtonToggle();
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
@@ -64,6 +66,7 @@ public class Teleop extends LinearOpMode {
 
     boolean endgameRumble = false;
     boolean parkRumble = false;
+    boolean lastRightTrigger = false;
 
     int matchTime = 122000;
     int teleopTime = 92000;
@@ -154,6 +157,42 @@ public class Teleop extends LinearOpMode {
 
         while (!isStopRequested()) {
             updateEndgame();
+
+            secondGamepadLevel.update(gamepad2.x);
+
+            if (gamepad2.a) {
+                if (!secondHubLevel.getToggleState()) {
+                    drive.v4barOffset = Math.toRadians(-10);
+                    drive.slidesOffset = 0;
+                }
+                else {
+                    drive.v4barOffset = Math.toRadians(10);
+                    drive.slidesOffset = -10;
+                }
+                drive.turretOffset = 0;
+            }
+
+            if (secondGamepadLevel.getToggleState()) {
+                extendSlides.update(gamepad2.b);
+                boolean y = gamepad2.y;
+                secondHubLevel.update(y);
+                if (y && secondHubLevel.getToggleState()){
+                    drive.v4barOffset = Math.toRadians(10);
+                    drive.slidesOffset = -10;
+                    drive.turretOffset = 0;
+                }
+                if (gamepad2.right_bumper){
+                    drive.startDeposit(endPoint, hubLocation, height, radius);
+                }
+            }
+            else {
+                odo.update(gamepad2.b);//updates the lifting of the odometry
+                if (!spin.getToggleState()) {
+                    spin.update(gamepad2.y);
+                }
+                endgame.update(gamepad2.right_bumper);
+            }
+
             drive.update();
 
             if (gamepad1.b){ //Stops everything and makes turret face forward
@@ -186,8 +225,12 @@ public class Teleop extends LinearOpMode {
                 }
             }
             lastIntake = currentIntake;
-            if (gamepad2.right_trigger >= 0.5){//Makes it deposit
-                //firstUpdate = true;
+            boolean rightTrigger = gamepad2.right_trigger >= 0.5;
+            if (rightTrigger && !lastRightTrigger){//Makes it deposit
+                if (secondHubLevel.getToggleState()) {
+                    drive.v4barOffset = Math.toRadians(10);
+                    drive.slidesOffset = -10;
+                }
                 drive.deposit();
                 //Updates the target location for auto movement upon deposit
                 if (auto.getToggleState()) {
@@ -199,12 +242,12 @@ public class Teleop extends LinearOpMode {
                     }
                 }
             }
+            lastRightTrigger = rightTrigger;
 
             capstone();
             updatePoseLock();
             updateHub();
 
-            odo.update(gamepad2.b);//updates the lifting of the odometry
             if (odo.getToggleState()){ //Lifts up odo and tells robot we no longer know where we are
                 drive.raiseOdo();
                 drive.isKnownY = false;
@@ -216,9 +259,9 @@ public class Teleop extends LinearOpMode {
             }
 
             updateAuto();
-
-            if(Math.abs(gamepad2.left_stick_x) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
-                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.5; // 0.15
+            double leftStickX = gamepad2.left_stick_x;
+            if(Math.abs(leftStickX) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
+                drive.turretOffset -= Math.toRadians(leftStickX) * 0.5; // 0.15
                 if (drive.targetTurretHeading + drive.turretOffset >  Math.toRadians(62.6)){ //2 degrees less than before = no more stalling
                     drive.turretOffset = Math.toRadians(62.6) - drive.targetTurretHeading;
                 }
@@ -227,8 +270,9 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
-            if(Math.abs(gamepad2.right_stick_y) > 0.25) { // Updates the slide length
-                drive.slidesOffset -= gamepad2.right_stick_y * 0.2;
+            double rightStickY = gamepad2.right_stick_y;
+            if(Math.abs(rightStickY) > 0.25) { // Updates the slide length
+                drive.slidesOffset -= rightStickY * 0.2;
                 double maxPossibleSlideExtension = 52;//Todo: fix value
                 if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
                     drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
@@ -242,18 +286,12 @@ public class Teleop extends LinearOpMode {
                 drive.v4barOffset += Math.toRadians(2);
             }
 
-            if (gamepad2.a){
-                drive.v4barOffset = Math.toRadians(-10);
-                drive.slidesOffset = 0;
-                drive.turretOffset = 0;
-            }
             double f = gamepad1.left_stick_y;
             double l = gamepad1.left_stick_x;
             double kStatic = 0.15;
             if (gamepad1.right_bumper){ //Normal mode (press button to sprint)
                 f *= 0.6;
                 l *= 0.6;
-                drive.startDeposit(endPoint, hubLocation, height, radius);
             }
 
             double forward = Math.pow(f,7) * -(0.85 - kStatic) * speedSlowMultiplier + Math.signum(-f) * Math.max(Math.signum(Math.abs(f) - 0.1),0) * kStatic;
@@ -295,20 +333,15 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
-            extendSlides.update(gamepad2.x);
 
             telemetry.addData("hub", hub);
             telemetry.update();
         }
     }
     public void updateEndgame(){
-        endgame.update(gamepad2.right_bumper);
         if (endgame.getToggleState()){
             drive.intakeLiftDelay = 300;
             drive.servos.get(7).setPosition(0.06);
-            if (!spin.getToggleState()) {
-                spin.update(gamepad2.y);
-            }
             if (drive.intakeCase == 2){
                 if (System.currentTimeMillis() - startDuckTime <= 2177){
                     if (drive.intakePos <= 0.45){
@@ -539,8 +572,9 @@ public class Teleop extends LinearOpMode {
                     gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
                     gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left
             );
-            if(Math.abs(gamepad2.left_stick_x) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
-                drive.turretOffset -= Math.toRadians(gamepad2.left_stick_x) * 0.25; // 0.15
+            double leftStickX = gamepad2.left_stick_x;
+            if(Math.abs(leftStickX) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
+                drive.turretOffset -= Math.toRadians(leftStickX) * 0.25; // 0.15
                 if (drive.targetTurretHeading + drive.turretOffset > Math.toRadians(60.6)){
                     drive.turretOffset = Math.abs(Math.toRadians(60.6) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
@@ -548,7 +582,19 @@ public class Teleop extends LinearOpMode {
                     drive.turretOffset = Math.abs(Math.toRadians(-60.6) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
                 }
             }
-            if (gamepad1.right_bumper){
+            double rightStickY = gamepad2.right_stick_y;
+            if(Math.abs(rightStickY) > 0.25) { // Updates the slide length
+                drive.slidesOffset -= rightStickY * 0.2;
+                double maxPossibleSlideExtension = 52;//Todo: fix value
+                if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
+                    drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
+                }
+                if(drive.targetSlideExtensionLength + drive.slidesOffset < 0){
+                    drive.slidesOffset = -drive.targetSlideExtensionLength;
+                }
+            }
+
+            if (gamepad2.right_bumper){
                 drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             if (gamepad2.right_trigger >= 0.5){//Makes it deposit
@@ -565,15 +611,8 @@ public class Teleop extends LinearOpMode {
                 }
             }
 
-            if(Math.abs(gamepad2.right_stick_y) > 0.25) { // Updates the slide length
-                drive.slidesOffset -= gamepad2.right_stick_y * 0.2;
-                double maxPossibleSlideExtension = 52;//Todo: fix value
-                if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
-                    drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
-                }
-            }
 
-            extendSlides.update(gamepad2.x);
+            extendSlides.update(gamepad2.b);
 
             if (gamepad2.left_bumper){ //1.2
                 drive.v4barOffset -= Math.toRadians(2);
@@ -583,15 +622,21 @@ public class Teleop extends LinearOpMode {
             }
 
             if (gamepad2.a){
-                drive.v4barOffset = Math.toRadians(-10);
-                drive.slidesOffset = 0;
+                if (!secondHubLevel.getToggleState()) {
+                    drive.v4barOffset = Math.toRadians(-10);
+                    drive.slidesOffset = 0;
+                }
+                else {
+                    drive.v4barOffset = Math.toRadians(10);
+                    drive.slidesOffset = -10;
+                }
                 drive.turretOffset = 0;
             }
             drive.update();
             Pose2d error = drive.getRelError(target);
             double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
             if (dist > 1) {
-                drive.updateMotors(error, 0.25, 0.25,4, Math.toRadians(8), 1,0.5, 0);
+                drive.pinMotorPowers(error.getX(),error.getX(),error.getX(),error.getX());
             }
             else {
                 drive.setMotorPowers(0,0,0,0);
@@ -696,8 +741,8 @@ public class Teleop extends LinearOpMode {
                 auto.toggleState = false;
                 firstUpdate = false;
             }
-            extendSlides.update(gamepad2.x);
-            if (gamepad1.right_bumper){
+            extendSlides.update(gamepad2.b);
+            if (gamepad2.right_bumper){
                 drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             drive.update();
