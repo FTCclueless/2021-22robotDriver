@@ -15,21 +15,6 @@ public class Detection {
         SENSOR_HEIGHT = Math.tan(Math.toRadians(verticalFOVAngle / 2d)) * 2 * FOCAL_LENGTH;
     }
 
-    public double getDistance(){    // in inches
-        return (FOCAL_LENGTH * (RECOGNIZED_OBJECT.getLabel().equals("FourStack") || RECOGNIZED_OBJECT.getLabel().equals("Quad") ? 80d : 20d) *
-                RECOGNIZED_OBJECT.getImageHeight()) / (RECOGNIZED_OBJECT.getHeight() * SENSOR_HEIGHT) / 25.4;
-    }
-
-    public double getAngleFromCenter() {
-        double centerScreenX = RECOGNIZED_OBJECT.getImageWidth() / 2d;
-        double centerScreenY = RECOGNIZED_OBJECT.getImageHeight() / 2d;
-
-        double centerDetectionX = RECOGNIZED_OBJECT.getLeft() + RECOGNIZED_OBJECT.getWidth() / 2d;
-        double centerDetectionY = RECOGNIZED_OBJECT.getTop() + RECOGNIZED_OBJECT.getHeight() / 2d;
-
-        return Math.toDegrees(Math.atan((centerScreenY - centerDetectionY) / (centerDetectionX - centerScreenX)));
-    }
-
     public RectF getBoundingBox(){
         return new RectF(RECOGNIZED_OBJECT.getLeft(), RECOGNIZED_OBJECT.getTop(),
                 RECOGNIZED_OBJECT.getRight(), RECOGNIZED_OBJECT.getBottom());

@@ -20,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.vision.TFODModels.CAPSTONE_V1_MOBILETNET3;
+import org.firstinspires.ftc.teamcode.vision.TFODModels.CAPSTONE_V2_MOBILETNET3;
 import org.firstinspires.ftc.teamcode.vision.TFODModels.DetectionModel;
 
 import java.io.File;
@@ -30,7 +31,7 @@ import java.util.List;
 
 @TeleOp(name = "Object Detection Test", group = "Vision")
 public class ObjectDetectionTest extends LinearOpMode {
-    private static final DetectionModel TFOD_MODEL = new CAPSTONE_V1_MOBILETNET3();
+    private static final DetectionModel TFOD_MODEL = new CAPSTONE_V2_MOBILETNET3();
     public void runOpMode() {
         ObjectDetector detector = new ObjectDetector(TFOD_MODEL, hardwareMap);
         detector.initialize();
@@ -56,7 +57,7 @@ public class ObjectDetectionTest extends LinearOpMode {
                             recognition.getRight(), recognition.getBottom());
                     i++;
                 }
-                telemetry.addData("X", detector.getPositionX(ObjectDetector.MatchMode.DEFAULT));
+                telemetry.addData("DetectionX", detector.getPositionX(ObjectDetector.MatchMode.DEFAULT));
                 telemetry.update();
             }
 
