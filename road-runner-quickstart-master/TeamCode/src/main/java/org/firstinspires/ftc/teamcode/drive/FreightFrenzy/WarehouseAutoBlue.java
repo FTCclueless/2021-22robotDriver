@@ -153,6 +153,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
         drive.intakeLiftDelay = 0;
         while (System.currentTimeMillis() - start <= 30000 - cutoff - 500 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
+            if (System.currentTimeMillis() - start >= 30000 - cutoff){
+                break;
+            }
             driveOut(endPoint,numMinerals);
             numMinerals ++;
         }
@@ -178,10 +181,10 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
-        driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
-        driveToPoint(new Pose2d(Math.max(x - 12,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 15, false,cutoff);
+        //driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
+        driveToPoint(new Pose2d(Math.max(x - 12,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.75, 600, 12, false,cutoff);
         driveToPoint(new Pose2d(x-3,y,angle), new Pose2d(72,24 * side,angle), true,2, 0.35,600,6,false,cutoff);
-        intakeMineral(0.25,2000);
+        intakeMineral(0.3,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
@@ -190,7 +193,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
         double i = 0;
-        double offset = -3.5 + numMinerals/3.0;
+        double offset = 2;
         drive.v4barOffset = Math.toRadians(-4); drive.slidesOffset = 0; drive.turretOffset = 0;
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.effectiveDepositAngle = Math.toRadians(-30);
@@ -240,7 +243,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
             if (Math.abs(error.getY()) <= 0.5){
                 error = new Pose2d(error.getX(), 0, 0);
             }
-            drive.updateMotors(error, 0.25, 0.25,4, Math.toRadians(8), 0.25, 0.5, 0);
+            drive.updateMotors(error, 0.35, 0.25,5, Math.toRadians(8), 0.25, 0.5, 0);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;

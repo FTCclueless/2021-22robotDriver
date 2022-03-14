@@ -102,6 +102,7 @@ public class Teleop extends LinearOpMode {
         drive = new SampleMecanumDrive(hardwareMap);
 
         extendSlides.toggleState = true;
+        secondGamepadLevel.toggleState = true;
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.servos.get(5).setPosition(armInPosRight);
@@ -171,8 +172,8 @@ public class Teleop extends LinearOpMode {
                     drive.slidesOffset = 0;
                 }
                 else {
-                    drive.v4barOffset = Math.toRadians(10);
-                    drive.slidesOffset = -10;
+                    drive.v4barOffset = Math.toRadians(40);
+                    drive.slidesOffset = -5;
                 }
                 drive.turretOffset = 0;
             }
@@ -181,8 +182,8 @@ public class Teleop extends LinearOpMode {
                 extendSlides.update(gamepad2.b);
                 secondHubLevel.update(y);
                 if (y && !lastY && secondHubLevel.getToggleState()){
-                    drive.v4barOffset = Math.toRadians(20);
-                    drive.slidesOffset = -10;
+                    drive.v4barOffset = Math.toRadians(40);
+                    drive.slidesOffset = -5;
                     drive.turretOffset = 0;
                 }
                 else if (!y && lastY && !secondHubLevel.getToggleState()){
@@ -237,10 +238,6 @@ public class Teleop extends LinearOpMode {
             lastIntake = currentIntake;
             boolean rightTrigger = gamepad2.right_trigger >= 0.5;
             if (rightTrigger && !lastRightTrigger){//Makes it deposit
-                if (secondHubLevel.getToggleState()) {
-                    drive.v4barOffset = Math.toRadians(10);
-                    drive.slidesOffset = -10;
-                }
                 drive.deposit();
                 //Updates the target location for auto movement upon deposit
                 if (auto.getToggleState()) {
@@ -354,6 +351,7 @@ public class Teleop extends LinearOpMode {
             drive.servos.get(7).setPosition(0.06);
             if (drive.intakeCase == 2){
                 if (System.currentTimeMillis() - startDuckTime <= 2177){
+                    /*
                     if (drive.intakePos <= 0.45){
                         drive.intake.setPower(drive.intakePower * -0.25);
                     }
@@ -363,6 +361,8 @@ public class Teleop extends LinearOpMode {
                     else {
                         drive.intake.setPower(0);
                     }
+                     */
+                    drive.intake.setPower(0);
                 }
                 else {
                     drive.intake.setPower(drive.intakePower);
@@ -513,6 +513,11 @@ public class Teleop extends LinearOpMode {
             hub = 3;
             firstUpdate = true;
         }
+        else {
+            if (hub == 3){
+                hub = 1;
+            }
+        }
 
         if (a){
             firstUpdate = true;
@@ -572,6 +577,10 @@ public class Teleop extends LinearOpMode {
             flag = 0;
             done = false;
             drive.startIntake(intake);
+            if (secondHubLevel.getToggleState()) {
+                drive.v4barOffset = Math.toRadians(40);
+                drive.slidesOffset = -5;
+            }
         }
     }
     public void waitForDeposit(Pose2d target){
@@ -654,7 +663,7 @@ public class Teleop extends LinearOpMode {
             Pose2d error = drive.getRelError(target);
             double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
             if (dist > 1) {
-                drive.pinMotorPowers(error.getX(),error.getX(),error.getX(),error.getX());
+                drive.updateMotors(error,0.45,0.35,7,Math.toRadians(20),0.25,0.3,0);
             }
             else {
                 drive.setMotorPowers(0,0,0,0);
@@ -734,7 +743,9 @@ public class Teleop extends LinearOpMode {
                 endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
                 hubLocation = new Pose2d(-12, 65.25*side);
                 radius = 3;
-                height = 14;
+                height = 10;
+                firstShared = true;
+                firstAlliance = true;
                 if (firstUpdate) {
                     drive.currentIntake = side;
                 }
@@ -746,8 +757,8 @@ public class Teleop extends LinearOpMode {
     }
     public void driveToPoint(Pose2d target, Pose2d target2, long maxTime, boolean shared){
         double error = 3.5;
-        double power = 0.95;
-        double slowDownDist = 10;
+        double power = 0.85;
+        double slowDownDist = 8;
         boolean hugWall = true;
         double maxPowerTurn = 0.55;
         double slowTurnAngle = Math.toRadians(25);
