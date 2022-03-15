@@ -351,32 +351,10 @@ public class Teleop extends LinearOpMode {
             drive.servos.get(7).setPosition(0.06);
             if (drive.intakeCase == 2){
                 if (System.currentTimeMillis() - startDuckTime <= 2177){
-                    /*
-                    if (drive.intakePos <= 0.45){
-                        drive.intake.setPower(drive.intakePower * -0.25);
-                    }
-                    if (drive.intakePos <= 0.9) {
-                        drive.intake.setPower(drive.intakePower * 0.25);
-                    }
-                    else {
-                        drive.intake.setPower(0);
-                    }
-                     */
                     drive.intake.setPower(0);
                 }
                 else {
                     drive.intake.setPower(drive.intakePower);
-                    /*Drive in to intake
-                    if (System.currentTimeMillis() - startDuckTime <= 1850 + 500){
-                        drive.pinMotorPowers(0.5,0.5,0.5,0.5);
-                    }
-                    else if (System.currentTimeMillis() - startDuckTime <= 1850 + 1000){
-
-                    }
-                    else if (System.currentTimeMillis() - startDuckTime <= 1850 + 1500){
-                        drive.pinMotorPowers(-0.5,-0.5,-0.5,-0.5);
-                    }
-                     */
                 }
             }
 
@@ -385,21 +363,7 @@ public class Teleop extends LinearOpMode {
                 if (!startDuck){
                     startDuck = true;
                     startDuckTime = System.currentTimeMillis();
-                }/*
-                if (a < 900){ //900
-                    drive.duckSpin.setPower(-duckSpinPower * side);
-                    drive.duckSpin2.setPower(-duckSpinPower * side);
-                    duckSpinPower += drive.loopSpeed * 0.2;
                 }
-                else if (a < 1000) {//13
-                    drive.duckSpin.setPower(-1 * side);
-                    drive.duckSpin2.setPower(-1 * side);
-                }
-                else {
-                    drive.duckSpin.setPower(-0.2 * side);
-                    drive.duckSpin2.setPower(-0.2 * side);
-                }
-                */
                 drive.duckSpin.setPower(-0.20 * side);
                 drive.duckSpin2.setPower(-0.20 * side);
                 if (a > 2500){//1550
@@ -544,10 +508,6 @@ public class Teleop extends LinearOpMode {
                         driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 3.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(allianceHubEndpoint.getX() + 6.5, endPoint.getY(), endPoint.getHeading()),1000,false);
                         driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(72, 48 * side, endPoint.getHeading()),1000,false);
                     }
-                    if (hub == 0) {
-                        //driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 0.5 * side, endPoint.getHeading()),new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 2.5 * side, endPoint.getHeading()),1000,true);
-                        //driveToPoint(new Pose2d(endPoint.getX(), sharedHubEndpoint.getY() + 22.5 * side, endPoint.getHeading()),new Pose2d(48, 72 * side, endPoint.getHeading()),1000,true);
-                    }
                 }
             }
             else { //This is for going toward deposit area
@@ -563,6 +523,9 @@ public class Teleop extends LinearOpMode {
                     waitForDeposit(allianceHubEndpoint);
                 }
                 if (hub == 0) {
+                    if (Math.abs(drive.clipHeading(drive.currentPose.getHeading() + Math.toRadians(45) * side)) >= Math.toRadians(45)){
+                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 32,allianceHubEndpoint.getY() - 10 * side,endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY() - 8 * side,endPoint.getHeading()),1000,false);
+                    }
                     driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),new Pose2d(sharedHubEndpoint.getX(),40.5*side,endPoint.getHeading()),1000,true);
                     driveToPoint(sharedHubEndpoint,1000,true);
                     waitForDeposit(sharedHubEndpoint);
@@ -612,7 +575,7 @@ public class Teleop extends LinearOpMode {
             double rightStickY = gamepad2.right_stick_y;
             if(Math.abs(rightStickY) > 0.25) { // Updates the slide length
                 drive.slidesOffset -= rightStickY * 0.2;
-                double maxPossibleSlideExtension = 52;//Todo: fix value
+                double maxPossibleSlideExtension = 52;
                 if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
                     drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
                 }
@@ -661,13 +624,10 @@ public class Teleop extends LinearOpMode {
             }
             drive.update();
             Pose2d error = drive.getRelError(target);
-            double dist = Math.pow(error.getX()*error.getX() + error.getX()*error.getX(),0.5);
-            if (dist > 1) {
-                drive.updateMotors(error,0.45,0.35,7,Math.toRadians(20),0.25,0.3,0);
+            if (Math.abs(error.getY()) <= 0.5){
+                error = new Pose2d(error.getX(), 0, 0);
             }
-            else {
-                drive.setMotorPowers(0,0,0,0);
-            }
+            drive.updateMotors(error, 0.35, 0.25,5, Math.toRadians(8), 0.25, 0.5, 0);
             if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){ // Just finished the deposit
                 flag = 0;
                 done = false;
@@ -677,19 +637,6 @@ public class Teleop extends LinearOpMode {
         drive.targetRadius = 1;
     }
     public void updateHub(){
-        /*Hudson no longer uses this functionality
-        boolean toggleHub = gamepad1.y;
-        if (toggleHub && !lastToggleHub){
-            firstAutoUpdate = true; // if you intentionally click the button it thinks you remembered to click the button
-            if (!endgame.getToggleState()) { //TODO: Think about removing endgame (especially since we aren't really using it)
-                hub = (hub + 1) % 2;
-            }
-            else {
-                hub = (hub + 1) % 3;
-            }
-        }
-        lastToggleHub = toggleHub;
-         */
         switch(hub) {
             case 0:
                 firstAlliance = true;
@@ -756,12 +703,12 @@ public class Teleop extends LinearOpMode {
         driveToPoint(target,target,maxTime,shared);
     }
     public void driveToPoint(Pose2d target, Pose2d target2, long maxTime, boolean shared){
-        double error = 3.5;
+        double error = 4;
         double power = 0.85;
-        double slowDownDist = 8;
+        double slowDownDist = 10;
         boolean hugWall = true;
-        double maxPowerTurn = 0.55;
-        double slowTurnAngle = Math.toRadians(25);
+        double maxPowerTurn = 0.35;
+        double slowTurnAngle = Math.toRadians(15);
         double m = 1;
         if (shared){
             m = -1;
@@ -797,10 +744,10 @@ public class Teleop extends LinearOpMode {
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError && hugWall) {
-                    sideKStatic =  0.2 * side * m;
+                    sideKStatic =  0.25 * side * m;
                     double heading = relError.getHeading();
                     if (Math.abs(relError.getY()) < sideError / 2.0){
-                        sideKStatic = 0;
+                        sideKStatic = 0.1 * side * m;
                         heading = 0;
                     }
                     relError = new Pose2d(relError.getX(), 0, heading);

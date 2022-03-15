@@ -1,17 +1,13 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
-import android.util.Log;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.drive.DriveConstants;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.drive.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -24,7 +20,7 @@ import java.util.ArrayList;
  * This is an example of a more complex path to really test the tuning.
  */
 @Autonomous(group = "Auto")
-public class WarehouseAutoBlue extends LinearOpMode {
+public class WarehouseAutoBlueFaster extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = 1;
 
@@ -166,7 +162,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         if (drive.intakeCase <= 2) {
             drive.intakeCase = 0;
         }
-        driveToPoint(new Pose2d(45, endPoint.getY(), 0), false, 1, 1, 1000, 13, true,100);
+        driveToPoint(new Pose2d(36, endPoint.getY(), 0), false, 1, 0.5, 1000, 13, true,100);
         drive.setMotorPowers( 0 , 0, 0, 0);
         drive.slides.setPower(0);
         drive.slides2.setPower(0);
@@ -186,7 +182,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         //driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
-        driveToPoint(new Pose2d(Math.max(x - 12,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.75, 600, 12, false,cutoff);
+        driveToPoint(new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.8, 600, 12, false,cutoff);
         driveToPoint(new Pose2d(x-3,y,angle), new Pose2d(72,24 * side,angle), true,2, 0.35,600,6,false,cutoff);
         intakeMineral(0.3,2000);
         if (drive.intakeCase == 2){
@@ -202,7 +198,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.effectiveDepositAngle = Math.toRadians(-30);
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(38.5, newEnd.getY(), 0), new Pose2d(40.5, newEnd.getY() - side, 0), false,4, 0.95,500,10,true,cutoff);
+        driveToPoint(new Pose2d(38.5, newEnd.getY(), 0), new Pose2d(40.5, newEnd.getY() - side, 0), false,4, 0.95,500,4,true,cutoff);
         driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,15, true,cutoff);
         waitForDeposit(newEnd);
     }

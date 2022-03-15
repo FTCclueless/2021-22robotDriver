@@ -143,7 +143,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double effectiveDepositAngle = Math.toRadians(-45);
     public double depositInterfaceAngle = Math.toRadians(65);
     public double depositTransferAngle = Math.toRadians(135);
-    double currentDepoAngle = depositInterfaceAngle;
+    public double currentDepoAngle = depositInterfaceAngle;
 
     double targetSlidesPose = 0, slidesSpeed = 0, targetTurretPose = 0, turretPower = 0;
     double currentTargetSlidesPose = 0;
@@ -151,9 +151,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int dropIntakeTime = 320;
     public double intakePower = -1;
     public int liftIntakeTime = 700;
-    //TODO: Values here changed
     public int transfer1Time = 300;
-    public int transfer2Time = 300;
+    public int transfer2Time = 350;
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78; //0.85
     public int openDepositTime = 350;//400
@@ -299,7 +298,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
-        setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         if (RUN_USING_ENCODER && MOTOR_VELO_PID != null) {
             setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
@@ -310,7 +309,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //TODO: was run using encoder
+        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -414,7 +413,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slides2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //TODO: was run using encoder
+        slides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         slides2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
@@ -771,7 +770,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
                     double slidePower = 1.0;
                     double target = depositTransferAngle;
-                    double speed = 0.3;
+                    double speed = 0.2; //Todo: was here 0.3
                     double l = Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset));
                     if (targetSlideExtensionLength + slidesOffset <= 10) {
                         target = Math.toRadians(120);
@@ -873,7 +872,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateV4barAngle(double loopSpeed){
-        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 0.95 * loopSpeed; //TODO: Changed it from 0.75 seconds for 180 degrees to 0.95 sec
+        currentV4barAngle += Math.signum(targetV4barAngle - currentV4barAngle) * Math.PI / 0.825 * loopSpeed; //TODO: Changed it from 0.95 seconds for 180 degrees to 0.825 sec
         if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(1)){
             currentV4barAngle = targetV4barAngle;
         }
