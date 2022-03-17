@@ -171,6 +171,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double targetV4barOrientation = 0;
     public double slideTickToInch = 25.1372713591;
     public double turretTickToRadians = 578.3213;
+    public double currentSlidesSpeed = 0;
     double currentV4barAngle = 0;
     double targetV4barAngle = 0;
 
@@ -220,6 +221,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double loopSpeed = 0;
 
     long lastLoopTime = System.nanoTime();
+
+    int numRightIntake = 0;
+    int numLeftIntake = 0;
 
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
@@ -462,6 +466,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (!(slidesCase == 0) || intakeCase == 4 || intakeCase == 5 || expansion2){ // the only encoders on the second hub are for the the turret and the slides (all of these are in slides case and none are in the intake case)
             RevBulkData bulkData = expansionHub2.getBulkInputData();
             slideExtensionLength = bulkData.getMotorCurrentPosition(slides2)/slideTickToInch;
+            currentSlidesSpeed = bulkData.getMotorVelocity(slides2)/slideTickToInch;
             deleteLater = bulkData.getMotorCurrentPosition(slides)/slideTickToInch;
             turretHeading = bulkData.getMotorCurrentPosition(turret)/turretTickToRadians;
             distValLeft = bulkData.getAnalogInputValue(distLeft)/3.2;
@@ -803,9 +808,9 @@ public class SampleMecanumDrive extends MecanumDrive {
                         }
                         setDepositAngle(currentDepoAngle);
                     }
-                    if (slidesCase == 1 && ((Math.abs(slideExtensionLength - 7) <= 4 && (currentV4barAngle >= Math.toRadians(90) || targetV4barAngle == currentV4barAngle)) || targetSlideExtensionLength + slidesOffset >= 10)){slidesCase ++;transferMineral = true;}
-                    if (slidesCase == 2 && (Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(5) || System.currentTimeMillis() - slideTime >= 1000)){slidesCase ++;}
-                    if (slidesCase == 3 && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 && deposit && targetV4barAngle == currentV4barAngle){slidesCase ++;currentDepositAngle = depositTransferAngle + Math.toRadians(20);}
+                    if (slidesCase == 1 && ((Math.abs(slideExtensionLength - 7) <= 4 && (currentV4barAngle >= Math.toRadians(90) || targetV4barAngle == currentV4barAngle)) || targetSlideExtensionLength + slidesOffset >= 10)){slidesCase ++;}
+                    if (slidesCase == 2 && ((Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(7.5) && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 && targetV4barAngle == currentV4barAngle)) || System.currentTimeMillis() - slideTime >= 500)){slidesCase ++;} // was 5 (now 7.5)
+                    if (slidesCase == 3 && (System.currentTimeMillis() - slideTime >= 100 && Math.abs(currentSlidesSpeed) <= 5) && deposit){slidesCase ++;currentDepositAngle = depositTransferAngle + Math.toRadians(20);}
                     break;
                 case 4:
                     double depoAngle = Math.toRadians(180) - effectiveDepositAngle;
