@@ -146,7 +146,7 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
 
         start = System.currentTimeMillis();
         drive.servos.get(5).setPosition(0);
-        drive.servos.get(6).setPosition(0.89);
+        drive.servos.get(6).setPosition(0.0);
         drive.v4barOffset = Math.toRadians(-4);
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
@@ -183,9 +183,7 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
-        //driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
         driveToPoint(new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 12, false,cutoff);
-        //driveToPoint(new Pose2d(x-3, endPoint.getY(),0), new Pose2d(72,24 * side,angle), true,2, 0.4,600,7,false,cutoff);
         driveToPoint(new Pose2d(x + 1 + 8 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,2, 0.45,600,5.5,false,cutoff);
         intakeMineral(0.35,2000);
         if (drive.intakeCase == 2){
