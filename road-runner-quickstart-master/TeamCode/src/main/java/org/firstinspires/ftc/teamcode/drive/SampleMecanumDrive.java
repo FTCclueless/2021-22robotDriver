@@ -105,8 +105,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     ArrayList<Double> depositHistory, intakeHistory;
     public double currentIntake = 0;
     double rightIntakeVal, leftIntakeVal, depositVal, sumIntakeSensor, intakeSensorLoops;
-    public static int intakeMinValRight = 75;//800
-    public static int intakeMinValLeft = 75;//75
+    public static int intakeMinValRight = 35;//75
+    public static int intakeMinValLeft = 35;//75
     public int intakeCase, lastIntakeCase;
     public long intakeTime, slideTime;
     public boolean transferMineral;
@@ -152,7 +152,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double intakePower = -1;
     public int liftIntakeTime = 700;
     public int transfer1Time = 200;
-    public int transfer2Time = 250;
+    public int transfer2Time = 200;
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78; //0.85
     public int openDepositTime = 350;//400
@@ -731,7 +731,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         switch (a) {
             case 1: case 2:
                 if (intakeCase == 1 && System.currentTimeMillis() - intakeTime >= dropIntakeTime){intakeCase ++;}// waiting for the servo to drop
-                if (intakeCase == 2 && ((currentIntake == -1 && numRightIntake >= 4) || (currentIntake == 1 && numLeftIntake >= 4)) && System.currentTimeMillis() - intakeTime >= 100){intakeCase ++;}
+                if (intakeCase == 2 && ((currentIntake == -1 && numRightIntake >= 3) || (currentIntake == 1 && numLeftIntake >= 3)) && System.currentTimeMillis() - intakeTime >= 100){intakeCase ++;}
 
                 if(currentIntake == 1){servos.get(1).setPosition(leftIntakeDrop);servos.get(0).setPosition(rightIntakeMid);}
                 if(currentIntake == -1){servos.get(0).setPosition(rightIntakeDrop);servos.get(1).setPosition(leftIntakeMid);}
@@ -851,7 +851,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     else {
                         setTurretTarget(targetTurretHeading + turretOffset);
                     }
-                    setDepositAngle(Math.toRadians(180) - effectiveDepositAngle);
+                    setDepositAngle(Math.toRadians(90) - effectiveDepositAngle);
                     setV4barOrientation(v4barInterfaceAngle);
                     if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= 100){slidesCase ++;}
                     if (slidesCase == 6 && Math.abs(slideExtensionLength-returnSlideLength) <= 4){slidesCase ++;}

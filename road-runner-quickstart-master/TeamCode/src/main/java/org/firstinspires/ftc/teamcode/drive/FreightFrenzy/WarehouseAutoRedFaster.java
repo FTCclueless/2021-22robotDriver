@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -19,10 +18,11 @@ import java.util.ArrayList;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "Auto")
-public class WarehouseAutoBlueFaster extends LinearOpMode {
+//@Autonomous(group = "Auto")
+// @Disabled
+public class WarehouseAutoRedFaster extends LinearOpMode {
     SampleMecanumDrive drive;
-    double side = 1;
+    double side = -1;
 
     /* START CAMERA PARAMETERS */
     OpenCvCamera camera;
@@ -54,11 +54,10 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
 
         drive.resetAssemblies();
         Pose2d startingPose = new Pose2d(12,65.25 * side,0);
-        Pose2d endPoint = new Pose2d(12,65.25 * side,0);
+        Pose2d endPoint = new Pose2d(12,65.125 * side,0);
 
         int capNum = 2;
 
-        drive.intakeTurretInterfaceHeading = 1.1274009793517894;
         drive.currentIntake = side;
         drive.transferMineral = true;
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
@@ -83,17 +82,14 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
 
         setUp(startingPose);
 
-        // The INIT-loop: This REPLACES waitForStart()!
-
         Logger a = new Logger("Alliance",false);
-        String l = "blue";
+        String l = "red";
         a.addData(l);
         a.update();
         a.close();
 
-        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        drive.currentDepoAngle = drive.depositTransferAngle;
-
+        // The INIT-loop: This REPLACES waitForStart()!
+        boolean seenMarker = false;
         while (!isStarted() && !isStopRequested()) {
             //Detecting AprilTags
             tagOfInterest = null;
@@ -103,6 +99,7 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
                     tagOfInterest = tag;
                     previousTag = tag;
                     previousTagCounter = 0;
+                    seenMarker = true;
                     break;
                 }
             }
@@ -113,17 +110,23 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
 
             if (previousTag != null){
                 if (previousTag.pose.x  > 0) {
+                    telemetry.addLine("Top Level \n");
+                    capNum = 2;
+                }
+                else {
                     telemetry.addLine("Center Level \n");
                     capNum = 1;
                 }
-                else {
+            }
+            else {
+                if (seenMarker) {
                     telemetry.addLine("Low Level \n");
                     capNum = 0;
                 }
-            }
-            else {
-                telemetry.addLine("Top Level \n");
-                capNum = 2;
+                else {
+                    telemetry.addLine("Never Saw Capstone . . . High Level \n");
+                    capNum = 2;
+                }
             }
 
             if (tagOfInterest != null) {

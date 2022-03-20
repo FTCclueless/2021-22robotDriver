@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -19,7 +20,8 @@ import java.util.ArrayList;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "Auto")
+//@Autonomous(group = "Auto")
+@Disabled
 public class WarehouseAutoBlueConsistent8 extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = 1;

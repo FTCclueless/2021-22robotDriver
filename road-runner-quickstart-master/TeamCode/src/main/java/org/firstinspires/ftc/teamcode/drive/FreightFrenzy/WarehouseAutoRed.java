@@ -20,7 +20,8 @@ import java.util.ArrayList;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "Auto")
+//@Autonomous(group = "Auto")
+// @Disabled
 public class WarehouseAutoRed extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = -1;
