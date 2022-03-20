@@ -151,8 +151,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int dropIntakeTime = 380;
     public double intakePower = -1;
     public int liftIntakeTime = 700;
-    public int transfer1Time = 300;
-    public int transfer2Time = 350;
+    public int transfer1Time = 200;
+    public int transfer2Time = 250;
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78; //0.85
     public int openDepositTime = 350;//400
@@ -388,10 +388,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret.setVelocityPIDFCoefficients(tP,tI,tD,tF);
         turret.setPositionPIDFCoefficients(tPP);
 
-        leftIntakeDrop = 0.259;
-        leftIntakeDrop = 0.259;
-        leftIntakeRaise = 0.969;
-        leftIntakeMid = 0.858;
+        leftIntakeDrop = 0.072;
+        leftIntakeRaise = 0.79;
+        leftIntakeMid = 0.7;
         rightIntakeDrop = 0.739;
         rightIntakeRaise = 0.0;
         rightIntakeMid = 0.1;
@@ -404,7 +403,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         setV4barDeposit(depositInterfaceAngle,v4barInterfaceAngle);
 
         dropOdo();
-        servos.get(7).setPosition(1);
+        //lkservos.get(7).setPosition(1);
 
         setSlidesLength(returnSlideLength);
 
@@ -1079,7 +1078,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         numLeftIntake = Math.max(0,Math.min(5,numLeftIntake));
 
-        if (depositVal >= 200 || intakeSpeed <= -18){
+        if (depositVal >= 50 || intakeSpeed <= -18){
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
         }

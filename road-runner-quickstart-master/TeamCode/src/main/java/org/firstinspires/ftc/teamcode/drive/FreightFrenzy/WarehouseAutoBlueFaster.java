@@ -183,8 +183,8 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
-        driveToPoint(new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 12, false,cutoff);
-        driveToPoint(new Pose2d(x + 1 + 8 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,2, 0.45,600,5.5,false,cutoff);
+        driveToPoint(new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 10, false,cutoff);
+        driveToPoint(new Pose2d(x + 1 + 12 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,2, 0.45,300,4.0,false,cutoff);
         intakeMineral(0.35,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
@@ -200,7 +200,7 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
         drive.effectiveDepositAngle = Math.toRadians(-30);
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(40.5, newEnd.getY(), 0), new Pose2d(33.5, newEnd.getY() - side, 0), false,4, 0.90,500,4,true,cutoff);
-        driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,15, true,cutoff);
+        driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,12, true,cutoff);
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){

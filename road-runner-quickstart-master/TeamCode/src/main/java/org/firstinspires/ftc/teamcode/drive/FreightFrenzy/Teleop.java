@@ -30,10 +30,14 @@ public class Teleop extends LinearOpMode {
     int hub = 1;
 
     public static double duckSpinSpeed = 0.2;
-    public static int duckSpinTime = 2200;
-    public static int duckIntakeTime = 2200;
-    public static double duckIntakeReceiving = 0.28;
-    public static double duckIntakeMaxIn = 0.03;
+    public static int duckSpinTime = 1900;
+    public static int duckIntakeTime = 1870;
+    long duckRegrabTime = System.currentTimeMillis();
+    public static double duckInPos = 0;
+    public static double duckOutPos = 0.801;
+    public static double duckIntakeReceiving = 0.32;
+    public static double duckIntakeReceivingOut = 0.52;
+    public static double duckIntakeMaxIn = 0.18;
 
     boolean firstUpdate = false;
 
@@ -46,6 +50,8 @@ public class Teleop extends LinearOpMode {
     boolean intake = false;
 
     boolean done = false;
+
+    boolean duck = false;
     int flag = 0;
 
     ButtonToggle auto = new ButtonToggle();
@@ -65,6 +71,9 @@ public class Teleop extends LinearOpMode {
     double armInPosLeft = 0.89;
     double armOutPosLeft = 0.685;
     double armOutGrabPosLeft = 0.356;
+    double armInPos = armInPosRight;
+    double armOutPos = armOutPosRight;
+    double armOutGrabPos = armOutGrabPosRight;
     boolean first = false; //true;
     boolean lastIn = false;
     boolean lastOut = false;
@@ -116,8 +125,6 @@ public class Teleop extends LinearOpMode {
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.servos.get(5).setPosition(armInPosRight);
-        //drive.servos.get(6).setPosition(armInPosLeft);
-        drive.servos.get(6).setPosition(0.0);
 
         drive.v4barOffset = Math.toRadians(-10);
 
@@ -151,6 +158,18 @@ public class Teleop extends LinearOpMode {
             telemetry.update();
             drive.update();
         }
+        if (side == -1){
+            duckInPos = 1.0 - 0.0;
+            duckOutPos = 1.0 - 0.801;
+            duckIntakeReceiving = 1.0 - 0.32;
+            duckIntakeReceivingOut = 1.0 - 0.52;
+            duckIntakeMaxIn = 1.0 - 0.18;
+            armInPos = armInPosLeft;
+            armOutPos = armOutPosLeft;
+            armOutGrabPos = armOutGrabPosLeft;
+        }
+
+        drive.servos.get(6).setPosition(duckInPos);
 
         sharedHubEndpoint = new Pose2d(65.125, 16 * side, Math.toRadians(90) * side);
         allianceHubEndpoint = new Pose2d(12, 65.125 * side, Math.toRadians(0));
@@ -208,10 +227,10 @@ public class Teleop extends LinearOpMode {
             }
             else {
                 odo.update(gamepad2.b);//updates the lifting of the odometry
-                if (!spin.getToggleState()) {
-                    spin.update(y);
-                }
                 endgame.update(gamepad2.right_bumper);
+            }
+            if (!spin.getToggleState()) {
+                spin.update(gamepad1.left_trigger >= 0.5);
             }
             lastY = y;
 
@@ -309,7 +328,7 @@ public class Teleop extends LinearOpMode {
             double kStatic = 0.15;
             if (gamepad1.right_bumper){ //Normal mode (press button to sprint)
                 f *= 0.25;
-                l *= 0.3;
+                l *= 0.5;
             }
 
             double forward = Math.pow(f,7) * -(0.85 - kStatic) * speedSlowMultiplier + Math.signum(-f) * Math.max(Math.signum(Math.abs(f) - 0.1),0) * kStatic;
@@ -361,45 +380,39 @@ public class Teleop extends LinearOpMode {
             hub = 2;
             drive.servos.get(7).setPosition(0.471);
             firstUpdate = true;
-            drive.intakeLiftDelay = 100;//300
-            if (gamepad1.left_trigger >= 0.5){
-                drive.duckSpin.setPower(-duckSpinSpeed * side);
-                drive.duckSpin2.setPower(-duckSpinSpeed * side);
-                startDuckTime = System.currentTimeMillis();
-                drive.intake.setPower(0);
-            }
-            else if (System.currentTimeMillis() - startDuckTime >= 400){
-                drive.duckSpin.setPower(0);
-                drive.duckSpin2.setPower(0);
-            }
-
-            if (drive.intakeCase == 2){
-                if (System.currentTimeMillis() - startDuckTime >= 150){
-                    drive.intake.setPower(drive.intakePower);
-                }
-                if (System.currentTimeMillis() - startDuckTime >= 500) {
-                    drive.servos.get(6).setPosition(duckIntakeReceiving + 0.2);
-                } else if (System.currentTimeMillis() - startDuckTime >= 280) {
-                    drive.servos.get(6).setPosition(duckIntakeMaxIn);
-                } else {
-                    drive.servos.get(6).setPosition(duckIntakeReceiving);
-                }
-            }
-            /*
-            if (drive.intakeCase == 2){
-                if (System.currentTimeMillis() - startDuckTime <= 2177){
-                    drive.intake.setPower(0);
-                }
-                else {
-                    drive.intake.setPower(drive.intakePower);
+            drive.intakeLiftDelay = 100;
+            if (drive.intakeCase == 1 || drive.intakeCase == 2 || drive.slidesCase >= 5){
+                drive.intake.setPower(drive.intakePower);
+                if (duck && System.currentTimeMillis() - startDuckTime <= duckIntakeTime - 600){
+                    if (System.currentTimeMillis() - duckRegrabTime >= 600) {
+                        drive.servos.get(6).setPosition(duckIntakeReceivingOut);
+                        duck = false;
+                    } else {
+                        drive.servos.get(6).setPosition(duckIntakeMaxIn);
+                    }
                 }
                 if (System.currentTimeMillis() - startDuckTime >= duckIntakeTime + 600) {
-                    drive.servos.get(6).setPosition(duckIntakeReceiving + 0.1);
+                    drive.servos.get(6).setPosition(duckIntakeReceivingOut);
                 } else if (System.currentTimeMillis() - startDuckTime >= duckIntakeTime) {
                     drive.servos.get(6).setPosition(duckIntakeMaxIn);
                 } else {
                     drive.servos.get(6).setPosition(duckIntakeReceiving);
                 }
+            }
+            else {
+                if (System.currentTimeMillis() - startDuckSpin >= duckIntakeTime){
+                    duck = true;
+                }
+                duckRegrabTime = System.currentTimeMillis();
+            }
+            if (drive.intakeCase == 8){
+                if (side == 1){
+                    drive.servos.get(0).setPosition(drive.rightIntakeDrop);
+                }
+                else {
+                    drive.servos.get(1).setPosition(drive.leftIntakeDrop);
+                }
+                drive.servos.get(6).setPosition(duckIntakeReceiving);
             }
             if (spin.getToggleState()){
                 long a = System.currentTimeMillis() - startDuckSpin;
@@ -421,7 +434,6 @@ public class Teleop extends LinearOpMode {
                 startDuckSpin = System.currentTimeMillis();
                 duckSpinPower = 0.25;
             }
-             */
         }
         else{
             drive.intakeLiftDelay = 0;
@@ -443,8 +455,12 @@ public class Teleop extends LinearOpMode {
             }
             else {
                 first = false;
-                armOutPosRight = 0.172;
-                armOutPosLeft = 0.685;
+                if (side == 1){
+                    armOutPos = armOutPosRight;
+                }
+                else{
+                    armOutPos = armOutPosLeft;
+                }
             }
             lastArmDown = System.currentTimeMillis();
         }
@@ -452,48 +468,36 @@ public class Teleop extends LinearOpMode {
         lastOut = out;
         if (armIn){
             if (gamepad2.dpad_right){
-                armInPosRight += 0.001;
-                armInPosLeft -= 0.001;
+                armInPos += 0.001 * side;
             }
             else if (gamepad2.dpad_left){
-                armInPosRight -= 0.001;
-                armInPosLeft += 0.001;
+                armInPos -= 0.001 * side;
             }
-            armInPosRight = Math.max(Math.min(armInPosRight,1.0),0);
-            drive.servos.get(5).setPosition(armInPosRight);
-            armInPosLeft = Math.max(Math.min(armInPosLeft,1.0),0);
-            //drive.servos.get(6).setPosition(armInPosLeft);
+            armInPos = Math.max(Math.min(armInPos,1.0),0);
+            drive.servos.get(5).setPosition(armInPos);
             speedSlowMultiplier = 1;
         }
         else {
             speedSlowMultiplier = 0.5;
             if (first){
                 if (gamepad2.dpad_right){
-                    armOutGrabPosRight += 0.001;
-                    armOutGrabPosLeft -= 0.001;
+                    armOutGrabPos += 0.001 * side;
                 }
                 else if (gamepad2.dpad_left){
-                    armOutGrabPosRight -= 0.001;
-                    armOutGrabPosLeft += 0.001;
+                    armOutGrabPos -= 0.001 * side;
                 }
-                armOutGrabPosRight = Math.max(Math.min(armOutGrabPosRight,1.0),0);
-                drive.servos.get(5).setPosition(armOutGrabPosRight);
-                armOutGrabPosLeft = Math.max(Math.min(armOutGrabPosLeft,1.0),0);
-                //drive.servos.get(6).setPosition(armOutGrabPosLeft);
+                armOutGrabPos = Math.max(Math.min(armOutGrabPos,1.0),0);
+                drive.servos.get(5).setPosition(armOutGrabPos);
             }
             else {
                 if (gamepad2.dpad_right){
-                    armOutPosRight += 0.002;
-                    armOutPosLeft -= 0.002;
+                    armOutPos += 0.002 * side;
                 }
                 else if (gamepad2.dpad_left){
-                    armOutPosRight -= 0.002;
-                    armOutPosLeft += 0.002;
+                    armOutPos -= 0.002 * side;
                 }
-                armOutPosRight = Math.max(Math.min(armOutPosRight,1.0),0);
-                drive.servos.get(5).setPosition(armOutPosRight);
-                armOutPosLeft = Math.max(Math.min(armOutPosLeft,1.0),0);
-                //drive.servos.get(6).setPosition(armOutPosLeft);
+                armOutPos = Math.max(Math.min(armOutPos,1.0),0);
+                drive.servos.get(5).setPosition(armOutPos);
             }
         }
     }
@@ -620,7 +624,7 @@ public class Teleop extends LinearOpMode {
                     endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
                 }
                 else {
-                    endPoint = new Pose2d(-56, 60 * side, Math.toRadians(180));
+                    endPoint = new Pose2d(-44, 65.25 * side, Math.toRadians(180));
                 }
                 radius = 3;
                 height = 14;
@@ -665,18 +669,18 @@ public class Teleop extends LinearOpMode {
                 duckOut = true;
                 if (System.currentTimeMillis() - duckWaitTime >= 75) {
                     if (hub == 0) {
-                        drive.servos.get(6).setPosition(0.801);
+                        drive.servos.get(6).setPosition(duckOutPos - 0.2 * side);
                     }
                     else {
-                        drive.servos.get(6).setPosition(0.38);
+                        drive.servos.get(6).setPosition(duckIntakeReceivingOut);
                     }
                 }
             }
             else {
                 duckWaitTime = System.currentTimeMillis();
             }
-            if (drive.intakeCase >= 3){
-                drive.servos.get(6).setPosition(0.801);
+            if (drive.intakeCase >= 3 || drive.intakeCase == 0 && duckOut){
+                drive.servos.get(6).setPosition(duckOutPos);
             }
         }
         if (hub == 1 || hub == 3) {
@@ -684,15 +688,12 @@ public class Teleop extends LinearOpMode {
                 duckOut = false;
                 drive.intakeCase = 0;
             } else if (duckOut) {
+                drive.servos.get(6).setPosition(duckInPos);
                 if (side == 1) {
                     drive.servos.get(0).setPosition(drive.rightIntakeDrop);
-                    drive.servos.get(6).setPosition(0.0);
-                    //TODO: Drop the right intake & bring in the duck strat
                 }
                 if (side == -1) {
                     drive.servos.get(1).setPosition(drive.leftIntakeDrop);
-                    drive.servos.get(6).setPosition(0.0);
-                    //TODO: Drop the left intake & bring in the duck strat
                 }
             }
         }
