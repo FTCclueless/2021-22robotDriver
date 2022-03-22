@@ -151,9 +151,9 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         drive.servos.get(5).setPosition(0);
         drive.servos.get(6).setPosition(1.0);
         drive.v4barOffset = Math.toRadians(-4);
+        drive.updateSlideLength = true;
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
-        drive.updateSlideLength = false;
         drive.intakeLiftDelay = 50;
         while (System.currentTimeMillis() - start <= 30000 - cutoff - 500 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
