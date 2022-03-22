@@ -211,6 +211,7 @@ public class Teleop extends LinearOpMode {
             if (secondGamepadLevel.getToggleState()) {
                 extendSlides.update(gamepad2.b);
                 secondHubLevel.update(y);
+                gamepad2.runRumbleEffect(customRumble);
                 if (y && !lastY && secondHubLevel.getToggleState()){
                     drive.v4barOffset = Math.toRadians(40);
                     drive.slidesOffset = -5;
