@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -18,8 +19,7 @@ import java.util.ArrayList;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-//@Autonomous(group = "Auto")
-// @Disabled
+@Autonomous(group = "Auto")
 public class WarehouseAutoRedFaster extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = -1;
@@ -62,6 +62,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         drive.transferMineral = true;
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
         drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
+        drive.updateSlideLength = false;
 
         /* START CAMERA INITIALIZATION */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -148,11 +149,12 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
 
         start = System.currentTimeMillis();
         drive.servos.get(5).setPosition(0);
-        drive.servos.get(6).setPosition(0.0);
+        drive.servos.get(6).setPosition(1.0);
         drive.v4barOffset = Math.toRadians(-4);
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
-        //drive.intakeLiftDelay = 50;
+        drive.updateSlideLength = false;
+        drive.intakeLiftDelay = 50;
         while (System.currentTimeMillis() - start <= 30000 - cutoff - 500 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
             if (System.currentTimeMillis() - start >= 30000 - cutoff){
@@ -186,7 +188,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         driveToPoint(new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 10, false,cutoff);
-        driveToPoint(new Pose2d(x + 1 + 12 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,2, 0.45,300,4.0,false,cutoff);
+        driveToPoint(new Pose2d(x + 1 + 12 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,2.5, 0.45,300,3.5,false,cutoff);
         intakeMineral(0.35,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
@@ -202,7 +204,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         drive.effectiveDepositAngle = Math.toRadians(-30);
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(new Pose2d(40.5, newEnd.getY(), 0), new Pose2d(33.5, newEnd.getY() - side, 0), false,4, 0.90,500,4,true,cutoff);
-        driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,12, true,cutoff);
+        driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,10, true,cutoff);
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
