@@ -922,34 +922,35 @@ public class SampleMecanumDrive extends MecanumDrive {
         if (Math.abs(dif) <= 1){
             currentTargetSlidesPose = targetSlidesPose;
         }
-        double p = (currentTargetSlidesPose - slideExtensionLength) * kPSlides;
-        double kStatic = Math.signum(currentTargetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
-        if (Math.abs(targetSlidesPose - slideExtensionLength) <= 3){
+        double p = (targetSlidesPose - slideExtensionLength) * kPSlides;
+        double kStatic = Math.signum(targetSlidesPose - slideExtensionLength) * slidesSpeed/2.0;
+        if (Math.abs(targetSlidesPose - slideExtensionLength) <= 3){ // we are within 3 from the end
             p /= 2;
-            if (currentTargetSlidesPose - slideExtensionLength >= 0.5){
+            if (targetSlidesPose - slideExtensionLength >= 0.5){ // the target is greater than the current by 0.5 we engage the PID to get it to 0
                 kStatic = 0.175 + slideExtensionLength * 0.002;
                 if (loops >= 2) {
-                    slidesI += (currentTargetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
+                    slidesI += (targetSlidesPose - slideExtensionLength) * loopSpeed * kISlides;
                 }
             }
-            else if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // -1
+            else if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // the target is less than the current by 0.5 we slowly extend it back
                 kStatic = -0.1;
                 slidesI = 0;
             }
-            else{
+            else{// We are within +- 0.5 which means we use a holding power
                 p = 0.085;
                 kStatic = 0;
                 slidesI = 0;
             }
         }
-        else if (targetSlidesPose - slideExtensionLength < -3){
+        else if (targetSlidesPose - slideExtensionLength < -3){ // We are more than 3 away so we go backward slowly
             kStatic = -0.1;
             slidesI = 0;
 
         }
-        else if (targetSlidesPose - slideExtensionLength > 3){
+        else if (targetSlidesPose - slideExtensionLength > 3){ // We are more than 3 away so we go forward at max speed
             kStatic = slidesSpeed;
             p = 0;
+            slidesI = 0;
         }
         slidesPower = kStatic + p + slidesI;
         slides.setPower(slidesPower);
