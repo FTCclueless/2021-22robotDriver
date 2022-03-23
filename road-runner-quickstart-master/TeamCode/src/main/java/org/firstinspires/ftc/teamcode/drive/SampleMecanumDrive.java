@@ -841,7 +841,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
                     setDepositAngle(currentDepositAngle);
                     setTurretTarget(targetTurretHeading + turretOffset);
-                    setSlidesLength(targetSlideExtensionLength + slidesOffset);
+                    setSlidesLength(targetSlideExtensionLength + slidesOffset,0.25);
                     if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0;} // + 70
                     break;
                 case 5 : case 6: case 7: case 8:
