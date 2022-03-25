@@ -92,7 +92,6 @@ public class WarehouseAutoBlueFaster extends LinearOpMode {
         a.close();
 
         drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        drive.currentDepoAngle = drive.depositTransferAngle;
 
         while (!isStarted() && !isStopRequested()) {
             //Detecting AprilTags

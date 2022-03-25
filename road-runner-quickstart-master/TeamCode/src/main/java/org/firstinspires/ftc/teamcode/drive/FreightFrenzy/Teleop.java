@@ -81,6 +81,7 @@ public class Teleop extends LinearOpMode {
 
     boolean endgameRumble = false;
     boolean parkRumble = false;
+    boolean schemeRumble = false;
     boolean lastRightTrigger = false;
 
     int matchTime = 122000;
@@ -196,6 +197,18 @@ public class Teleop extends LinearOpMode {
 
             secondGamepadLevel.update(gamepad2.x);
 
+            if (gamepad2.x && !gamepad2.isRumbling()) {
+                schemeRumble = true;
+            }
+
+            if (schemeRumble) {
+                gamepad2.runRumbleEffect(customRumble);
+                schemeRumble = false;
+            }
+            else {
+                gamepad2.stopRumble();
+            }
+
             if (gamepad2.a) {
                 if (!secondHubLevel.getToggleState()) {
                     drive.v4barOffset = Math.toRadians(-10);
@@ -211,7 +224,16 @@ public class Teleop extends LinearOpMode {
             if (secondGamepadLevel.getToggleState()) {
                 extendSlides.update(gamepad2.b);
                 secondHubLevel.update(y);
-                gamepad2.runRumbleEffect(customRumble);
+//                if(schemeRumble == false && !gamepad2.isRumbling()){
+//                    gamepad2.stopRumble();
+//                    schemeRumble = true;
+//                }
+//                if(schemeRumble){
+//                    gamepad2.runRumbleEffect(customRumble);
+//                }
+//                else {
+//                    gamepad2.stopRumble();
+//                }
                 if (y && !lastY && secondHubLevel.getToggleState()){
                     drive.v4barOffset = Math.toRadians(40);
                     drive.slidesOffset = -5;

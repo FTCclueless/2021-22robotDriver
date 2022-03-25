@@ -188,7 +188,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         driveToPoint(new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.95, 600, 10, false,cutoff);
-        driveToPoint(new Pose2d(x + 1 + 12 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,2.5, 0.45,300,3.5,false,cutoff);
+        driveToPoint(new Pose2d(x + 1 + 12 * (1 - Math.cos(angle)),y,angle), new Pose2d(72,24 * side,angle), true,3, 0.55,300,5.5,false,cutoff); //2.5,0.45,3.5
         intakeMineral(0.35,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;

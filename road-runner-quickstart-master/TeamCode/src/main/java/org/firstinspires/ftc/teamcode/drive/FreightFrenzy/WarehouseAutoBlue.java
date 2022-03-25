@@ -60,7 +60,7 @@ public class WarehouseAutoBlue extends LinearOpMode {
 
         drive.resetAssemblies();
         Pose2d startingPose = new Pose2d(12,65.25 * side,0);
-        Pose2d endPoint = new Pose2d(12,65.25 * side,0);
+        Pose2d endPoint = new Pose2d(13,65.25 * side,0);
 
         int capNum = 2;
 
@@ -98,7 +98,6 @@ public class WarehouseAutoBlue extends LinearOpMode {
         a.close();
 
         drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        drive.currentDepoAngle = drive.depositTransferAngle;
 
         while (!isStarted() && !isStopRequested()) {
             //Detecting AprilTags
@@ -198,9 +197,9 @@ public class WarehouseAutoBlue extends LinearOpMode {
         lastIntakeX = Math.min(50.0, lastIntakeX);
     }
     public void driveOut(Pose2d endPoint, int numMinerals){
-        double i = 0;
-        double offset = 2;
-        drive.v4barOffset = Math.toRadians(-4); drive.slidesOffset = 0; drive.turretOffset = 0;
+        double i = -4;
+        double offset = 0;
+        drive.v4barOffset = Math.toRadians(0); drive.slidesOffset = 0; drive.turretOffset = 0;//-4,0,0
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.effectiveDepositAngle = Math.toRadians(-30);
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
