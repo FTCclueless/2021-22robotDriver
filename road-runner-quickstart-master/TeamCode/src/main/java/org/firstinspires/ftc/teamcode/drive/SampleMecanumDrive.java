@@ -105,8 +105,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     ArrayList<Double> depositHistory, intakeHistory;
     public double currentIntake = 0;
     double rightIntakeVal, leftIntakeVal, depositVal, sumIntakeSensor, intakeSensorLoops;
-    public static int intakeMinValRight = 35;//75
-    public static int intakeMinValLeft = 35;//75
+    public static int intakeMinValRight = 200;//35;//75
+    public static int intakeMinValLeft = 200;// = 35;//75
     public int intakeCase, lastIntakeCase;
     public long intakeTime, slideTime;
     public boolean transferMineral;
@@ -1094,7 +1094,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
         numLeftIntake = Math.max(0,Math.min(5,numLeftIntake));
 
-        if (depositVal >= 50 || intakeSpeed <= -18){
+        if (depositVal >= 15 || intakeSpeed <= -18){
             intakeDepositTransfer = true;
             startIntakeDepositTransfer = System.currentTimeMillis();
         }
@@ -1362,8 +1362,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         double extraOffset = 5.0;
         double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
         if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.argb() >= 200000000;
-            boolean rightSensor = rightWall.argb() >= 200000000;
+            boolean leftSensor = leftWall.argb()/1000000.0 >= 200;
+            boolean rightSensor = rightWall.argb()/1000000.0 >= 200;
             double heading = clipHeading(currentPose.getHeading());
             if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
                 double angleOffset = 15;
