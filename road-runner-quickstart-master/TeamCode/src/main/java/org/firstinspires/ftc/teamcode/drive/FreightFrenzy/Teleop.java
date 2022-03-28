@@ -113,6 +113,8 @@ public class Teleop extends LinearOpMode {
 
     boolean duckOut = false;
 
+    boolean firstEndgame = false;
+
     long duckFixTime = System.currentTimeMillis();
     long duckWaitTime = System.currentTimeMillis();
 
@@ -159,6 +161,7 @@ public class Teleop extends LinearOpMode {
             telemetry.update();
             drive.update();
         }
+
         if (side == -1){
             duckInPos = 1.0 - 0.0;
             duckOutPos = 1.0 - 0.801;
@@ -169,6 +172,15 @@ public class Teleop extends LinearOpMode {
             armOutPos = armOutPosLeft;
             armOutGrabPos = armOutGrabPosLeft;
         }
+        else {
+            duckInPos = 0;
+            duckOutPos = 0.801;
+            duckIntakeReceiving = 0.32;
+            duckIntakeReceivingOut = 0.52;
+            duckIntakeMaxIn = 0.18;
+        }
+
+
 
         drive.servos.get(6).setPosition(duckInPos);
 
@@ -222,7 +234,11 @@ public class Teleop extends LinearOpMode {
             }
             boolean y = gamepad2.y;
             if (secondGamepadLevel.getToggleState()) {
-                extendSlides.update(gamepad2.b);
+                boolean b = gamepad2.b;
+                extendSlides.update(b);
+                if (b && ((drive.slidesCase == 1 && !drive.transferMineral) || drive.startSlides)){
+                    drive.slidesCase = 0;
+                }
                 secondHubLevel.update(y);
 //                if(schemeRumble == false && !gamepad2.isRumbling()){
 //                    gamepad2.stopRumble();
@@ -404,6 +420,15 @@ public class Teleop extends LinearOpMode {
     public void updateEndgame(){
         if (endgame.getToggleState()){
             hub = 2;
+            //first time
+            if (!firstEndgame){
+                odo.toggleState = true;
+                firstEndgame = true;
+                secondHubLevel.toggleState = false;
+                drive.v4barOffset = Math.toRadians(-10);
+                drive.slidesOffset = 0;
+                drive.turretOffset = 0;
+            }
             drive.servos.get(7).setPosition(0.471);
             firstUpdate = true;
             drive.transfer1Time = 200;
@@ -435,63 +460,9 @@ public class Teleop extends LinearOpMode {
                 }
                 drive.servos.get(6).setPosition(duckIntakeReceiving);
             }
-            /*
-            if (drive.intakeCase == 1 || drive.intakeCase == 2 || drive.slidesCase >= 5){
-                drive.intake.setPower(drive.intakePower);
-                if (duck && System.currentTimeMillis() - startDuckTime <= duckIntakeTime - 600){
-                    if (System.currentTimeMillis() - duckRegrabTime >= 600) {
-                        drive.servos.get(6).setPosition(duckIntakeReceivingOut);
-                        duck = false;
-                    } else {
-                        drive.servos.get(6).setPosition(duckIntakeMaxIn);
-                    }
-                }
-                if (System.currentTimeMillis() - startDuckTime >= duckIntakeTime + 600) {
-                    drive.servos.get(6).setPosition(duckIntakeReceivingOut);
-                } else if (System.currentTimeMillis() - startDuckTime >= duckIntakeTime) {
-                    drive.servos.get(6).setPosition(duckIntakeMaxIn);
-                } else {
-                    drive.servos.get(6).setPosition(duckIntakeReceiving);
-                }
-            }
-            else {
-                if (System.currentTimeMillis() - startDuckSpin >= duckIntakeTime){
-                    duck = true;
-                }
-                duckRegrabTime = System.currentTimeMillis();
-            }
-            if (drive.intakeCase == 8){
-                if (side == 1){
-                    drive.servos.get(0).setPosition(drive.rightIntakeDrop);
-                }
-                else {
-                    drive.servos.get(1).setPosition(drive.leftIntakeDrop);
-                }
-                drive.servos.get(6).setPosition(duckIntakeReceiving);
-            }
-            if (spin.getToggleState()){
-                long a = System.currentTimeMillis() - startDuckSpin;
-                if (!startDuck){
-                    startDuck = true;
-                    startDuckTime = System.currentTimeMillis();
-                }
-                drive.duckSpin.setPower(-duckSpinSpeed * side);
-                drive.duckSpin2.setPower(-duckSpinSpeed * side);
-                if (a > duckSpinTime){//1550
-                    drive.duckSpin.setPower(0);
-                    drive.duckSpin2.setPower(0);
-                    startDuckSpin = System.currentTimeMillis();
-                    spin.toggleState = false;
-                }
-            }
-            else{
-                startDuck = false;
-                startDuckSpin = System.currentTimeMillis();
-                duckSpinPower = 0.25;
-            }
-             */
         }
         else{
+            firstEndgame = false;
             drive.intakeLiftDelay = 0;
             drive.transfer1Time = 300;
             drive.transfer2Time = 350;

@@ -223,8 +223,8 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         lastIntakeX = Math.min(50.0, lastIntakeX);
     }
     public void driveOut(Pose2d endPoint){
-        double i = -3;
-        double offset = 2;
+        double i = -1;//-3
+        double offset = 0;//2
         drive.v4barOffset = Math.toRadians(0); drive.slidesOffset = 2; drive.turretOffset = 0; // -4
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.effectiveDepositAngle = Math.toRadians(-45); //-30
@@ -245,8 +245,8 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         double r = 6;
         double offset = 0;
         switch (capNum) {
-            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -3; break; //-1.5
-            case 1: r = 7; h = 7.125; break;
+            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -2.5; break; //-1.5
+            case 1: r = 7; h = 7.125; offset = -1.5; break;
             case 2: r = 3; h = 13.5; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
