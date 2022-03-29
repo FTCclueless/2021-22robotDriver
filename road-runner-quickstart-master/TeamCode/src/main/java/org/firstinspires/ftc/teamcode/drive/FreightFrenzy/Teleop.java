@@ -443,6 +443,9 @@ public class Teleop extends LinearOpMode {
                     drive.servos.get(6).setPosition(duckIntakeReceiving);
                 }
             }
+            else if (duckOut){
+                drive.servos.get(6).setPosition(duckIntakeReceivingOut);
+            }
             if (gamepad1.dpad_left){
                 drive.duckSpin.setPower(-duckSpinSpeed * side);
                 drive.duckSpin2.setPower(-duckSpinSpeed * side);

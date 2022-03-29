@@ -3,12 +3,11 @@ package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import org.firstinspires.ftc.teamcode.drive.DriveConstants;
-import org.firstinspires.ftc.teamcode.drive.Logger;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.drive.Logger;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -20,8 +19,7 @@ import java.util.ArrayList;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-//@Autonomous(group = "Auto")
-// @Disabled
+@Autonomous(group = "Auto")
 public class WarehouseAutoRed extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = -1;
@@ -64,6 +62,7 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.transferMineral = true;
         drive.setV4barDeposit(drive.depositTransferAngle,Math.toRadians(-5));
         drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
+        drive.updateSlideLength = false;
 
         /* START CAMERA INITIALIZATION */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -146,28 +145,30 @@ public class WarehouseAutoRed extends LinearOpMode {
             drive.update();
         }
 
-
         setUp(startingPose);
 
         start = System.currentTimeMillis();
         drive.servos.get(5).setPosition(0);
-        drive.servos.get(6).setPosition(0.89);
+        drive.servos.get(6).setPosition(1.0);
         drive.v4barOffset = Math.toRadians(-4);
+        drive.updateSlideLength = true;
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
-        drive.intakeLiftDelay = 0;
+        drive.intakeLiftDelay = 50;
         while (System.currentTimeMillis() - start <= 30000 - cutoff - 500 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
             if (System.currentTimeMillis() - start >= 30000 - cutoff){
                 break;
             }
-            driveOut(endPoint,numMinerals);
+            driveOut(endPoint);
             numMinerals ++;
         }
         if (drive.intakeCase <= 2) {
             drive.intakeCase = 0;
         }
-        driveToPoint(new Pose2d(45, endPoint.getY(), 0), false, 1, 1, 1000, 13, true,100);
+
+        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        driveToPoint(new Pose2d(40, endPoint.getY(), 0),new Pose2d(72, 24, 0), false, 1, 0.85, 1000, 13, true,100);
         drive.setMotorPowers( 0 , 0, 0, 0);
         drive.slides.setPower(0);
         drive.slides2.setPower(0);
@@ -182,29 +183,61 @@ public class WarehouseAutoRed extends LinearOpMode {
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         int a = 3;
-        double angle = ((numMinerals % a) * Math.toRadians(-15)) * Math.signum(endPoint.getY());
+        double angle = ((numMinerals % a) * Math.toRadians(-12)) * Math.signum(endPoint.getY()); //-17.5
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
-        //driveToPoint(new Pose2d(31.5, endPoint.getY(),0), new Pose2d(x,y,0), false,4, 0.95,800,4, true,cutoff);//10
-        driveToPoint(new Pose2d(Math.max(x - 12,30), endPoint.getY(), 0), new Pose2d(72, 24 * side, angle), true, 4, 0.75, 600, 12, false,cutoff);
-        driveToPoint(new Pose2d(x-3,y,angle), new Pose2d(72,24 * side,angle), true,2, 0.35,600,6,false,cutoff);
-        intakeMineral(0.3,2000);
+        driveToPoint(
+                new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0),
+                new Pose2d(72, 24 * side, angle),
+                true, 4, 0.95, 600, 8, true,cutoff //10
+        );
+        driveToPoint(
+                new Pose2d(x - 4 + 12 * (1 - Math.cos(angle)), endPoint.getY(), 0),
+                new Pose2d(72, 24 * side, angle),
+                true, 3.5, 0.5, 500, 4, true, cutoff //6.75
+        );
+        if (angle != 0) {
+            driveToPoint(
+                    new Pose2d(x + 12 * (1 - Math.cos(angle)), y, angle),
+                    new Pose2d(72, 24 * side, angle),
+                    true, 2.5, 0.475, 600, 4, false, cutoff //6.75
+            );
+        }
+        else {
+            double k = 6;
+            if (numMinerals == 0){
+                k = 0;
+            }
+            driveToPoint(
+                    new Pose2d(x + k, y, angle),
+                    new Pose2d(72, 24 * side, angle),
+                    true, 2.5, 0.475, 600, 4, true, cutoff
+            );
+        }
+        intakeMineral(0.30,2000);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
         lastIntakeX = Math.min(50.0, lastIntakeX);
     }
-    public void driveOut(Pose2d endPoint, int numMinerals){
-        double i = 0;
-        double offset = 2;
-        drive.v4barOffset = Math.toRadians(-4); drive.slidesOffset = 0; drive.turretOffset = 0;
+    public void driveOut(Pose2d endPoint){
+        double i = -1;//-3
+        double offset = 0;//2
+        drive.v4barOffset = Math.toRadians(0); drive.slidesOffset = 2; drive.turretOffset = 0; // -4
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
-        drive.effectiveDepositAngle = Math.toRadians(-30);
+        drive.effectiveDepositAngle = Math.toRadians(-45); //-30
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
-        driveToPoint(new Pose2d(38.5, newEnd.getY(), 0), new Pose2d(40.5, newEnd.getY() - side, 0), false,4, 0.95,500,10,true,cutoff);
-        driveToPoint(new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.1 * side, 0), false,4, 0.95,1000,15, true,cutoff);
+        driveToPoint(
+                new Pose2d(38.5, newEnd.getY() + side * 0.3, 0),
+                new Pose2d(33.5, newEnd.getY() + side * 0.3, 0),
+                false,3, 0.75,500,4,true, cutoff //0.95
+        );//40.5, - side, 3
+        driveToPoint(
+                new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.2 * side, 0), //0.3
+                false,4, 0.95,1000,10, true, cutoff
+        );//0.1 * side
         waitForDeposit(newEnd);
     }
     public void depositFirst(int capNum, Pose2d endPoint){
@@ -212,8 +245,8 @@ public class WarehouseAutoRed extends LinearOpMode {
         double r = 6;
         double offset = 0;
         switch (capNum) {
-            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -3; break; //-1.5
-            case 1: r = 7; h = 7.125; break;
+            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -2.5; break; //-1.5
+            case 1: r = 7; h = 7.125; offset = -1.5; break;
             case 2: r = 3; h = 13.5; break;
         }
         drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
@@ -248,7 +281,7 @@ public class WarehouseAutoRed extends LinearOpMode {
             if (Math.abs(error.getY()) <= 0.5){
                 error = new Pose2d(error.getX(), 0, 0);
             }
-            drive.updateMotors(error, 0.35, 0.25,5, Math.toRadians(8), 0.25, 0.5, 0);
+            drive.updateMotors(error, 0.45, 0.25,5, Math.toRadians(8), 0.25, 0.5, 0.1 * side); //0.2 -> 0.1
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
@@ -263,27 +296,37 @@ public class WarehouseAutoRed extends LinearOpMode {
         drive.update();
         boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
         boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (opModeIsActive() && System.currentTimeMillis() - start <= 30000 - cutoff && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(error * 2)) && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime){
+        double kI = 0;
+        while (
+                opModeIsActive() && System.currentTimeMillis() - start <= 30000 - cutoff
+                        && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(error * 2))
+                        && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime
+        ) {
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
             Pose2d relError = drive.getRelError(target);
+            double targetSpeed = power * 30 * Math.pow(Math.min(Math.abs(relError.getX()/slowDownDist),1),2);
+            double currentSpeed = Math.abs(drive.relCurrentVelocity.getX());
+            double speedError = targetSpeed-currentSpeed;
+            double kP = speedError * 0.02;
+            kI += speedError * drive.loopSpeed * 0.0005;
             double sideKStatic = 0;
             if (hugWall){
                 sideKStatic = 0.4 * side;
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError && hugWall) {
-                    sideKStatic = 0.2 * side;
+                    sideKStatic = 0.35 * side;
                     double heading = relError.getHeading();
-                    if (Math.abs(relError.getY()) < sideError / 2.0){
-                        sideKStatic = 0;
+                    if (Math.abs(relError.getY()) < sideError / 2.0 && Math.abs(drive.relCurrentVelocity.getY()) < 4){
+                        sideKStatic = 0.1; // 0
                         heading = 0;
                     }
                     relError = new Pose2d(relError.getX(), 0, heading);
                 }
             }
-            drive.updateMotors(relError,power,maxPowerTurn,slowDownDist,slowTurnAngle,0.5,sideError,sideKStatic);
+            drive.updateMotors(relError,power*0.75 + kP + kI,maxPowerTurn,slowDownDist,slowTurnAngle,0.5,sideError,sideKStatic);
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
@@ -297,14 +340,16 @@ public class WarehouseAutoRed extends LinearOpMode {
         Pose2d lastPose = drive.currentPose;
         Long lastGoodIntake = System.currentTimeMillis();
         boolean first = true;
-        while(drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && opModeIsActive() && System.currentTimeMillis() - start <= 30000 - cutoff){
+        double kI = 0;
+        while(opModeIsActive() && drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && System.currentTimeMillis() - start <= 30000 - cutoff){
             double currentPower = maxPower;
             drive.intake.setPower(-1);
             double sidePower = 0;
-            if (Math.abs(drive.relCurrentVelocity.getX()) <= 3){
-                if (first && System.currentTimeMillis() - lastGoodIntake >= 100) {
+            if (Math.abs(drive.relCurrentVelocity.getX()) <= 3 || drive.intakeHit){
+                if (first && System.currentTimeMillis() - lastGoodIntake >= 300) {
                     first = false;
-                    driveToPoint(new Pose2d(lastPose.getX() - 4, lastPose.getY(), lastPose.getHeading()), true, 1, 0.5, 1000, 2, false, cutoff);
+                    maxTime += 500;
+                    driveToPoint(new Pose2d(lastPose.getX() - 4, lastPose.getY(), lastPose.getHeading()), true, 1, 0.35, 1000, 6, false, cutoff);
                 }
             }
             else{
@@ -312,8 +357,14 @@ public class WarehouseAutoRed extends LinearOpMode {
                 lastPose = drive.currentPose;
             }
             double turn = 0;
+            double targetSpeed = power * 30;
+            double currentSpeed = Math.abs(drive.relCurrentVelocity.getX());
+            double speedError = targetSpeed-currentSpeed;
+            double kP = speedError * 0.02;
+            kI += speedError * drive.loopSpeed * 0.0005;
             double multiplier = Math.min(1.0/(Math.abs(currentPower) + Math.abs(turn) + Math.abs(sidePower)),1);
-            drive.pinMotorPowers((currentPower+turn-sidePower)*multiplier,(currentPower+turn+sidePower)*multiplier,(currentPower-turn-sidePower)*multiplier,(currentPower-turn+sidePower)*multiplier);
+            double f = kP + kI + currentPower * 0.75;
+            drive.pinMotorPowers((f+turn-sidePower)*multiplier,(f+turn+sidePower)*multiplier,(f-turn-sidePower)*multiplier,(f-turn+sidePower)*multiplier);
             drive.update();
         }
         drive.intake.setPower(-1);

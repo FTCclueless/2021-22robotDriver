@@ -495,12 +495,12 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateMotors(Pose2d relError, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error, double sideError, double sideKStatic){
-        double kStatic = 0.08;
+        double kStatic = 0.15; //TODO: was 0.08
         double powerAdjust = power-kStatic;
         double turnAdjust = maxPowerTurn-kStatic;
-        double sideAdjust = Math.min(0.4,power)-kStatic; //0.7
-        double forward = (Math.pow(Math.min(Math.abs(relError.getX())/slowDownDist,1.0),3) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error/2.0),0) * Math.signum(relError.getX());
-        double left = (Math.pow(Math.min(Math.abs(relError.getY())/slowDownDist,1.0),3) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError/2.0),0) * Math.signum(relError.getY()) + sideKStatic;
+        double sideAdjust = Math.min(0.4,power)-kStatic;
+        double forward = ((Math.pow(Math.min(Math.abs(relError.getX())/slowDownDist,1.0),3)/2.0 + 0.5) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error/2.0),0) * Math.signum(relError.getX());
+        double left = ((Math.pow(Math.min(Math.abs(relError.getY())/slowDownDist,1.0),3)/2.0 + 0.5) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError/2.0),0) * Math.signum(relError.getY()) + sideKStatic;
         double turn = (Math.min(Math.abs(relError.getHeading())/slowTurnAngle,1.0) * turnAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(5)),0) * Math.signum(relError.getHeading());
         double [] p = new double[4];
         p[0] = forward-left-turn;
@@ -676,7 +676,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
 
             if (targetV4barAngle != currentV4barAngle){
-                setSlidesLength(returnSlideLength + 8, 0.4);
+                setSlidesLength(returnSlideLength + 3, 0.4);
                 setDepositAngle(currentV4barAngle + Math.toRadians(45));
             }
             else{
@@ -842,26 +842,33 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 4 && System.currentTimeMillis() - slideTime >= effectiveDepositTime){slidesCase ++; intakeCase = 0; lastIntakeCase = 0; currentDepositAngle = depositTransferAngle;} // + 70 effectiveDepositTime
                     break;
                 case 5 : case 6: case 7: case 8:
+                    setDepositAngle(depositInterfaceAngle);
                     if (slidesCase == 5){
-                        setDepositAngle(depositInterfaceAngle);
+                        //DO NOTHING: NO MOVING SLIDES BACK NO MOVING V4BAR
+                        if (System.currentTimeMillis() - slideTime >= 300){
+                            setV4barOrientation(v4barInterfaceAngle);
+                        }
                     }
-                    else if (targetV4barAngle != currentV4barAngle){
-                        setSlidesLength(returnSlideLength + 5, 0.4);
-                        setDepositAngle(depositInterfaceAngle);//Math.toRadians(180) - effectiveDepositAngle
+                    else {
                         setV4barOrientation(v4barInterfaceAngle);
+                        if (currentV4barAngle >= v4barInterfaceAngle + Math.toRadians(15)){
+                            setSlidesLength(returnSlideLength + 2, 0.4);
+                        }
+                        else{
+                            setSlidesLength(returnSlideLength, 0.6);
+                            if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){
+                                slidesCase ++;
+                            }
+                        }
                     }
-                    else{
-                        setDepositAngle(depositInterfaceAngle);
-                        setSlidesLength(returnSlideLength, 0.6);
-                        if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){slidesCase ++;}
-                        setV4barOrientation(v4barInterfaceAngle);
-                    }
+
                     if (slidesCase >= 7) {
                         setTurretTarget(intakeTurretInterfaceHeading * currentIntake);
                     }
                     else {
                         setTurretTarget(targetTurretHeading + turretOffset);
                     }
+
                     if (slidesCase == 5 && System.currentTimeMillis() - slideTime >= 400){slidesCase ++;} //100
                     if (slidesCase == 6 && Math.abs(slideExtensionLength-returnSlideLength) <= 4){slidesCase ++;}
                     if (slidesCase == 7 && Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(10)){slidesCase ++;}
