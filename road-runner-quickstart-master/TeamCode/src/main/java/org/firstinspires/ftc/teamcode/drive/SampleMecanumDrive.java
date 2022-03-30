@@ -945,6 +945,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             else if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // the target is less than the current by 0.5 we slowly extend it back
                 kStatic = -0.1;
                 slidesI = 0;
+                p /= 2.0;
             }
             else{// We are within +- 0.5 which means we use a holding power
                 p = 0.085;
@@ -955,7 +956,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         else if (targetSlidesPose - slideExtensionLength < -3){ // We are more than 3 away so we go backward slowly
             kStatic = -0.1;
             slidesI = 0;
-
+            p /= 2.0; // making it go back slower
         }
         else if (targetSlidesPose - slideExtensionLength > 3){ // We are more than 3 away so we go forward at max speed
             kStatic = slidesSpeed;

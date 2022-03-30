@@ -54,14 +54,9 @@ public class Teleop extends LinearOpMode {
     boolean duck = false;
     int flag = 0;
 
-    ButtonToggle auto = new ButtonToggle();
-    boolean firstAutoUpdate = false;
 
-    ButtonToggle endgame = new ButtonToggle();
-    ButtonToggle spin = new ButtonToggle();
-    ButtonToggle odo = new ButtonToggle();
+    boolean endgame = false;
     ButtonToggle extendSlides = new ButtonToggle();
-    ButtonToggle secondGamepadLevel = new ButtonToggle();
     ButtonToggle secondHubLevel = new ButtonToggle();
     ButtonToggle roboctopi = new ButtonToggle();
 
@@ -81,7 +76,6 @@ public class Teleop extends LinearOpMode {
 
     boolean endgameRumble = false;
     boolean parkRumble = false;
-    boolean schemeRumble = false;
     boolean lastRightTrigger = false;
 
     int matchTime = 122000;
@@ -118,13 +112,16 @@ public class Teleop extends LinearOpMode {
     long duckFixTime = System.currentTimeMillis();
     long duckWaitTime = System.currentTimeMillis();
 
+    long startB = System.currentTimeMillis();
+    boolean firstB = false;
+
+    //TODO: Make sure the duck servo is working properly & make sure the defence button works
     @Override
     public void runOpMode() throws InterruptedException {
 
         drive = new SampleMecanumDrive(hardwareMap);
 
         extendSlides.toggleState = true;
-        secondGamepadLevel.toggleState = true;
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         drive.servos.get(5).setPosition(armInPosRight);
@@ -207,20 +204,18 @@ public class Teleop extends LinearOpMode {
 
             roboctopi.update(gamepad1.y);
 
-            secondGamepadLevel.update(gamepad2.x);
-
-            if (gamepad2.x && !gamepad2.isRumbling()) {
-                schemeRumble = true;
-            }
-
-            if (schemeRumble) {
-                gamepad2.runRumbleEffect(customRumble);
-                schemeRumble = false;
+            if (roboctopi.getToggleState()){
+                hub = 3;
+                firstUpdate = true;
+                extendSlides.toggleState = false;
             }
             else {
-                gamepad2.stopRumble();
+                if (hub == 3){
+                    hub = 1;
+                }
             }
 
+            //Reset the offsets
             if (gamepad2.a) {
                 if (!secondHubLevel.getToggleState()) {
                     drive.v4barOffset = Math.toRadians(-10);
@@ -232,46 +227,40 @@ public class Teleop extends LinearOpMode {
                 }
                 drive.turretOffset = 0;
             }
+            //Start Endgame
+            endgame = endgame || gamepad2.right_bumper;
+            //Switch hub levels
             boolean y = gamepad2.y;
-            if (secondGamepadLevel.getToggleState()) {
-                boolean b = gamepad2.b;
-                extendSlides.update(b);
-                if (b && ((drive.slidesCase == 1 && !drive.transferMineral) || drive.startSlides)){
-                    drive.slidesCase = 0;
-                }
-                secondHubLevel.update(y);
-//                if(schemeRumble == false && !gamepad2.isRumbling()){
-//                    gamepad2.stopRumble();
-//                    schemeRumble = true;
-//                }
-//                if(schemeRumble){
-//                    gamepad2.runRumbleEffect(customRumble);
-//                }
-//                else {
-//                    gamepad2.stopRumble();
-//                }
-                if (y && !lastY && secondHubLevel.getToggleState()){
-                    drive.v4barOffset = Math.toRadians(40);
-                    drive.slidesOffset = -5;
-                    drive.turretOffset = 0;
-                }
-                else if (!y && lastY && !secondHubLevel.getToggleState()){
-                    drive.v4barOffset = Math.toRadians(-10);
-                    drive.slidesOffset = 0;
-                    drive.turretOffset = 0;
-                }
-                if (gamepad2.right_bumper){
-                    drive.startDeposit(endPoint, hubLocation, height, radius);
-                }
+            secondHubLevel.update(y);
+            if (y && !lastY && secondHubLevel.getToggleState()){
+                drive.v4barOffset = Math.toRadians(40);
+                drive.slidesOffset = -5;
+                drive.turretOffset = 0;
             }
-            else {
-                odo.update(gamepad2.b);//updates the lifting of the odometry
-                endgame.update(gamepad2.right_bumper);
-            }
-            if (!spin.getToggleState()) {
-                //spin.update(gamepad1.left_trigger >= 0.5);
+            else if (!y && lastY && !secondHubLevel.getToggleState()){
+                drive.v4barOffset = Math.toRadians(-10);
+                drive.slidesOffset = 0;
+                drive.turretOffset = 0;
             }
             lastY = y;
+            //Slide extension code
+            if (extendSlides.getToggleState()) {
+                drive.startDeposit(endPoint, hubLocation, height, radius);
+            }
+            else{
+                drive.startSlides = false;
+            }
+            if (gamepad2.b){
+                if (System.currentTimeMillis() - startB >= 1000 && firstB){
+                    firstB = false;
+                    extendSlides.toggleState = ! extendSlides.getToggleState();
+                }
+                drive.startDeposit(endPoint, hubLocation, height, radius);
+            }
+            else{
+                startB = System.currentTimeMillis();
+                firstB = true;
+            }
 
             drive.update();
 
@@ -280,7 +269,6 @@ public class Teleop extends LinearOpMode {
                 drive.intakeCase = 0;
                 drive.currentIntake = 0;
                 drive.transferMineral = false;
-                auto.toggleState = false;
                 firstUpdate = false;
             }
             if (gamepad1.x){ //Finish intaking
@@ -288,9 +276,6 @@ public class Teleop extends LinearOpMode {
                 drive.servos.get(0).setPosition(drive.rightIntakeRaise);
                 drive.intakeCase = 3;
                 firstUpdate = true;
-            }
-            if (extendSlides.getToggleState()) {
-                drive.startDeposit(endPoint, hubLocation, height, radius);
             }
             boolean currentIntake = gamepad1.right_trigger >= 0.5;
             if(currentIntake && !lastIntake) {//Starts the intake sequence
@@ -308,15 +293,6 @@ public class Teleop extends LinearOpMode {
             boolean rightTrigger = gamepad2.right_trigger >= 0.5;
             if (rightTrigger && !lastRightTrigger){//Makes it deposit
                 drive.deposit();
-                //Updates the target location for auto movement upon deposit
-                if (auto.getToggleState()) {
-                    if (hub == 1) {
-                        allianceHubEndpoint = new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), drive.currentPose.getHeading());
-                    }
-                    if (hub == 0) {
-                        sharedHubEndpoint = new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), drive.currentPose.getHeading());
-                    }
-                }
             }
             lastRightTrigger = rightTrigger;
 
@@ -324,17 +300,8 @@ public class Teleop extends LinearOpMode {
             updatePoseLock();
             updateHub();
 
-            if (odo.getToggleState()){ //Lifts up odo and tells robot we no longer know where we are
-                drive.raiseOdo();
-                drive.isKnownY = false;
-                drive.isKnownX = false;
-                auto.toggleState = false; //Since we don't know where we are, we cannot run auto
-            }
-            else { //drops down odo
-                drive.dropOdo();
-            }
+            drive.raiseOdo();
 
-            updateAuto();
             double leftStickX = gamepad2.left_stick_x;
             if(Math.abs(leftStickX) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
                 drive.turretOffset -= Math.toRadians(leftStickX) * 0.375;
@@ -379,7 +346,7 @@ public class Teleop extends LinearOpMode {
                 if (hub == 0){
                     m1 = 1;
                 }
-                if (endgame.getToggleState()){
+                if (endgame){
                     m1 *= -1;
                 }
                 left = 0.6 * side * m1;
@@ -418,11 +385,10 @@ public class Teleop extends LinearOpMode {
         }
     }
     public void updateEndgame(){
-        if (endgame.getToggleState()){
+        if (endgame){
             hub = 2;
             //first time
             if (!firstEndgame){
-                odo.toggleState = true;
                 firstEndgame = true;
                 secondHubLevel.toggleState = false;
                 drive.v4barOffset = Math.toRadians(-10);
@@ -436,7 +402,7 @@ public class Teleop extends LinearOpMode {
             drive.intakeLiftDelay = 100;
             if (drive.intakeCase == 2 || drive.slidesCase >= 5) {
                 drive.intake.setPower(drive.intakePower);
-                if (gamepad1.left_trigger >= 0.5 || (!secondGamepadLevel.getToggleState() && gamepad2.y)) {
+                if (gamepad1.left_trigger >= 0.5 || gamepad2.right_bumper) {
                     drive.servos.get(6).setPosition(duckIntakeMaxIn);
                 }
                 else{
@@ -546,85 +512,6 @@ public class Teleop extends LinearOpMode {
             drive.localizer.setPoseEstimate(new Pose2d(24,65.25 * side,Math.toRadians(0)));
         }
     }
-    public void updateAuto(){
-        boolean a = gamepad1.a;
-        auto.update(a);
-        
-        if (roboctopi.getToggleState()){
-            odo.toggleState = true;
-            auto.toggleState = false;
-            hub = 3;
-            firstUpdate = true;
-        }
-        else {
-            if (hub == 3){
-                hub = 1;
-            }
-        }
-
-        if (a){
-            firstUpdate = true;
-            if (!firstAutoUpdate){ // Only updates on first time
-                if (drive.currentPose.getX() < 56){ //checks to see if you actually want to go for the alliance hub instead of the shared hub
-                    hub = 1;
-                }
-                else {
-                    hub = 0;
-                }
-                updateHub();
-            }
-            firstAutoUpdate = true; // after auto has started we will assume that they do not need this anymore
-        }
-        if (auto.toggleState && !done){
-            done = true;
-            drive.updateImuHeading();
-            if (flag == 0) {
-                if (drive.intakeCase == 0) {
-                    drive.startIntake(intake);
-                }
-                if (! (Math.abs(drive.currentPose.getY()) > 72-43.5 && drive.currentPose.getX() > 72-43.5)) { // Don't need to drive into the area if we are already inside
-                    if (hub == 1) {
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 3.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(allianceHubEndpoint.getX() + 6.5, endPoint.getY(), endPoint.getHeading()),1000,false);
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 26.5, endPoint.getY(), endPoint.getHeading()),new Pose2d(72, 48 * side, endPoint.getHeading()),1000,false);
-                    }
-                }
-            }
-            else { //This is for going toward deposit area
-                if (extendSlides.getToggleState()) {
-                    drive.startDeposit(endPoint, hubLocation, height, radius);
-                }
-                if (hub == 1) {
-                    if (Math.abs(drive.clipHeading(drive.currentPose.getHeading())) >= Math.toRadians(45)){
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 32,allianceHubEndpoint.getY() - 10 * side,endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY() - 8 * side,endPoint.getHeading()),1000,false);
-                    }
-                    driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY(),endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 25.5,allianceHubEndpoint.getY(),endPoint.getHeading()),1000,false);
-                    driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 4,allianceHubEndpoint.getY(),allianceHubEndpoint.getHeading()), allianceHubEndpoint,1000,false);
-                    waitForDeposit(allianceHubEndpoint);
-                }
-                if (hub == 0) {
-                    if (Math.abs(drive.clipHeading(drive.currentPose.getHeading() + Math.toRadians(45) * side)) >= Math.toRadians(45)){
-                        driveToPoint(new Pose2d(allianceHubEndpoint.getX() + 32,allianceHubEndpoint.getY() - 10 * side,endPoint.getHeading()), new Pose2d(allianceHubEndpoint.getX() + 28.5,allianceHubEndpoint.getY() - 8 * side,endPoint.getHeading()),1000,false);
-                    }
-                    driveToPoint(new Pose2d(sharedHubEndpoint.getX(),38.5*side,endPoint.getHeading()),new Pose2d(sharedHubEndpoint.getX(),40.5*side,endPoint.getHeading()),1000,true);
-                    driveToPoint(sharedHubEndpoint,1000,true);
-                    waitForDeposit(sharedHubEndpoint);
-                }
-            }
-        }
-        if (drive.intakeCase == 3 && drive.lastIntakeCase == 2){ // Just took in a block
-            flag = 1;
-            done = false;
-        }
-        if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){ // Just finished the deposit
-            flag = 0;
-            done = false;
-            drive.startIntake(intake);
-            if (secondHubLevel.getToggleState()) {
-                drive.v4barOffset = Math.toRadians(40);
-                drive.slidesOffset = -5;
-            }
-        }
-    }
     public void updateHub(){
         switch(hub) {
             case 0:
@@ -643,7 +530,6 @@ public class Teleop extends LinearOpMode {
                     }
                     drive.slidesOffset = 0;
                     drive.v4barOffset = 0;
-                    odo.toggleState = false;
                 }
                 intake = side == 1;
                 height = 2;
@@ -680,7 +566,6 @@ public class Teleop extends LinearOpMode {
                     drive.turretOffset = 0;
                     drive.slidesOffset = 0;
                     drive.v4barOffset = 0;
-                    odo.toggleState = false;
                 }
                 firstAlliance = false;
                 break;
@@ -729,167 +614,5 @@ public class Teleop extends LinearOpMode {
                 }
             }
         }
-    }
-    public void driveToPoint(Pose2d target, long maxTime, boolean shared){
-        driveToPoint(target,target,maxTime,shared);
-    }
-    public void driveToPoint(Pose2d target, Pose2d target2, long maxTime, boolean shared){
-        double error = 4;
-        double power = 0.85;
-        double slowDownDist = 10;
-        boolean hugWall = true;
-        double maxPowerTurn = 0.35;
-        double slowTurnAngle = Math.toRadians(15);
-        double m = 1;
-        if (shared){
-            m = -1;
-        }
-        drive.targetPose = target;
-        drive.targetRadius = error;
-        long start = System.currentTimeMillis();
-        double sideError = 0.4;
-        drive.update();
-        boolean x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
-        boolean y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-        while (auto.getToggleState() && opModeIsActive() && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(5)) && System.currentTimeMillis() - start < maxTime){
-            auto.update(gamepad1.a);
-            updateHub();
-            if (gamepad1.b){ //Stops everything and makes turret face forward
-                drive.slidesCase = 0;
-                drive.intakeCase = 0;
-                drive.currentIntake = 0;
-                drive.transferMineral = false;
-                auto.toggleState = false;
-                firstUpdate = false;
-            }
-            extendSlides.update(gamepad2.b);
-            if (gamepad2.right_bumper){
-                drive.startDeposit(endPoint, hubLocation, height, radius);
-            }
-            drive.update();
-            x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
-            y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
-            Pose2d relError = drive.getRelError(target);
-            double sideKStatic = 0;
-            if (hugWall){
-                sideKStatic = 0.4 * side * m;
-            }
-            if (x || y){
-                if (Math.abs(relError.getY()) < sideError && hugWall) {
-                    sideKStatic =  0.25 * side * m;
-                    double heading = relError.getHeading();
-                    if (Math.abs(relError.getY()) < sideError / 2.0){
-                        sideKStatic = 0.1 * side * m;
-                        heading = 0;
-                    }
-                    relError = new Pose2d(relError.getX(), 0, heading);
-                }
-            }
-            drive.updateMotors(relError,power,maxPowerTurn,slowDownDist,slowTurnAngle,0.5,sideError,sideKStatic);
-
-            if (drive.intakeCase == 3 && drive.lastIntakeCase == 2){ // Just took in a block
-                flag = 1;
-                done = false;
-            }
-            if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){ // Just finished the deposit
-                flag = 0;
-                done = false;
-            }
-        }
-        drive.targetPose = null;
-        drive.targetRadius = 1;
-        drive.setMotorPowers(0,0,0,0);
-    }
-
-    public void waitForDeposit(Pose2d target){
-        drive.targetPose = target;
-        drive.targetRadius = 0.25;
-        boolean stop = (
-                gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
-                        Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
-                        gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
-                        gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left
-        );
-        while (flag == 1 && !stop && opModeIsActive()) {
-            stop = (
-                    gamepad1.a || gamepad1.b || gamepad1.x || gamepad1.y ||
-                            Math.abs(gamepad1.left_stick_x) >= 0.5 || Math.abs(gamepad1.left_stick_y) >= 0.5 || Math.abs(gamepad1.right_stick_x) >= 0.5 || Math.abs(gamepad1.right_stick_y) >= 0.5 ||
-                            gamepad1.left_bumper || gamepad1.right_bumper || gamepad1.right_trigger >= 0.5 || gamepad1.left_trigger >= 0.5 ||
-                            gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_right || gamepad1.dpad_left
-            );
-            double leftStickX = gamepad2.left_stick_x;
-            if(Math.abs(leftStickX) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
-                drive.turretOffset -= Math.toRadians(leftStickX) * 0.375;
-                if (drive.targetTurretHeading + drive.turretOffset > Math.toRadians(60.6)){
-                    drive.turretOffset = Math.abs(Math.toRadians(60.6) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
-                }
-                else if (drive.targetTurretHeading + drive.turretOffset < Math.toRadians(-60.6)){
-                    drive.turretOffset = Math.abs(Math.toRadians(-60.6) - drive.targetTurretHeading) * Math.signum(drive.turretOffset);
-                }
-            }
-            double rightStickY = gamepad2.right_stick_y;
-            if(Math.abs(rightStickY) > 0.25) { // Updates the slide length
-                drive.slidesOffset -= rightStickY * 0.2;
-                double maxPossibleSlideExtension = 52;
-                if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
-                    drive.slidesOffset = maxPossibleSlideExtension - drive.targetSlideExtensionLength;
-                }
-                if(drive.targetSlideExtensionLength + drive.slidesOffset < 0){
-                    drive.slidesOffset = -drive.targetSlideExtensionLength;
-                }
-            }
-
-            if (gamepad2.right_bumper){
-                drive.startDeposit(endPoint, hubLocation, height, radius);
-            }
-            if (gamepad2.right_trigger >= 0.5){//Makes it deposit
-                //firstUpdate = true;
-                drive.deposit();
-                //Updates the target location for auto movement upon deposit
-                if (auto.getToggleState()) {
-                    if (hub == 1) {
-                        allianceHubEndpoint = new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), drive.currentPose.getHeading());
-                    }
-                    if (hub == 0) {
-                        sharedHubEndpoint = new Pose2d(drive.currentPose.getX(), drive.currentPose.getY(), drive.currentPose.getHeading());
-                    }
-                }
-            }
-
-            updateHub();
-
-            extendSlides.update(gamepad2.b);
-
-            if (gamepad2.left_bumper){ //1.2
-                drive.v4barOffset -= Math.toRadians(2);
-            }
-            if (gamepad2.left_trigger >= 0.5){
-                drive.v4barOffset += Math.toRadians(2);
-            }
-
-            if (gamepad2.a){
-                if (!secondHubLevel.getToggleState()) {
-                    drive.v4barOffset = Math.toRadians(-10);
-                    drive.slidesOffset = 0;
-                }
-                else {
-                    drive.v4barOffset = Math.toRadians(10);
-                    drive.slidesOffset = -10;
-                }
-                drive.turretOffset = 0;
-            }
-            drive.update();
-            Pose2d error = drive.getRelError(target);
-            if (Math.abs(error.getY()) <= 0.5){
-                error = new Pose2d(error.getX(), 0, 0);
-            }
-            drive.updateMotors(error, 0.35, 0.25,5, Math.toRadians(8), 0.25, 0.5, 0);
-            if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){ // Just finished the deposit
-                flag = 0;
-                done = false;
-            }
-        }
-        drive.targetPose = null;
-        drive.targetRadius = 1;
     }
 }
