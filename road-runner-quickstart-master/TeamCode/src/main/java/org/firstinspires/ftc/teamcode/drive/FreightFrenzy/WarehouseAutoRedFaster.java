@@ -182,11 +182,13 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         b.close();
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
-        double angle = 0;
+        double angle = Math.toRadians(-12) * Math.signum(endPoint.getY()) * (numMinerals % 3);//0;
+        /*
         switch (numMinerals % 4){
             case 1: angle = Math.toRadians(-12) * Math.signum(endPoint.getY()); break;
             case 3: angle = Math.toRadians(-24) * Math.signum(endPoint.getY()); break;
         }
+         */
         double x = lastIntakeX;
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
@@ -198,13 +200,13 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         driveToPoint(
                 new Pose2d(x - 4 + 12 * (1 - Math.cos(angle)), endPoint.getY(), 0),
                 new Pose2d(72, 24 * side, angle),
-                true, 3.5, 0.5, 500, 4, true, cutoff
+                true, 3.5, 0.75, 500, 4, true, cutoff
         );
         if (angle != 0) {
             driveToPoint(
                     new Pose2d(x + 12 * (1 - Math.cos(angle)), y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.475, 600, 4, false, cutoff
+                    true, 2.5, 0.5, 600, 4, false, cutoff
             );
         }
         else {
@@ -215,7 +217,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             driveToPoint(
                     new Pose2d(x + k, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.475, 600, 4, true, cutoff
+                    true, 2.5, 0.5, 600, 4, true, cutoff
             );
         }
         intakeMineral(0.325,2000);
@@ -284,7 +286,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             if (Math.abs(error.getY()) <= 0.5){
                 error = new Pose2d(error.getX(), 0, 0);
             }
-            drive.updateMotors(error, 0.45, 0.25,5, Math.toRadians(8), 0.25, 0.5, 0.1 * side); //0.2 -> 0.1
+            drive.updateMotors(error, 0.20, 0.25,9, Math.toRadians(8), 0.25, 0.5, 0.1 * side); //0.2 -> 0.1
         }
         drive.targetPose = null;
         drive.targetRadius = 1;

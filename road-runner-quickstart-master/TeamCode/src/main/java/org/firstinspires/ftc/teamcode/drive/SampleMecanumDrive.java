@@ -495,7 +495,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateMotors(Pose2d relError, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error, double sideError, double sideKStatic){
-        double kStatic = 0.15; //TODO: was 0.08
+        double kStatic = 0.11; //TODO: was 0.15
         double powerAdjust = power-kStatic;
         double turnAdjust = maxPowerTurn-kStatic;
         double sideAdjust = Math.min(0.4,power)-kStatic;
@@ -761,7 +761,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
                 break;  // waiting for the servo to go up && slides to be back 200 before
             case 4: if (Math.abs(turretHeading - intakeTurretInterfaceHeading*currentIntake) <= Math.toRadians(5)){intakeCase ++;}break;//wait for the slides to be in the correct orientation
-            case 5: if (targetV4barAngle == currentV4barAngle && Math.abs(slideExtensionLength - returnSlideLength) < 0.5){intakeCase ++;}break;
+            case 5: if (Math.abs(targetV4barAngle - currentV4barAngle) < Math.toRadians(5) && Math.abs(slideExtensionLength - returnSlideLength) < 0.75){intakeCase ++;}break; //TODO: Was == && 0.5
             case 6: if (System.currentTimeMillis() - intakeTime >= 80 && (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer1Time)){intakeCase ++;}break; // && System.currentTimeMillis() - intakeTime >= transfer1Time/3.0
             case 7: if (System.currentTimeMillis() - intakeTime >= 80 && (intakeDepositTransfer || System.currentTimeMillis() - intakeTime >= transfer2Time)){intakeCase ++;currentDepositAngle = depositInterfaceAngle;}break;
         }
@@ -856,7 +856,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                         }
                         else{
                             setSlidesLength(returnSlideLength, 0.6);
-                            if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 1){
+                            if (slidesCase == 8 && Math.abs(slideExtensionLength - returnSlideLength) <= 2){
                                 slidesCase ++;
                             }
                         }
@@ -943,7 +943,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
             }
             else if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // the target is less than the current by 0.5 we slowly extend it back
-                kStatic = -0.1;
+                kStatic = -0.15;
                 slidesI = 0;
                 p /= 2.0;
             }
@@ -954,7 +954,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             }
         }
         else if (targetSlidesPose - slideExtensionLength < -3){ // We are more than 3 away so we go backward slowly
-            kStatic = -0.1;
+            kStatic = -0.3;
             slidesI = 0;
             p /= 2.0; // making it go back slower
         }
