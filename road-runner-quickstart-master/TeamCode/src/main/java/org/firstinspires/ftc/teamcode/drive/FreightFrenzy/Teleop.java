@@ -458,6 +458,7 @@ public class Teleop extends LinearOpMode {
     }
     public void updateEndgame(){
         if (endgame){
+            barrier.toggleState = false;
             hub = 2;
             //first time
             if (!firstEndgame){
@@ -568,6 +569,7 @@ public class Teleop extends LinearOpMode {
         if (gamepad1.dpad_up) {
             firstUpdate = true;
             hub = 0;
+            barrier.toggleState = false;
             drive.localizer.setPoseEstimate(new Pose2d(65.25,24 * side,Math.toRadians(90)*side));
         }
         if (gamepad1.dpad_down){
