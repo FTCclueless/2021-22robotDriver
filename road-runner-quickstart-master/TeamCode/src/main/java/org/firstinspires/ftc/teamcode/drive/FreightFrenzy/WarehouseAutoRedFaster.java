@@ -200,13 +200,13 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         driveToPoint(
                 new Pose2d(x - 4 + 12 * (1 - Math.cos(angle)), endPoint.getY(), 0),
                 new Pose2d(72, 24 * side, angle),
-                true, 3.5, 0.75, 500, 4, true, cutoff
+                true, 3.5, 0.85, 500, 4, true, cutoff
         );
         if (angle != 0) {
             driveToPoint(
                     new Pose2d(x + 12 * (1 - Math.cos(angle)), y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.5, 600, 4, false, cutoff
+                    true, 2.5, 0.45, 600, 4, false, cutoff
             );
         }
         else {
@@ -217,7 +217,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             driveToPoint(
                     new Pose2d(x + k, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.5, 600, 4, true, cutoff
+                    true, 2.5, 0.45, 600, 4, true, cutoff
             );
         }
         intakeMineral(0.325,2000);
@@ -235,8 +235,8 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         drive.effectiveDepositAngle = Math.toRadians(-45); //-30
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(
-                new Pose2d(38.5, newEnd.getY() + side * 0.3, 0),
-                new Pose2d(33.5, newEnd.getY() + side * 0.3, 0),
+                new Pose2d(38.5, newEnd.getY() + side * 0.2, 0),
+                new Pose2d(33.5, newEnd.getY() + side * 0.2, 0),
                 false,3, 0.75,500,4,true, cutoff
         );
         driveToPoint(
@@ -322,10 +322,10 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             }
             if (x || y){
                 if (Math.abs(relError.getY()) < sideError && hugWall) {
-                    sideKStatic = 0.35 * side;
+                    sideKStatic = 0.25 * side;
                     double heading = relError.getHeading();
-                    if (Math.abs(relError.getY()) < sideError / 2.0 && Math.abs(drive.relCurrentVelocity.getY()) < 4){
-                        sideKStatic = 0.1; // 0
+                    if (Math.abs(relError.getY()) < sideError && Math.abs(drive.relCurrentVelocity.getY()) < 4){
+                        sideKStatic = 0.05; // 0
                         heading = 0;
                     }
                     relError = new Pose2d(relError.getX(), 0, heading);

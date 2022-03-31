@@ -58,7 +58,7 @@ public class Teleop extends LinearOpMode {
     boolean endgame = false;
     ButtonToggle extendSlides = new ButtonToggle();
     ButtonToggle secondHubLevel = new ButtonToggle();
-    ButtonToggle roboctopi = new ButtonToggle();
+    ButtonToggle barrier = new ButtonToggle();
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
@@ -199,20 +199,31 @@ public class Teleop extends LinearOpMode {
                 .addStep(1.0, 0.0, 500)
                 .build();
 
+        boolean barrierStart = false;
+
         while (!isStopRequested()) {
             updateEndgame();
 
-            roboctopi.update(gamepad1.y);
+            barrier.update(gamepad1.y);
 
-            if (roboctopi.getToggleState()){
+            if (barrier.getToggleState()){
                 hub = 3;
                 firstUpdate = true;
                 extendSlides.toggleState = false;
+                secondHubLevel.toggleState = false;
+                if (barrierStart) {
+                    barrierStart = false;
+                    if (drive.slidesCase == 1 && !drive.transferMineral) {
+                        drive.slidesCase = 0;
+                    }
+                }
             }
             else {
                 if (hub == 3){
                     hub = 1;
+                    extendSlides.toggleState = true;
                 }
+                barrierStart = true;
             }
 
             //Reset the offsets
@@ -246,23 +257,32 @@ public class Teleop extends LinearOpMode {
             //Slide extension code
             if (extendSlides.getToggleState()) {
                 drive.startDeposit(endPoint, hubLocation, height, radius);
+                if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){
+                    drive.startIntake(intake);
+                }
             }
             else{
                 drive.startSlides = false;
             }
             if (gamepad2.b){
-                if (System.currentTimeMillis() - startB >= 1000 && firstB){
-                    firstB = false;
-                    extendSlides.toggleState = ! extendSlides.getToggleState();
-                }
                 drive.startDeposit(endPoint, hubLocation, height, radius);
+                drive.update();
+                if (System.currentTimeMillis() - startB >= 1000){
+                    if (drive.slidesCase == 1 && !drive.transferMineral){
+                        drive.slidesCase = 0;
+                    }
+                    if (firstB){
+                        firstB = false;
+                        extendSlides.toggleState = ! extendSlides.getToggleState();
+                    }
+                }
             }
             else{
                 startB = System.currentTimeMillis();
                 firstB = true;
+                drive.update();
             }
 
-            drive.update();
 
             if (gamepad1.b){ //Stops everything and makes turret face forward
                 drive.slidesCase = 0;
@@ -293,6 +313,11 @@ public class Teleop extends LinearOpMode {
             boolean rightTrigger = gamepad2.right_trigger >= 0.5;
             if (rightTrigger && !lastRightTrigger){//Makes it deposit
                 drive.deposit();
+                if (secondHubLevel.getToggleState()){
+                    drive.v4barOffset = Math.toRadians(40);
+                    drive.slidesOffset = -5;
+                    drive.turretOffset = 0;
+                }
             }
             lastRightTrigger = rightTrigger;
 
@@ -343,7 +368,7 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad1.left_bumper){
                 double m1 = -1;
-                if (hub == 0){
+                if (hub == 0 || hub == 3){
                     m1 = 1;
                 }
                 if (endgame){
