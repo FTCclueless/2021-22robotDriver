@@ -282,6 +282,53 @@ public class Teleop extends LinearOpMode {
                 firstB = true;
                 drive.update();
             }
+            //Duck Stuff
+            if (hub == 0 || hub == 2){
+                if (drive.intakeCase == 1) { //We are using the intake but just dropping it
+                    if (!duckOut && System.currentTimeMillis() - duckWaitTime >= 150) { //75; 380 is the max number
+                        drive.servos.get(6).setPosition(duckOutPos);
+                        if (System.currentTimeMillis() - duckWaitTime >= 300) {
+                            duckOut = true; //It has officially come out
+                        }
+                    }
+                    else if (duckOut){ // If it is already out then we can put it to the correct position
+                        if (hub == 0) {
+                            drive.servos.get(6).setPosition(duckOutPos - 0.2 * side);
+                        }
+                        else {
+                            drive.servos.get(6).setPosition(duckIntakeReceivingOut);
+                        }
+                    }
+                }
+                else {
+                    duckWaitTime = System.currentTimeMillis(); //Timer from when we start dropping the intake
+                }
+                if (duckOut && drive.intakeCase >= 3){ //raising intake for transfer and duck is out
+                    drive.servos.get(6).setPosition(duckOutPos); //Need the duck to be out to not interfere with transfer
+                }
+                else if (duckOut && endgame){
+                    if (gamepad1.left_trigger >= 0.5 || gamepad2.right_bumper) {
+                        drive.servos.get(6).setPosition(duckIntakeMaxIn);
+                    }
+                    else{
+                        drive.servos.get(6).setPosition(duckIntakeReceiving);
+                    }
+                }
+            }
+            else if (hub == 1 || hub == 3) { //This makes the duck servo come back in
+                if (duckOut && System.currentTimeMillis() - duckFixTime >= 500) { // Stops the process after the robot has successfully pulled everything up
+                    duckOut = false; //have successfully returned it
+                    drive.intakeCase = 0;
+                } else if (duckOut) {
+                    drive.servos.get(6).setPosition(duckInPos); //moves it in
+                    if (side == 1) { //drops the correct intake down so the servo can move in
+                        drive.servos.get(0).setPosition(drive.rightIntakeDrop);
+                    }
+                    else {
+                        drive.servos.get(1).setPosition(drive.leftIntakeDrop);
+                    }
+                }
+            }
 
 
             if (gamepad1.b){ //Stops everything and makes turret face forward
@@ -425,18 +472,11 @@ public class Teleop extends LinearOpMode {
             drive.transfer1Time = 200;
             drive.transfer2Time = 250;
             drive.intakeLiftDelay = 100;
+            /*
             if (drive.intakeCase == 2 || drive.slidesCase >= 5) {
                 drive.intake.setPower(drive.intakePower);
-                if (gamepad1.left_trigger >= 0.5 || gamepad2.right_bumper) {
-                    drive.servos.get(6).setPosition(duckIntakeMaxIn);
-                }
-                else{
-                    drive.servos.get(6).setPosition(duckIntakeReceiving);
-                }
             }
-            else if (duckOut){
-                drive.servos.get(6).setPosition(duckIntakeReceivingOut);
-            }
+             */
             if (gamepad1.dpad_left){
                 drive.duckSpin.setPower(-duckSpinSpeed * side);
                 drive.duckSpin2.setPower(-duckSpinSpeed * side);
@@ -452,7 +492,6 @@ public class Teleop extends LinearOpMode {
                 else {
                     drive.servos.get(1).setPosition(drive.leftIntakeDrop);
                 }
-                drive.servos.get(6).setPosition(duckIntakeReceiving);
             }
         }
         else{
@@ -605,39 +644,6 @@ public class Teleop extends LinearOpMode {
                     drive.currentIntake = side;
                 }
                 break;
-        }
-        if (hub == 0 || hub == 2){
-            if (drive.intakeCase == 1) {
-                duckOut = true;
-                if (System.currentTimeMillis() - duckWaitTime >= 75) {
-                    if (hub == 0) {
-                        drive.servos.get(6).setPosition(duckOutPos - 0.2 * side);
-                    }
-                    else {
-                        drive.servos.get(6).setPosition(duckIntakeReceivingOut);
-                    }
-                }
-            }
-            else {
-                duckWaitTime = System.currentTimeMillis();
-            }
-            if (drive.intakeCase >= 3 || drive.intakeCase == 0 && duckOut){
-                drive.servos.get(6).setPosition(duckOutPos);
-            }
-        }
-        if (hub == 1 || hub == 3) {
-            if (duckOut && System.currentTimeMillis() - duckFixTime >= 500) {
-                duckOut = false;
-                drive.intakeCase = 0;
-            } else if (duckOut) {
-                drive.servos.get(6).setPosition(duckInPos);
-                if (side == 1) {
-                    drive.servos.get(0).setPosition(drive.rightIntakeDrop);
-                }
-                if (side == -1) {
-                    drive.servos.get(1).setPosition(drive.leftIntakeDrop);
-                }
-            }
         }
     }
 }
