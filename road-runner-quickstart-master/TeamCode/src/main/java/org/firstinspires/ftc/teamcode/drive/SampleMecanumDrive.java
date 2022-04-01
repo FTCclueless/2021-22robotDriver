@@ -725,6 +725,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 case 8:
                     Log.e("transferTime" , (System.currentTimeMillis() - transferTime) + "");
                     intake.setPower(0); transferMineral = true; intakeDepositTransfer = false;
+                    setDepositAngle(Math.toRadians(135));
                     break; // turn off the intake
             }
             intakeTime = System.currentTimeMillis();
@@ -892,7 +893,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         double angle = targetDepositAngle - currentV4barAngle;
         double targetPos = angle * 0.215820468 + 0.5;
         targetPos = Math.min(Math.max(targetPos,0.29),1.0);
-        Log.e("targetAngle", targetPos + "");
         servos.get(2).setPosition(targetPos);
     }
 

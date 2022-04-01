@@ -206,7 +206,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             driveToPoint(
                     new Pose2d(x + 12 * (1 - Math.cos(angle)), y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.45, 600, 4, false, cutoff
+                    true, 2.5, 0.45, 600, 6, false, cutoff //4
             );
         }
         else {

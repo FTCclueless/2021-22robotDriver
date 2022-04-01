@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
 import android.util.Log;
+import android.widget.ToggleButton;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -59,6 +60,7 @@ public class Teleop extends LinearOpMode {
     ButtonToggle extendSlides = new ButtonToggle();
     ButtonToggle secondHubLevel = new ButtonToggle();
     ButtonToggle barrier = new ButtonToggle();
+    ButtonToggle a = new ButtonToggle();
 
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
@@ -211,11 +213,15 @@ public class Teleop extends LinearOpMode {
                 firstUpdate = true;
                 extendSlides.toggleState = false;
                 secondHubLevel.toggleState = false;
+                a.update(gamepad1.a);
                 if (barrierStart) {
                     barrierStart = false;
                     if (drive.slidesCase == 1 && !drive.transferMineral) {
                         drive.slidesCase = 0;
                     }
+                    drive.v4barOffset = Math.toRadians(-10);
+                    drive.slidesOffset = 0;
+                    drive.turretOffset = 0;
                 }
             }
             else {
@@ -283,7 +289,7 @@ public class Teleop extends LinearOpMode {
                 drive.update();
             }
             //Duck Stuff
-            if (hub == 0 || hub == 2){
+            if (intake != (side == -1)){//We are using the intake that has the duck flipper on it # hub == 0 || hub == 2
                 if (drive.intakeCase == 1) { //We are using the intake but just dropping it
                     if (!duckOut && System.currentTimeMillis() - duckWaitTime >= 150) { //75; 380 is the max number
                         drive.servos.get(6).setPosition(duckOutPos);
@@ -292,34 +298,47 @@ public class Teleop extends LinearOpMode {
                         }
                     }
                     else if (duckOut){ // If it is already out then we can put it to the correct position
-                        if (hub == 0) {
-                            drive.servos.get(6).setPosition(duckOutPos - 0.2 * side);
+                        if (hub == 2) {
+                            drive.servos.get(6).setPosition(duckIntakeReceivingOut);
                         }
                         else {
-                            drive.servos.get(6).setPosition(duckIntakeReceivingOut);
+                            drive.servos.get(6).setPosition(duckOutPos - 0.2 * side);
                         }
                     }
                 }
                 else {
                     duckWaitTime = System.currentTimeMillis(); //Timer from when we start dropping the intake
                 }
-                if (duckOut && drive.intakeCase >= 3){ //raising intake for transfer and duck is out
-                    drive.servos.get(6).setPosition(duckOutPos); //Need the duck to be out to not interfere with transfer
-                }
-                else if (duckOut && endgame){
-                    if (gamepad1.left_trigger >= 0.5 || gamepad2.right_bumper) {
-                        drive.servos.get(6).setPosition(duckIntakeMaxIn);
+                if (duckOut) {
+                    if (drive.intakeCase == 0){
+                        drive.servos.get(6).setPosition(duckOutPos);
                     }
-                    else{
-                        drive.servos.get(6).setPosition(duckIntakeReceiving);
+                    else if (drive.intakeCase == 8){
+                        if (endgame){
+                            drive.servos.get(6).setPosition(duckIntakeReceiving);
+                        }
+                        else{
+                            drive.servos.get(6).setPosition(duckOutPos);
+                        }
+                    }
+                    else if (drive.intakeCase >= 3) { //raising intake for transfer and duck is out
+                        drive.servos.get(6).setPosition(duckOutPos); //Need the duck to be out to not interfere with transfer
+                    } else if (endgame) {
+                        if (gamepad1.left_trigger >= 0.5 || gamepad2.right_bumper) {
+                            drive.servos.get(6).setPosition(duckIntakeMaxIn);
+                        } else {
+                            drive.servos.get(6).setPosition(duckIntakeReceiving);
+                        }
                     }
                 }
+                duckFixTime = System.currentTimeMillis();
             }
-            else if (hub == 1 || hub == 3) { //This makes the duck servo come back in
+            else { //This makes the duck servo come back in # if (hub == 1 || hub == 3)
                 if (duckOut && System.currentTimeMillis() - duckFixTime >= 500) { // Stops the process after the robot has successfully pulled everything up
                     duckOut = false; //have successfully returned it
                     drive.intakeCase = 0;
                 } else if (duckOut) {
+                    drive.intakeCase = -1;
                     drive.servos.get(6).setPosition(duckInPos); //moves it in
                     if (side == 1) { //drops the correct intake down so the servo can move in
                         drive.servos.get(0).setPosition(drive.rightIntakeDrop);
@@ -360,7 +379,14 @@ public class Teleop extends LinearOpMode {
             boolean rightTrigger = gamepad2.right_trigger >= 0.5;
             if (rightTrigger && !lastRightTrigger){//Makes it deposit
                 drive.deposit();
-                if (secondHubLevel.getToggleState()){
+            }
+            if (drive.slidesCase == 6 && drive.lastSlidesCase == 5){
+                if (barrier.getToggleState()){
+                    drive.v4barOffset = Math.toRadians(-10);
+                    drive.slidesOffset = 0;
+                    drive.turretOffset = 0;
+                }
+                else if (secondHubLevel.getToggleState()){
                     drive.v4barOffset = Math.toRadians(40);
                     drive.slidesOffset = -5;
                     drive.turretOffset = 0;
@@ -463,6 +489,7 @@ public class Teleop extends LinearOpMode {
             //first time
             if (!firstEndgame){
                 firstEndgame = true;
+                extendSlides.toggleState = true;
                 secondHubLevel.toggleState = false;
                 drive.v4barOffset = Math.toRadians(-10);
                 drive.slidesOffset = 0;
@@ -614,7 +641,7 @@ public class Teleop extends LinearOpMode {
                 height = 14;
                 hubLocation = new Pose2d(-12.0, 24.0*side);
 
-                intake = (side == -1) ^ (hub == 2); //side == -1
+                intake = (side == -1) ^ (hub == 2);
                 if (firstUpdate) {
                     double a = side;
                     if (hub == 2){
@@ -624,10 +651,6 @@ public class Teleop extends LinearOpMode {
                 }
                 if (firstAlliance) {
                     drive.intakeCase = 0;
-                    if (hub == 1 && duckOut){
-                        drive.intakeCase = -1;
-                        duckFixTime = System.currentTimeMillis();
-                    }
                     Log.e("Activate", "Alliance");
                     drive.turretOffset = 0;
                     drive.slidesOffset = 0;
@@ -642,8 +665,18 @@ public class Teleop extends LinearOpMode {
                 height = 10;
                 firstShared = true;
                 firstAlliance = true;
+
+                intake = side == -1;
+                if (a.getToggleState()){
+                    intake = !intake;
+                }
+
                 if (firstUpdate) {
-                    drive.currentIntake = side;
+                    double m1 = 1;
+                    if (a.getToggleState()){
+                        m1 = -1;
+                    }
+                    drive.currentIntake = side * m1;
                 }
                 break;
         }
