@@ -46,7 +46,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
     double lastIntakeX = 39; //42
 
     long start = System.currentTimeMillis();
-    long cutoff = 3000;
+    long cutoff = 2000;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -189,7 +189,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             case 3: angle = Math.toRadians(-24) * Math.signum(endPoint.getY()); break;
         }
          */
-        double x = lastIntakeX;
+        double x = lastIntakeX - 2; // 0
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         driveToPoint(
@@ -200,13 +200,13 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         driveToPoint(
                 new Pose2d(x - 4 + 12 * (1 - Math.cos(angle)), endPoint.getY(), 0),
                 new Pose2d(72, 24 * side, angle),
-                true, 3.5, 0.85, 500, 4, true, cutoff
+                true, 3.5, 0.85, 500, 6, true, cutoff //4
         );
         if (angle != 0) {
             driveToPoint(
                     new Pose2d(x + 12 * (1 - Math.cos(angle)), y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.45, 600, 6, false, cutoff //4
+                    true, 2.5, 0.4, 600, 6, false, cutoff //0.45, 4
             );
         }
         else {

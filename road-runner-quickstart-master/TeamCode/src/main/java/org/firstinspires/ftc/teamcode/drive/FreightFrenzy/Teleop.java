@@ -203,6 +203,8 @@ public class Teleop extends LinearOpMode {
 
         boolean barrierStart = false;
 
+        boolean lowShared = false;
+
         while (!isStopRequested()) {
             updateEndgame();
 
@@ -210,6 +212,9 @@ public class Teleop extends LinearOpMode {
 
             if (barrier.getToggleState()){
                 hub = 3;
+                if (drive.intakeCase == 8 && drive.slidesCase == 0){
+                    drive.setTurretTarget(0);
+                }
                 firstUpdate = true;
                 extendSlides.toggleState = false;
                 secondHubLevel.toggleState = false;
@@ -234,30 +239,38 @@ public class Teleop extends LinearOpMode {
 
             //Reset the offsets
             if (gamepad2.a) {
-                if (!secondHubLevel.getToggleState()) {
-                    drive.v4barOffset = Math.toRadians(-10);
+                if (hub == 0){
+                    lowShared = false;
+                    drive.v4barOffset = Math.toRadians(-156);
                     drive.slidesOffset = 0;
+                    drive.turretOffset = Math.toRadians(-3) * side;
                 }
                 else {
-                    drive.v4barOffset = Math.toRadians(40);
-                    drive.slidesOffset = -5;
+                    if (!secondHubLevel.getToggleState()) {
+                        drive.v4barOffset = Math.toRadians(-10);
+                        drive.slidesOffset = 0;
+                    } else {
+                        drive.v4barOffset = Math.toRadians(40);
+                        drive.slidesOffset = -5;
+                    }
+                    drive.turretOffset = 0;
                 }
-                drive.turretOffset = 0;
             }
             //Start Endgame
             endgame = endgame || gamepad2.right_bumper;
             //Switch hub levels
             boolean y = gamepad2.y;
             secondHubLevel.update(y);
-            if (y && !lastY && secondHubLevel.getToggleState()){
-                drive.v4barOffset = Math.toRadians(40);
-                drive.slidesOffset = -5;
-                drive.turretOffset = 0;
-            }
-            else if (!y && lastY && !secondHubLevel.getToggleState()){
-                drive.v4barOffset = Math.toRadians(-10);
-                drive.slidesOffset = 0;
-                drive.turretOffset = 0;
+            if (hub != 0) {
+                if (y && !lastY && secondHubLevel.getToggleState()) {
+                    drive.v4barOffset = Math.toRadians(40);
+                    drive.slidesOffset = -5;
+                    drive.turretOffset = 0;
+                } else if (!y && lastY && !secondHubLevel.getToggleState()) {
+                    drive.v4barOffset = Math.toRadians(-10);
+                    drive.slidesOffset = 0;
+                    drive.turretOffset = 0;
+                }
             }
             lastY = y;
             //Slide extension code
@@ -376,12 +389,26 @@ public class Teleop extends LinearOpMode {
                 }
             }
             lastIntake = currentIntake;
+
+            if (gamepad2.x && !lowShared){
+                lowShared = true;
+                drive.v4barOffset = 0;
+                drive.slidesOffset = 0;
+                drive.turretOffset = Math.toRadians(-3) * side;
+            }
+
             boolean rightTrigger = gamepad2.right_trigger >= 0.5;
             if (rightTrigger && !lastRightTrigger){//Makes it deposit
                 drive.deposit();
             }
             if (drive.slidesCase == 6 && drive.lastSlidesCase == 5){
-                if (barrier.getToggleState()){
+                if (hub == 0 && lowShared){
+                    lowShared = false;
+                    drive.v4barOffset = Math.toRadians(-156);
+                    drive.slidesOffset = 0;
+                    drive.turretOffset = Math.toRadians(-3) * side;
+                }
+                else if (barrier.getToggleState()){
                     drive.v4barOffset = Math.toRadians(-10);
                     drive.slidesOffset = 0;
                     drive.turretOffset = 0;
@@ -606,6 +633,12 @@ public class Teleop extends LinearOpMode {
         }
     }
     public void updateHub(){
+        if (hub == 0){
+            drive.effectiveDepositAngle = Math.toRadians(-75);
+        }
+        else{
+            drive.effectiveDepositAngle = Math.toRadians(-45);
+        }
         switch(hub) {
             case 0:
                 firstAlliance = true;
@@ -616,13 +649,9 @@ public class Teleop extends LinearOpMode {
                 }
                 if (firstShared) {
                     Log.e("Activate", "Shared");
-                    if (side == -1) {
-                        drive.turretOffset = Math.toRadians(3);
-                    } else {
-                        drive.turretOffset = -Math.toRadians(3);
-                    }
+                    drive.turretOffset = Math.toRadians(-3) * side;
                     drive.slidesOffset = 0;
-                    drive.v4barOffset = 0;
+                    drive.v4barOffset = Math.toRadians(-156);
                 }
                 intake = side == 1;
                 height = 2;
