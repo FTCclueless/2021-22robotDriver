@@ -208,6 +208,13 @@ public class Teleop extends LinearOpMode {
         while (!isStopRequested()) {
             updateEndgame();
 
+            if (endgame || barrier.getToggleState()){
+                drive.raiseOdo();
+            }
+            else {
+                drive.dropOdo();
+            }
+
             barrier.update(gamepad1.y);
 
             if (barrier.getToggleState()){
@@ -425,7 +432,6 @@ public class Teleop extends LinearOpMode {
             updatePoseLock();
             updateHub();
 
-            drive.raiseOdo();
 
             double leftStickX = gamepad2.left_stick_x;
             if(Math.abs(leftStickX) > 0.15) { // Updates the turret & forces it to not have too high of a target angle that it would be impossible to reach
