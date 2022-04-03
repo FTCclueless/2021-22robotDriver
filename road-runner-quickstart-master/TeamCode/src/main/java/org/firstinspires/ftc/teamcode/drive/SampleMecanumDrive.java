@@ -89,7 +89,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public AnalogInput rightIntake, leftIntake, depositSensor, distLeft, distRight, magLeft, magRight;
     public CRServo duckSpin, duckSpin2;
     public ColorSensor leftWall, rightWall; //color,
-    public BNO055IMU imu;
+    public BNO055IMU imu, imu2;
     public ArrayList<Servo> servos;
     private final VoltageSensor batteryVoltageSensor;
 
@@ -156,10 +156,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     public int transfer2Time = 350;
     public double transfer1Power = 1.0;
     public double transfer2Power = 0.78;
-    public int openDepositTime = 400;
+    public int openDepositTime = 250; //400
     public int intakeLiftDelay = 100;
     public int effectiveDepositTime = openDepositTime;
-    public double returnSlideLength = 0.75; //1
+    public double returnSlideLength = 0.35; //0.75
     double turretI = 0;
 
     public double slideExtensionLength = 0;
@@ -189,8 +189,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     double tI = tF * 0.01;
     double tD = 0;
     double tPP = 15;
-
-    public static double intakeLightCriticalValue = 1.5;
 
     public double leftIntakeDrop;
     public double leftIntakeRaise;
@@ -266,9 +264,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu2 = hardwareMap.get(BNO055IMU.class, "imu2");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
+        imu2.initialize(parameters);
 
         //color = hardwareMap.colorSensor.get("cs");
         leftWall = hardwareMap.colorSensor.get("leftWall");
@@ -501,7 +501,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         double sideAdjust = Math.min(0.4,power)-kStatic;
         double forward = ((Math.pow(Math.min(Math.abs(relError.getX())/slowDownDist,1.0),3)/2.0 + 0.5) * powerAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getX()) - error/2.0),0) * Math.signum(relError.getX());
         double left = ((Math.pow(Math.min(Math.abs(relError.getY())/slowDownDist,1.0),3)/2.0 + 0.5) * sideAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getY()) - sideError/2.0),0) * Math.signum(relError.getY()) + sideKStatic;
-        double turn = (Math.min(Math.abs(relError.getHeading())/slowTurnAngle,1.0) * turnAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(5)),0) * Math.signum(relError.getHeading());
+        double turn = ((Math.pow(Math.min(Math.abs(relError.getHeading())/slowTurnAngle,1.0),3)/2.0 + 0.5) * turnAdjust + kStatic) * Math.max(Math.signum(Math.abs(relError.getHeading()) - Math.toRadians(5)),0) * Math.signum(relError.getHeading());
         double [] p = new double[4];
         p[0] = forward-left-turn;
         p[1] = forward+left-turn;
@@ -821,10 +821,10 @@ public class SampleMecanumDrive extends MecanumDrive {
                         }
                         setDepositAngle(currentDepositAngle);
                     }
-                    if (slidesCase == 1 && ((Math.abs(slideExtensionLength - 4) <= 3.5 && (currentV4barAngle >= Math.min(Math.toRadians(130),t))) || targetSlideExtensionLength + slidesOffset >= 10)){slidesCase ++;}
-                    if (slidesCase == 2 && ((Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(7.5) && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 3 && targetV4barOrientation + v4barOffset - Math.toRadians(10) == currentV4barAngle)) || System.currentTimeMillis() - slideTime >= 700)){slidesCase ++;} // was 5 (now 7.5)
-                    if (slidesCase == 3 && (System.currentTimeMillis() - slideTime >= 100 && Math.abs(currentSlidesSpeed) <= 5) && deposit){slidesCase ++; currentDepositAngle += Math.toRadians(20);setDepositAngle(Math.toRadians(180) - effectiveDepositAngle);updateDepositAngle();}
-                    break;
+                    if (slidesCase == 1 && ((Math.abs(slideExtensionLength - 4) <= 3.5 && (currentV4barAngle >= Math.min(Math.toRadians(130),t))) || targetSlideExtensionLength + slidesOffset >= 10)){slidesCase ++;} // vvvvv 3
+                    else if (slidesCase == 2 && ((Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(7.5) && (Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 5 && Math.abs(targetV4barOrientation + v4barOffset - Math.toRadians(10) - currentV4barAngle) <= Math.toRadians(15))) || System.currentTimeMillis() - slideTime >= 400)){slidesCase ++;} // was 5 (now 7.5)
+                    else if (slidesCase == 3 && (System.currentTimeMillis() - slideTime >= 25 && Math.abs(currentSlidesSpeed) <= 10) && deposit){slidesCase ++; currentDepositAngle += Math.toRadians(20);setDepositAngle(Math.toRadians(180) - effectiveDepositAngle);updateDepositAngle();}
+                    break; //5
                 case 4:
                     double depoAngle = Math.toRadians(180) - effectiveDepositAngle;
                     currentDepositAngle += Math.signum(depoAngle - currentDepositAngle) * (depoAngle - depositTransferAngle) / (0.1) * loopSpeed;
@@ -945,7 +945,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                 }
             }
             else if (currentTargetSlidesPose - slideExtensionLength <= -0.5) { // the target is less than the current by 0.5 we slowly extend it back
-                kStatic = -0.15;
+                kStatic = -0.15 - (1.0/currentTargetSlidesPose) * 0.07;
                 slidesI = 0;
                 p /= 2.0;
             }
@@ -1024,7 +1024,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         if ( loops % 100 == 0){
-            updateImuAngle();
+            //updateImuAngle();
+            updateImuHeading();
         }
 
         loopSpeed = (currentTime - lastLoopTime)/1000000000.0;
@@ -1082,8 +1083,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("slides Power", slidesPower);
         packet.put("mag Left", magValLeft);
         packet.put("mag Right", magValRight);
-        packet.put("dist Left",distValLeft);
-        packet.put("dist Right",distValRight);
+        //packet.put("IMU1",imu.getAngularOrientation().firstAngle);
+        //packet.put("IMU2",imu2.getAngularOrientation().firstAngle);
+        //packet.put("dist Left",distValLeft);
+        //packet.put("dist Right",distValRight);
         packet.put("target Slide Length 1", currentTargetSlidesPose);
         packet.put("target Slide Length", targetSlidesPose);
 

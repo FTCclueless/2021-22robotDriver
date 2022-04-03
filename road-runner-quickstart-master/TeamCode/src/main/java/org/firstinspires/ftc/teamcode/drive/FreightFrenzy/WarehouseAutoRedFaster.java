@@ -189,7 +189,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             case 3: angle = Math.toRadians(-24) * Math.signum(endPoint.getY()); break;
         }
          */
-        double x = lastIntakeX - 2; // 0
+        double x = lastIntakeX - 2; // -4
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         driveToPoint(
@@ -220,7 +220,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
                     true, 2.5, 0.45, 600, 4, true, cutoff
             );
         }
-        intakeMineral(0.325,2000);
+        intakeMineral(0.385,2000); //0.325
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
@@ -286,13 +286,13 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             if (Math.abs(error.getY()) <= 0.5){
                 error = new Pose2d(error.getX(), 0, 0);
             }
-            drive.updateMotors(error, 0.20, 0.25,9, Math.toRadians(8), 0.25, 0.5, 0.1 * side); //0.2 -> 0.1
+            drive.updateMotors(error, 0.18, 0.25,14, Math.toRadians(8), 0.25, 0.5, 0.1 * side); //13 //0.2 -> 0.1
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
     }
     public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall, long cutoff){
-        double maxPowerTurn = 0.35;
+        double maxPowerTurn = 0.55; //0.35
         double slowTurnAngle = Math.toRadians(15);
         drive.targetPose = target;
         drive.targetRadius = error;
