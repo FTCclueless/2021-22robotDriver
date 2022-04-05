@@ -205,6 +205,8 @@ public class Teleop extends LinearOpMode {
 
         boolean lowShared = false;
 
+        long sharedStartTime = System.currentTimeMillis();
+
         while (!isStopRequested()) {
             updateEndgame();
 
@@ -248,8 +250,8 @@ public class Teleop extends LinearOpMode {
             if (gamepad2.a) {
                 if (hub == 0){
                     lowShared = false;
-                    drive.v4barOffset = Math.toRadians(-156);
-                    drive.slidesOffset = 0;
+                    drive.v4barOffset = Math.toRadians(-196); //-166
+                    drive.slidesOffset = 2;
                     drive.turretOffset = Math.toRadians(-3) * side;
                 }
                 else {
@@ -406,14 +408,28 @@ public class Teleop extends LinearOpMode {
 
             boolean rightTrigger = gamepad2.right_trigger >= 0.5;
             if (rightTrigger && !lastRightTrigger){//Makes it deposit
+                if (hub == 0 && !lowShared){
+                    drive.effectiveDepositTime = 600;
+                    sharedStartTime = System.currentTimeMillis();
+                }
+                else {
+                    drive.effectiveDepositTime = 250;
+                }
                 drive.deposit();
+            }
+            if (System.currentTimeMillis() - sharedStartTime >= 200 && !lowShared && drive.slidesCase == 4 && hub == 0){
+                drive.v4barOffset = Math.toRadians(-166); //156
             }
             if (drive.slidesCase == 6 && drive.lastSlidesCase == 5){
                 if (hub == 0 && lowShared){
                     lowShared = false;
-                    drive.v4barOffset = Math.toRadians(-156);
-                    drive.slidesOffset = 0;
+                    drive.v4barOffset = Math.toRadians(-196); //-166
+                    drive.slidesOffset = 2;
                     drive.turretOffset = Math.toRadians(-3) * side;
+                }
+                else if (hub == 0){
+                    lowShared = false;
+                    drive.v4barOffset = Math.toRadians(-196); //-166
                 }
                 else if (barrier.getToggleState()){
                     drive.v4barOffset = Math.toRadians(-10);
@@ -656,8 +672,8 @@ public class Teleop extends LinearOpMode {
                 if (firstShared) {
                     Log.e("Activate", "Shared");
                     drive.turretOffset = Math.toRadians(-3) * side;
-                    drive.slidesOffset = 0;
-                    drive.v4barOffset = Math.toRadians(-156);
+                    drive.slidesOffset = 2;
+                    drive.v4barOffset = Math.toRadians(-196); //-166
                 }
                 intake = side == 1;
                 height = 2;
