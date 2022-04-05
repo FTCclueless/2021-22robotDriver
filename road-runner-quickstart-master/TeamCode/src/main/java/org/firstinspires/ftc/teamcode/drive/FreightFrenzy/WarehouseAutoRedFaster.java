@@ -200,14 +200,14 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         driveToPoint(
                 new Pose2d(x - 4, endPoint.getY(), 0),
                 new Pose2d(72, 24 * side, angle),
-                true, 3.5, 0.75, 500, 5, true, cutoff //0.85 6
+                true, 3.5, 0.70, 700, 5, true, cutoff //0.65 6
         );
-        //0.4, 3
+        //0.45, 5
         if (angle != 0) {
             driveToPoint(
                     new Pose2d(x, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.45, 400, 5, false, cutoff
+                    true, 2.5, 0.35, 800, 7, false, cutoff
             );
         }
         else {
@@ -218,7 +218,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             driveToPoint(
                     new Pose2d(x + k, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.45, 400, 5, true, cutoff
+                    true, 2.5, 0.35, 800, 7, true, cutoff
             );
         }
         long start = System.currentTimeMillis();
@@ -235,7 +235,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
     }
     public void driveOut(Pose2d endPoint){
         double i = -1;
-        double offset = -2;
+        double offset = 0; //-2
         drive.v4barOffset = Math.toRadians(0); drive.slidesOffset = 2; drive.turretOffset = 0; // -4
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.effectiveDepositAngle = Math.toRadians(-45); //-30
@@ -243,11 +243,11 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         driveToPoint(
                 new Pose2d(38.5, newEnd.getY() + side * 0.2, 0),
                 new Pose2d(33.5, newEnd.getY() + side * 0.2, 0),
-                false,3, 0.75,500,4,true, cutoff
+                false,3, 0.85,500,4,true, cutoff //0.75
         );
         driveToPoint(
                 new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.2 * side, 0),
-                false,4, 0.95,1000,6, true, cutoff //10
+                false,4, 0.85,1000,10, true, cutoff //0.95, 10
         );
         waitForDeposit(newEnd);
     }

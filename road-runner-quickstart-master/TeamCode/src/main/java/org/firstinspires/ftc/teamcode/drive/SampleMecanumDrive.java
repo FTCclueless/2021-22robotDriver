@@ -226,6 +226,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     int numRightIntake = 0;
     int numLeftIntake = 0;
 
+    double leftColorSensor = 0;
+    double rightColorSensor = 0;
+
     public SampleMecanumDrive(HardwareMap hardwareMap){
         this(hardwareMap, false, false,false);
     }
@@ -1146,6 +1149,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("leftIntake", leftIntakeVal);
         packet.put("rightIntake", rightIntakeVal);
 
+        packet.put("leftColorSensorVal", leftColorSensor);
+        packet.put("rightColorSensorVal", rightColorSensor);
+
         packet.put("loop speed", loopSpeed);
 
         if (rightIntakeVal >= intakeMinValRight || leftIntakeVal >= intakeMinValLeft) {
@@ -1388,11 +1394,13 @@ public class SampleMecanumDrive extends MecanumDrive {
         double detectionDist = 6.75;
         double extraOffset = 5.0;
         double maxDetectionLocation = 72.0 - detectionDist - extraOffset;
-        if ((currentTime - lastTouchPoll >= 100 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
-            boolean leftSensor = leftWall.argb()/1000000.0 >= 200;
-            boolean rightSensor = rightWall.argb()/1000000.0 >= 200;
+        if ((currentTime - lastTouchPoll >= 50 && (Math.abs(currentPose.getX()) > maxDetectionLocation || Math.abs(currentPose.getY()) > maxDetectionLocation)) || !isKnownY || !isKnownX) {
+            leftColorSensor = leftWall.argb()/1000000.0;
+            rightColorSensor = rightWall.argb()/1000000.0;
+            boolean leftSensor = leftColorSensor >= 200;
+            boolean rightSensor = rightColorSensor >= 200;
             double heading = clipHeading(currentPose.getHeading());
-            if (leftSensor ^ rightSensor) { // this is XOR it means that this or this but not both this and this
+            if (leftSensor || rightSensor) { // was ^ now || this is XOR it means that this or this but not both this and this
                 double angleOffset = 15;
                 boolean forward = Math.abs(heading) < Math.toRadians(angleOffset);
                 boolean backward = Math.abs(heading) > Math.toRadians(180 - angleOffset);
