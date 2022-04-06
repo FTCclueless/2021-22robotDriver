@@ -102,8 +102,8 @@ public class Teleop extends LinearOpMode {
 
     ElapsedTime runtime = new ElapsedTime();
 
-    boolean startDuck = false;
-    long startDuckTime = System.currentTimeMillis();
+    int cap = 0;
+    boolean lastCap = false;
 
     boolean lastY = false;
 
@@ -329,6 +329,9 @@ public class Teleop extends LinearOpMode {
                     }
                 }
                 else {
+                    if (!duckOut){
+                        drive.intakeCase = 0;
+                    }
                     duckWaitTime = System.currentTimeMillis(); //Timer from when we start dropping the intake
                 }
                 if (duckOut) {
@@ -693,6 +696,48 @@ public class Teleop extends LinearOpMode {
                 hubLocation = new Pose2d(-12.0, 24.0*side);
 
                 intake = (side == -1) ^ (hub == 2);
+
+                boolean x = gamepad2.x;
+                if (x && !lastCap && endgame){
+                    cap ++;
+                }
+                lastCap = x;
+
+                if (cap > 0){
+                    drive.slidesCase = 3;
+                    drive.transferMineral = true;
+                    double h = 0;
+                    switch (cap){
+                        case 1:
+                            hubLocation = new Pose2d(-72.0, 23.0*side);
+                            radius = 1;
+                            height = 6; //Micheal thinks this is about 5
+                            break;
+                        case 2:
+                            hubLocation = new Pose2d(-20.0, 65.25*side);
+                            radius = 1;
+                            height = 10;
+                            h = Math.toRadians(180);
+                            break;
+                        case 3:
+                        case 4:
+                            hubLocation = new Pose2d(-12.0, 24*side);
+                            radius = 1;
+                            if (cap == 4){
+                                radius = 6;
+                            }
+                            height = 14;
+                            h = Math.toRadians(180);
+                            break;
+                        case 5:
+                            drive.slidesCase = 5;
+                            cap = 0;
+                            break;
+                    }
+                    endPoint = new Pose2d(-44, 65.25 * side, h);
+                    drive.startDeposit(endPoint,hubLocation,height,radius);
+                }
+
                 if (firstUpdate) {
                     double a = side;
                     if (hub == 2){
@@ -711,7 +756,7 @@ public class Teleop extends LinearOpMode {
                 break;
             case 3:
                 endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
-                hubLocation = new Pose2d(-12, 65.25*side);
+                hubLocation = new Pose2d(-12, 65.25 * side);
                 radius = 3;
                 height = 10;
                 firstShared = true;

@@ -812,7 +812,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                             setV4barOrientation(Math.min(Math.toRadians(137.1980907721663),t));
                         } else if (l < 10) {
                             setSlidesLength(targetSlideExtensionLength + slidesOffset, Math.max((slidePower - 0.65),0.05) + Math.pow((targetSlideExtensionLength + slidesOffset - slideExtensionLength) / 10.0,2) * 0.25);//o.35
-                            if (Math.abs(currentSlidesSpeed) >= 10 && targetV4barOrientation + v4barOffset >= Math.toRadians(180) && currentV4barAngle != targetV4barOrientation + v4barOffset - Math.toRadians(10)){
+                            if (targetV4barOrientation + v4barOffset >= Math.toRadians(180) && (Math.abs(currentSlidesSpeed) >= 10 || Math.abs(currentV4barAngle - (targetV4barOrientation + v4barOffset - Math.toRadians(10))) >= Math.toRadians(5))){
                                 setV4barOrientation(Math.min(Math.toRadians(137.1980907721663),t));
                             }
                             else{
@@ -1190,7 +1190,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         updateScoring();
         updateIMU = false;
 
-        if (loops % 10 == 0){
+        if (loops % 50 == 25){
             voltage = getBatteryVoltage();
         }
         if (voltage >= 12.75){

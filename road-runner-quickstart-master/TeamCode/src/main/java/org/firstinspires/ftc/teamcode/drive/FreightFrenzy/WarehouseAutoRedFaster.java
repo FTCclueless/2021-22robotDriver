@@ -189,7 +189,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             case 3: angle = Math.toRadians(-24) * Math.signum(endPoint.getY()); break;
         }
          */
-        double x =  3 + lastIntakeX - 12 * (1 - Math.cos(angle)); // -2
+        double x =  -2 + lastIntakeX - 12 * (1 - Math.cos(angle)); // 3
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         drive.startIntake(side == -1);
         driveToPoint(
