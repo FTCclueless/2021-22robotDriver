@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.Reader;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -54,7 +55,6 @@ public class Teleop extends LinearOpMode {
 
     boolean duck = false;
     int flag = 0;
-
 
     boolean endgame = false;
     ButtonToggle extendSlides = new ButtonToggle();
@@ -117,6 +117,9 @@ public class Teleop extends LinearOpMode {
     long startB = System.currentTimeMillis();
     boolean firstB = false;
 
+    RevBlinkinLedDriver blinkinLedDriver;
+    RevBlinkinLedDriver.BlinkinPattern pattern;
+
     //TODO: Make sure the duck servo is working properly & make sure the defence button works
     @Override
     public void runOpMode() throws InterruptedException {
@@ -129,6 +132,9 @@ public class Teleop extends LinearOpMode {
         drive.servos.get(5).setPosition(armInPosRight);
 
         drive.v4barOffset = Math.toRadians(-10);
+
+        drive.pattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+        robot.revBlinkinLedDriver.setPattern(drive.pattern);
 
         Reader r = new Reader();
         String info = r.readFile("Alliance");
@@ -393,6 +399,10 @@ public class Teleop extends LinearOpMode {
                     drive.servos.get(0).setPosition(drive.rightIntakeRaise);
                     drive.servos.get(1).setPosition(drive.leftIntakeRaise);
                 }
+                else if (drive.intakeCase == 3) {
+                    drive.pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+                    drive.revBlinkinLedDriver.setPattern(drive.pattern);
+                }
                 else{ //If you are not canceling the intake, then buffer an intake
                     drive.startIntake(intake);
                 }
@@ -461,7 +471,7 @@ public class Teleop extends LinearOpMode {
             }
 
             double rightStickY = gamepad2.right_stick_y;
-            if(Math.abs(rightStickY) > 0.25) { // Updates the slide length
+            if(Math.abs(rightStickY) > 0.15) { // Updates the slide length
                 drive.slidesOffset -= rightStickY * 0.2;
                 double maxPossibleSlideExtension = 52;
                 if(drive.targetSlideExtensionLength + drive.slidesOffset > maxPossibleSlideExtension) {
