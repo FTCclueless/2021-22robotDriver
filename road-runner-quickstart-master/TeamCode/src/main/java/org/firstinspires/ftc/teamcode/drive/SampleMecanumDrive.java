@@ -59,6 +59,7 @@ import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
 import org.openftc.revextensions2.RevBulkData;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -290,6 +291,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         turret = (ExpansionHubMotor) hardwareMap.dcMotor.get("turret");
         slides = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides");
         slides2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides2");
+
+        // rev blinkin driver
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
+        pattern = RevBlinkinLedDriver.BlinkinPattern.SHOT_WHITE;
+        blinkinLedDriver.setPattern(pattern);
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
@@ -716,6 +722,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     setSlidesLength(returnSlideLength);
                     setDepositAngle(depositInterfaceAngle);
                     setV4barOrientation(v4barInterfaceAngle);
+                    
                     break;
                 case 6:
                     Log.e("liftTime" , (System.currentTimeMillis() - transferTime) + "");
