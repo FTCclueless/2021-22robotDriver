@@ -117,9 +117,6 @@ public class Teleop extends LinearOpMode {
     long startB = System.currentTimeMillis();
     boolean firstB = false;
 
-    RevBlinkinLedDriver blinkinLedDriver;
-    RevBlinkinLedDriver.BlinkinPattern pattern;
-
     //TODO: Make sure the duck servo is working properly & make sure the defence button works
     @Override
     public void runOpMode() throws InterruptedException {
@@ -133,8 +130,8 @@ public class Teleop extends LinearOpMode {
 
         drive.v4barOffset = Math.toRadians(-10);
 
-        drive.pattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
-        robot.revBlinkinLedDriver.setPattern(drive.pattern);
+        //drive.pattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+        //drive.blinkinLedDriver.setPattern(drive.pattern);
 
         Reader r = new Reader();
         String info = r.readFile("Alliance");
@@ -289,7 +286,7 @@ public class Teleop extends LinearOpMode {
             }
             lastY = y;
             //Slide extension code
-            if (extendSlides.getToggleState()) {
+            if (extendSlides.getToggleState() && cap == 0) {
                 drive.startDeposit(endPoint, hubLocation, height, radius);
                 if (drive.slidesCase == 5 && drive.lastSlidesCase == 4){
                     drive.startIntake(intake);
@@ -403,8 +400,8 @@ public class Teleop extends LinearOpMode {
                     drive.servos.get(1).setPosition(drive.leftIntakeRaise);
                 }
                 else if (drive.intakeCase == 3) {
-                    drive.pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
-                    drive.revBlinkinLedDriver.setPattern(drive.pattern);
+                    //drive.pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+                    //drive.blinkinLedDriver.setPattern(drive.pattern);
                 }
                 else{ //If you are not canceling the intake, then buffer an intake
                     drive.startIntake(intake);
@@ -719,14 +716,16 @@ public class Teleop extends LinearOpMode {
                     double h = 0;
                     switch (cap){
                         case 1:
-                            hubLocation = new Pose2d(-72.0, 23.0*side);
+                            hubLocation = new Pose2d(-60.0, 35.25*side);
                             radius = 1;
                             height = 6; //Micheal thinks this is about 5
+                            drive.v4barOffset = Math.toRadians(56);
                             break;
                         case 2:
                             hubLocation = new Pose2d(-20.0, 65.25*side);
                             radius = 1;
                             height = 10;
+                            drive.v4barOffset = Math.toRadians(0);
                             h = Math.toRadians(180);
                             break;
                         case 3:

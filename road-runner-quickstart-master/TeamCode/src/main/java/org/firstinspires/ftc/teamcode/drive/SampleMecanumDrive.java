@@ -89,6 +89,10 @@ public class SampleMecanumDrive extends MecanumDrive {
     public ExpansionHubMotor leftFront, leftRear, rightRear, rightFront, intake, turret, slides, slides2;
     public AnalogInput rightIntake, leftIntake, depositSensor, distLeft, distRight, magLeft, magRight;
     public CRServo duckSpin, duckSpin2;
+
+    public RevBlinkinLedDriver blinkinLedDriver;
+    public RevBlinkinLedDriver.BlinkinPattern pattern;
+
     public ColorSensor leftWall, rightWall; //color,
     public BNO055IMU imu, imu2;
     public ArrayList<Servo> servos;
@@ -293,9 +297,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides2");
 
         // rev blinkin driver
-        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
-        pattern = RevBlinkinLedDriver.BlinkinPattern.SHOT_WHITE;
-        blinkinLedDriver.setPattern(pattern);
+        //blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
+        //pattern = RevBlinkinLedDriver.BlinkinPattern.SHOT_WHITE;
+        //blinkinLedDriver.setPattern(pattern);
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
@@ -819,8 +823,8 @@ public class SampleMecanumDrive extends MecanumDrive {
                             setV4barOrientation(Math.min(Math.toRadians(137.1980907721663),t));
                         } else if (l < 10) {
                             setSlidesLength(targetSlideExtensionLength + slidesOffset, Math.max((slidePower - 0.65),0.05) + Math.pow((targetSlideExtensionLength + slidesOffset - slideExtensionLength) / 10.0,2) * 0.25);//o.35
-                            if (targetV4barOrientation + v4barOffset >= Math.toRadians(180) && (Math.abs(currentSlidesSpeed) >= 10 || Math.abs(currentV4barAngle - (targetV4barOrientation + v4barOffset - Math.toRadians(10))) >= Math.toRadians(5))){
-                                setV4barOrientation(Math.min(Math.toRadians(137.1980907721663),t));
+                            if (targetV4barOrientation + v4barOffset >= Math.toRadians(180) && Math.abs(currentSlidesSpeed) >= 10 && Math.abs(currentV4barAngle - (targetV4barOrientation + v4barOffset - Math.toRadians(10))) >= Math.toRadians(5)){
+                                setV4barOrientation(Math.min(Math.toRadians(137.1980907721663),t)); //targetV4barOrientation + v4barOffset >= Math.toRadians(180) &&
                             }
                             else{
                                 setV4barOrientation(t);
