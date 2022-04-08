@@ -92,6 +92,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public RevBlinkinLedDriver blinkinLedDriver;
     public RevBlinkinLedDriver.BlinkinPattern pattern;
+    public RevBlinkinLedDriver.BlinkinPattern yellowPattern;
+    public RevBlinkinLedDriver.BlinkinPattern redPattern;
 
     public ColorSensor leftWall, rightWall; //color,
     public BNO055IMU imu, imu2;
@@ -297,9 +299,11 @@ public class SampleMecanumDrive extends MecanumDrive {
         slides2 = (ExpansionHubMotor) hardwareMap.dcMotor.get("slides2");
 
         // rev blinkin driver
-        //blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
-        //pattern = RevBlinkinLedDriver.BlinkinPattern.SHOT_WHITE;
-        //blinkinLedDriver.setPattern(pattern);
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
+        yellowPattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+        redPattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+        pattern = yellowPattern;
+        blinkinLedDriver.setPattern(pattern);
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
@@ -1166,12 +1170,15 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("loop speed", loopSpeed);
 
         if (rightIntakeVal >= intakeMinValRight || leftIntakeVal >= intakeMinValLeft) {
-            expansionHub1.setLedColor(35, 74, 51);
-            expansionHub2.setLedColor(35, 74, 51);
+            pattern = redPattern;
         }
         else {
-            expansionHub1.setLedColor(255, 0, 0);
-            expansionHub2.setLedColor(255, 0, 0);
+            pattern = yellowPattern;
+            blinkinLedDriver.setPattern(pattern);
+        }
+
+        if(pattern != yellowPattern) {
+            blinkinLedDriver.setPattern(pattern);
         }
 
         fieldOverlay.setStroke("#3F51B5");
@@ -1647,5 +1654,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         return new TrajectoryBuilder(startPose, startHeading, VEL_CONSTRAINT, ACCEL_CONSTRAINT);
     }
 
-    public Pose2d getLastError() {return trajectorySequenceRunner.getLastPoseError();}
+    public Pose2d getLastError() {
+        return trajectorySequenceRunner.getLastPoseError();
+    }
+
 }
