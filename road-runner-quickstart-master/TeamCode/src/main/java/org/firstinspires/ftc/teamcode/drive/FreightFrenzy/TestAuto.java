@@ -5,45 +5,19 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.drive.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-
-import java.util.ArrayList;
 
 /*
  * This is an example of a more complex path to really test the tuning.
  */
 @Autonomous(group = "Auto")
-public class WarehouseAutoRedFaster extends LinearOpMode {
+public class TestAuto extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = -1;
 
-    /* START CAMERA PARAMETERS */
-    OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
-
-    // Lens intrinsics (UNITS ARE PIXELS). Calibration for C270 webcam at 640x480
-    double fx = 822.317;
-    double fy = 822.317;
-    double cx = 319.495;
-    double cy = 242.502;
-
-    // UNITS ARE METERS
-    double tagsize = 0.0762;    //0.166
-
-    int ID_TAG_OF_INTEREST = 17; // Tag ID 17 from the 36h11 family
-    AprilTagDetection tagOfInterest = null;
-    AprilTagDetection previousTag = null;
-    int previousTagCounter = 0;
-    /* END CAMERA PARAMETERS */
-
-    double lastIntakeX = 39; //42
+    double lastIntakeX = 36; //39
 
     long start = System.currentTimeMillis();
     long cutoff = 2000;
@@ -52,7 +26,6 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         drive = new SampleMecanumDrive(hardwareMap);
 
-        drive.resetAssemblies();
         Pose2d startingPose = new Pose2d(12,65.25 * side,0);
         Pose2d endPoint = new Pose2d(12,65.125 * side,0);
 
@@ -64,84 +37,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
         drive.updateSlideLength = false;
 
-        /* START CAMERA INITIALIZATION */
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        sleep(1000);
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-        camera.setPipeline(aprilTagDetectionPipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() { camera.startStreaming(640,480, OpenCvCameraRotation.UPRIGHT); }
-
-            @Override
-            public void onError(int errorCode) {
-
-            }
-        });
-        /* END CAMERA INITIALIZATION */
-
-        setUp(startingPose);
-
-        Logger a = new Logger("Alliance",false);
-        String l = "red";
-        a.addData(l);
-        a.update();
-        a.close();
-
-        // The INIT-loop: This REPLACES waitForStart()!
-        boolean seenMarker = false;
-        while (!isStarted() && !isStopRequested()) {
-            //Detecting AprilTags
-            tagOfInterest = null;
-            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
-            for(AprilTagDetection tag : currentDetections) {
-                if(tag.id == ID_TAG_OF_INTEREST) {
-                    tagOfInterest = tag;
-                    previousTag = tag;
-                    previousTagCounter = 0;
-                    seenMarker = true;
-                    break;
-                }
-            }
-            if (previousTagCounter > 25) {  //If a tag was detected within the last 25 frames, count it
-                previousTag = null;
-            }
-            previousTagCounter++;
-
-            if (previousTag != null){
-                if (previousTag.pose.x  > 0) {
-                    telemetry.addLine("Top Level \n");
-                    capNum = 2;
-                }
-                else {
-                    telemetry.addLine("Center Level \n");
-                    capNum = 1;
-                }
-            }
-            else {
-                if (seenMarker) {
-                    telemetry.addLine("Low Level \n");
-                    capNum = 0;
-                }
-                else {
-                    telemetry.addLine("Never Saw Capstone . . . High Level \n");
-                    capNum = 2;
-                }
-            }
-
-            if (tagOfInterest != null) {
-                telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
-                tagToTelemetry(tagOfInterest);
-            }
-            else if (previousTag != null) {
-                telemetry.addLine("Tag of interest sighted in the last few frames.\n\nLocation data:");
-                tagToTelemetry(previousTag);
-            }
-            else {
-                telemetry.addLine("No Tag.");
-            }
-            telemetry.update();
+        while (!isStarted() && !isStopRequested()){
             drive.update();
         }
 
@@ -182,61 +78,47 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         b.close();
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
-        double angle = Math.toRadians(-12) * Math.signum(endPoint.getY()) * (numMinerals % 3);//0;
-        /*
-        switch (numMinerals % 4){
-            case 1: angle = Math.toRadians(-12) * Math.signum(endPoint.getY()); break;
-            case 3: angle = Math.toRadians(-24) * Math.signum(endPoint.getY()); break;
-        }
-         */
+        drive.startIntake(side == -1);
+        double angle = Math.toRadians(-15) * Math.signum(endPoint.getY()) * (numMinerals % 3);//-12
         double x =  -2 + lastIntakeX - 12 * (1 - Math.cos(angle)); // 3
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
-        if (numMinerals >= 5){
-            angle = Math.toRadians(-25) * Math.signum(endPoint.getY());
-            x = Math.cos(angle) * -12 - Math.abs(Math.sin(angle)) * 5 + 48 + (numMinerals - 4) * 4;
-            y = (58) * Math.signum(endPoint.getY());
-        }
-        drive.startIntake(side == -1);
         driveToPoint(
-                new Pose2d(Math.max(x - 8,30), endPoint.getY(), 0),
+                new Pose2d(x - 6, endPoint.getY(), 0), //8
                 new Pose2d(72, 24 * side, angle),
-                true, 4, 0.95, 900, 4, true,cutoff //6
+                true, 3, 0.95, 900, 5, true, cutoff,true //6
         );
-        driveToPoint(
-                new Pose2d(x - 4, endPoint.getY(), 0),
-                new Pose2d(72, 24 * side, angle),
-                true, 3.5, 0.70, 700, 5, true, cutoff //7 , 5 <= 0.65 6
-        );
-        //0.45, 5
+        //0.35, 7
         if (angle != 0) {
             driveToPoint(
                     new Pose2d(x, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.35, 800, 7, false, cutoff
+                    true, 1.5, 0.35, 800, 1.5, false, cutoff
             );
         }
         else {
-            double k = 4; //5
+            int k = 4; //5
             if (numMinerals == 0){
                 k = 2;
             }
+            intakeMineral(0.5,k * 500, false);
+            /*
             driveToPoint(
                     new Pose2d(x + k, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 2.5, 0.35, 800, 7, true, cutoff
+                    true, 1.5, 0.45, 800, 1.5, false, cutoff,true
             );
+             */
         }
         long start = System.currentTimeMillis();
-        double power = (0.12 + 0.1) * -1;
-        while (System.currentTimeMillis() - start <= 100 && drive.intakeCase == 2 && drive.intakeHit){ //250
+        while (System.currentTimeMillis() - start < 150){
             drive.update();
-            drive.setMotorPowers(power,power,power,power);
+            drive.setMotorPowers(0,0,0,0);
         }
-        intakeMineral(0.405,2000); //0.325
+        intakeMineral(0.405,2000, true);
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
-        lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX);
+        lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX + 2);
         lastIntakeX = Math.min(54.0, lastIntakeX);
     }
     public void driveOut(Pose2d endPoint){
@@ -244,66 +126,34 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         double offset = 0; //-2
         drive.v4barOffset = Math.toRadians(0); drive.slidesOffset = 2; drive.turretOffset = 0; // -4
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
-        drive.effectiveDepositAngle = Math.toRadians(-45); //-30
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(
                 new Pose2d(38.5, newEnd.getY() + side * 0.2, 0),
                 new Pose2d(33.5, newEnd.getY() + side * 0.2, 0),
                 false,3, 0.85,500,4,true, cutoff //0.75
         );
+        drive.deposit();
         driveToPoint(
                 new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.2 * side, 0),
                 false,4, 0.85,1000,10, true, cutoff //0.95, 10
         );
-        waitForDeposit(newEnd);
-    }
-    public void depositFirst(int capNum, Pose2d endPoint){
-        double h = 20;
-        double r = 6;
-        double offset = 0;
-        switch (capNum) {
-            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -2.5; break; //-1.5
-            case 1: r = 7; h = 7.125; offset = -1.5; break;
-            case 2: r = 3; h = 13.5; break;
-        }
-        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
-        waitForDepositSlow(offset);
-        drive.slidesOffset = 0;
-    }
-    public void waitForDepositSlow(double offset){
-        while (drive.slidesCase < 3 && opModeIsActive()){
-            drive.update();
-            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
-            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
-        }
-        while (drive.slidesCase <= 4 && opModeIsActive()) {
-            drive.slidesOffset = offset;
-            drive.deposit();
-            drive.update();
-            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
-            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
-        }
-    }
-    public void waitForDeposit(Pose2d target){
-        drive.targetPose = target;
-        drive.targetRadius = 0.25;
-        while (drive.slidesCase > 4 && opModeIsActive()) {
-            drive.update();
-            drive.startDeposit(target, new Pose2d(-12.0, 24.0 * Math.signum(target.getY())),13.5,3);
-        }
+        //long start = System.currentTimeMillis(); System.currentTimeMillis() - start < 1000
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
-            Pose2d error = drive.getRelError(target);
+            Pose2d error = drive.getRelError(endPoint);
             drive.deposit();
             if (Math.abs(error.getY()) <= 0.5){
                 error = new Pose2d(error.getX(), 0, 0);
             }
-            drive.updateMotors(error, 0.19, 0.25,14, Math.toRadians(8), 0.5, 0.5, 0.1 * side); //13 //0.2 -> 0.1
+            drive.updateMotors(error, 0.30, 0.45,14, Math.toRadians(8), 0.25, 0.5, 0.2 * side); //13 //0.2 -> 0.1
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
     }
-    public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall, long cutoff){
+    public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall, long cutoff) {
+        driveToPoint(target,target2,intake,error,power,maxTime,slowDownDist,hugWall,cutoff, false);
+    }
+    public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall, long cutoff, boolean forward){
         double maxPowerTurn = 0.65; //0.55
         double slowTurnAngle = Math.toRadians(10);//15
         drive.targetPose = target;
@@ -316,24 +166,25 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         double kI = 0;
         while (
                 opModeIsActive() && System.currentTimeMillis() - start <= 30000 - cutoff
-                && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(error * 2))
-                && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime
+                        && (!forward || drive.currentPose.getX() <= target.getX() - error)
+                        && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(error * 2))
+                        && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime
         ) {
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
             y = (Math.max(target.getY(),target2.getY()) + error > drive.currentPose.getY() && Math.min(target.getY(),target2.getY()) - error < drive.currentPose.getY());
             Pose2d relError = drive.getRelError(target);
-            double targetSpeed = power * 30 * Math.pow(Math.min(Math.abs(relError.getX()/slowDownDist),1),2);
+            double targetSpeed = power * 35 * (Math.pow(Math.min(Math.abs(relError.getX()/slowDownDist),1),2) * 0.5 + 0.5);
             double currentSpeed = Math.abs(drive.relCurrentVelocity.getX());
             double speedError = targetSpeed-currentSpeed;
             double kP = speedError * 0.02;
             kI += speedError * drive.loopSpeed * 0.0005;
             double sideKStatic = 0;
-            if (hugWall){
+            if (hugWall && drive.currentPose.getX() <= 40){ //36
                 sideKStatic = 0.4 * side;
             }
             if (x || y){
-                if (Math.abs(relError.getY()) < sideError && hugWall) {
+                if (Math.abs(relError.getY()) < sideError && hugWall && drive.currentPose.getX() <= 36) {
                     sideKStatic = 0.25 * side;
                     double heading = relError.getHeading();
                     if (Math.abs(relError.getY()) < sideError && Math.abs(drive.relCurrentVelocity.getY()) < 4){
@@ -351,7 +202,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
     public void driveToPoint(Pose2d target, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall,long cutoff){
         driveToPoint(target,target,intake,error,power,maxTime,slowDownDist,hugWall,cutoff);
     }
-    public void intakeMineral(double power, long maxTime){
+    public void intakeMineral(double power, long maxTime, boolean goBackIfStall){
         long startingTime = System.currentTimeMillis();
         double maxPower = power;
         Pose2d lastPose = drive.currentPose;
@@ -362,7 +213,7 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
             double currentPower = maxPower;
             drive.intake.setPower(-1);
             double sidePower = 0;
-            if (Math.abs(drive.relCurrentVelocity.getX()) <= 3 || drive.intakeHit){
+            if (System.currentTimeMillis() - start >= 550 && (Math.abs(drive.relCurrentVelocity.getX()) <= 3 || drive.intakeHit) && goBackIfStall){
                 if (first && System.currentTimeMillis() - lastGoodIntake >= 300) {
                     first = false;
                     maxTime += 500;
@@ -391,6 +242,33 @@ public class WarehouseAutoRedFaster extends LinearOpMode {
         drive.update();
         drive.localizer.setPoseEstimate(startingPose);
         drive.update();
+    }
+    public void depositFirst(int capNum, Pose2d endPoint){
+        double h = 20;
+        double r = 6;
+        double offset = 0;
+        switch (capNum) {
+            case 0: r = 9.25; h = 2.5; drive.slidesOffset = -3.75; offset = -2.5; break; //-1.5
+            case 1: r = 7; h = 7.125; offset = -1.5; break;
+            case 2: r = 3; h = 13.5; break;
+        }
+        drive.startDeposit(endPoint, new Pose2d(-12.0, 24.0 * Math.signum(endPoint.getY())),h,r);
+        waitForDepositSlow(offset);
+        drive.slidesOffset = 0;
+    }
+    public void waitForDepositSlow(double offset){
+        while (drive.slidesCase < 3 && opModeIsActive()){
+            drive.update();
+            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
+        }
+        while (drive.slidesCase <= 4 && opModeIsActive()) {
+            drive.slidesOffset = offset;
+            drive.deposit();
+            drive.update();
+            if(drive.currentIntake == 1){drive.servos.get(1).setPosition(drive.leftIntakeDrop);}
+            if(drive.currentIntake == -1){drive.servos.get(0).setPosition(drive.rightIntakeDrop);}
+        }
     }
     void tagToTelemetry(AprilTagDetection detection) {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));

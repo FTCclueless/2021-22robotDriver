@@ -64,6 +64,8 @@ public class ServoTuner extends LinearOpMode {
             telemetry.addData("servoNum", servoIndex);
             telemetry.addData("servoPos", servoPos[servoIndex]);
             telemetry.addData("averageServoTime", totalTime/numLoops);
+            telemetry.addData("left", drive.magLeft.getVoltage());
+            telemetry.addData("right", drive.magRight.getVoltage());
             telemetry.update();
         }
     }

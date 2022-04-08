@@ -75,19 +75,23 @@ public class SensorTest extends LinearOpMode {
 
 
 
-            telemetry.addData("left Wall", val1);
-            telemetry.addData("right Wall", val2);
-            drive.updateImuHeading();
+            //telemetry.addData("left Wall", val1);
+            //telemetry.addData("right Wall", val2);
+            //drive.updateImuHeading();
             telemetry.addData("left Color",drive.leftWall.argb()/1000000.0);
             telemetry.addData("right Color",drive.rightWall.argb()/1000000.0);
-            telemetry.addData("left Intake", drive.leftIntake.getVoltage());
-            telemetry.addData("right Intake", drive.rightIntake.getVoltage());
-            telemetry.addData("depo", drive.depositSensor.getVoltage());
-            telemetry.addData("dist",drive.distLeft.getVoltage());
-            telemetry.addData("a",drive.intakePos);
-            telemetry.addData("rotations",drive.intakePos/ (((1.0+(46.0/11.0)) * 28.0)) * 26.0/19.0);
-            telemetry.addData("mag", drive.magLeft.getVoltage());
-            telemetry.addData("rli", rli);
+            telemetry.addData("right Color blue",drive.rightWall.blue());
+            telemetry.addData("right Color red",drive.rightWall.red());
+            telemetry.addData("right Color green",drive.rightWall.green());
+
+            //telemetry.addData("left Intake", drive.leftIntake.getVoltage());
+            //telemetry.addData("right Intake", drive.rightIntake.getVoltage());
+            //telemetry.addData("depo", drive.depositSensor.getVoltage());
+            //telemetry.addData("dist",drive.distLeft.getVoltage());
+            //telemetry.addData("a",drive.intakePos);
+            //telemetry.addData("rotations",drive.intakePos/ (((1.0+(46.0/11.0)) * 28.0)) * 26.0/19.0);
+            //telemetry.addData("mag", drive.magLeft.getVoltage());
+            //telemetry.addData("rli", rli);
             //telemetry.addData("ReadTime", elapsedTimeRLI);
             //telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);
             telemetry.update();

@@ -115,6 +115,7 @@ public class Teleop extends LinearOpMode {
     long duckWaitTime = System.currentTimeMillis();
 
     long startB = System.currentTimeMillis();
+    long startDepositCap = System.currentTimeMillis();
     boolean firstB = false;
 
     //TODO: Make sure the duck servo is working properly & make sure the defence button works
@@ -548,6 +549,7 @@ public class Teleop extends LinearOpMode {
             //first time
             if (!firstEndgame){
                 firstEndgame = true;
+                firstUpdate = false;
                 extendSlides.toggleState = true;
                 secondHubLevel.toggleState = false;
                 drive.v4barOffset = Math.toRadians(-10);
@@ -555,7 +557,7 @@ public class Teleop extends LinearOpMode {
                 drive.turretOffset = 0;
             }
             drive.servos.get(7).setPosition(0.471);
-            firstUpdate = true;
+            //firstUpdate = true;
             drive.transfer1Time = 200;
             drive.transfer2Time = 250;
             drive.intakeLiftDelay = 100;
@@ -707,40 +709,74 @@ public class Teleop extends LinearOpMode {
                 boolean x = gamepad2.x;
                 if (x && !lastCap && endgame){
                     cap ++;
+                    switch (cap){
+                        case 1:
+                            drive.slidesOffset = 1;
+                            drive.turretOffset = 0;
+                            drive.v4barOffset = Math.toRadians(52); //56
+                            break;
+                        case 2:
+                            drive.slidesOffset = 0;
+                            drive.turretOffset = 0;
+                            drive.v4barOffset = 0;
+                            break;
+                        case 4:
+                            startDepositCap = System.currentTimeMillis();
+                            break;
+                    }
                 }
                 lastCap = x;
 
                 if (cap > 0){
-                    drive.slidesCase = 3;
+                    //drive.slidesCase = 3;
                     drive.transferMineral = true;
                     double h = 0;
+                    drive.setV4barOrientation(drive.targetV4barOrientation + drive.v4barOffset);
+                    drive.setTurretTarget(drive.targetTurretHeading + drive.turretOffset);
+                    drive.setSlidesLength(drive.targetSlideExtensionLength + drive.slidesOffset);
                     switch (cap){
                         case 1:
+                            drive.setDepositAngle(Math.toRadians(180));
+                            drive.slidesCase = -1;
                             hubLocation = new Pose2d(-60.0, 35.25*side);
                             radius = 1;
                             height = 6; //Micheal thinks this is about 5
-                            drive.v4barOffset = Math.toRadians(56);
                             break;
                         case 2:
+                            drive.setDepositAngle(Math.toRadians(90));
+                            drive.slidesCase = -1;
                             hubLocation = new Pose2d(-20.0, 65.25*side);
                             radius = 1;
                             height = 10;
-                            drive.v4barOffset = Math.toRadians(0);
                             h = Math.toRadians(180);
                             break;
                         case 3:
                         case 4:
+                            drive.slidesCase = -1;
                             hubLocation = new Pose2d(-12.0, 24*side);
-                            radius = 1;
+                            radius = 5;
                             if (cap == 4){
-                                radius = 6;
+                                if (System.currentTimeMillis() - startDepositCap >= 1500){
+                                    drive.slidesOffset = 0;
+                                    drive.turretOffset = 0;
+                                    drive.v4barOffset = 0;
+                                    drive.slidesCase = 5;
+                                    cap = 0;
+                                }
+                                else if (System.currentTimeMillis() - startDepositCap >= 250){
+                                    drive.slidesOffset -= 6 * drive.loopSpeed;
+                                    drive.v4barOffset += Math.toRadians(40) * drive.loopSpeed;
+                                    drive.setDepositAngle(Math.toRadians(180 - 45 * (System.currentTimeMillis() - startDepositCap - 500) / 1250.0));
+                                }
+                                else{
+                                    drive.setDepositAngle(Math.toRadians(180));
+                                }
                             }
-                            height = 14;
+                            else {
+                                drive.setDepositAngle(Math.toRadians(115));
+                            }
+                            height = 16; //14
                             h = Math.toRadians(180);
-                            break;
-                        case 5:
-                            drive.slidesCase = 5;
-                            cap = 0;
                             break;
                     }
                     endPoint = new Pose2d(-44, 65.25 * side, h);
