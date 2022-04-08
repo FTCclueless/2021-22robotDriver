@@ -4,6 +4,8 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
@@ -17,7 +19,15 @@ public class SensorTest extends LinearOpMode {
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        //DigitalChannel a = hardwareMap.digitalChannel.get("test");
+        //a.setMode(DigitalChannel.Mode.OUTPUT);
+        //a.setState(true);
+
+        drive.servos.get(0).setPosition(drive.rightIntakeDrop);
+        drive.servos.get(1).setPosition(drive.leftIntakeDrop);
+
         waitForStart();
+        //a.setState(false);
 
         double lockHeadAngle = 0;
         double totalElapsedRLITime = 0;
@@ -46,7 +56,7 @@ public class SensorTest extends LinearOpMode {
             drive.pinMotorPowers(p1, p2, p3, p4);
 
             long startTime = System.nanoTime();
-            int rli = drive.color.alpha();
+            int rli = 0;//drive.color.alpha();
             //Orientation orientation = drive.imu.getAngularOrientation();
             //double angle = drive.imu.getAngularOrientation().secondAngle;
             //double current = drive.rightRear.getCurrentDraw(ExpansionHubEx.CurrentDrawUnits.AMPS);
@@ -62,8 +72,21 @@ public class SensorTest extends LinearOpMode {
             //telemetry.addData("Imu heading", angle);
             //telemetry.addData("currentMotor", current);
             //telemetry.addData("volatage", drive.getBatteryVoltage());
+
+
+
             telemetry.addData("left Wall", val1);
             telemetry.addData("right Wall", val2);
+            drive.updateImuHeading();
+            telemetry.addData("left Color",drive.leftWall.argb()/1000000.0);
+            telemetry.addData("right Color",drive.rightWall.argb()/1000000.0);
+            telemetry.addData("left Intake", drive.leftIntake.getVoltage());
+            telemetry.addData("right Intake", drive.rightIntake.getVoltage());
+            telemetry.addData("depo", drive.depositSensor.getVoltage());
+            telemetry.addData("dist",drive.distLeft.getVoltage());
+            telemetry.addData("a",drive.intakePos);
+            telemetry.addData("rotations",drive.intakePos/ (((1.0+(46.0/11.0)) * 28.0)) * 26.0/19.0);
+            telemetry.addData("mag", drive.magLeft.getVoltage());
             telemetry.addData("rli", rli);
             //telemetry.addData("ReadTime", elapsedTimeRLI);
             //telemetry.addData("Average ReadTime", totalElapsedRLITime/(double)loops);

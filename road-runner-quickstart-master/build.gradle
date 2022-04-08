@@ -10,8 +10,9 @@ configurations {
 
 buildscript {
     repositories {
-        mavenCentral()
         google()
+        mavenCentral()
+        //google()
         jcenter()
     }
     dependencies {
