@@ -1,11 +1,15 @@
 package org.firstinspires.ftc.teamcode.drive.FreightFrenzy;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.openftc.revextensions2.ExpansionHubMotor;
 
+@Config
+@TeleOp(group = "Test Drive")
 public class MecanumTeleOp extends LinearOpMode {
     private ExpansionHubMotor leftFront;
     private ExpansionHubMotor leftRear;
