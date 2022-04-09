@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.drive.ButtonToggle;
 import org.firstinspires.ftc.teamcode.drive.Reader;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -131,9 +130,6 @@ public class Teleop extends LinearOpMode {
 
         drive.v4barOffset = Math.toRadians(-10);
 
-        //drive.pattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
-        //drive.blinkinLedDriver.setPattern(drive.pattern);
-
         Reader r = new Reader();
         String info = r.readFile("Alliance");
 
@@ -182,8 +178,6 @@ public class Teleop extends LinearOpMode {
             duckIntakeReceivingOut = 0.52;
             duckIntakeMaxIn = 0.18;
         }
-
-
 
         drive.servos.get(6).setPosition(duckInPos);
 
@@ -399,10 +393,6 @@ public class Teleop extends LinearOpMode {
                     drive.intakeCase = 0;
                     drive.servos.get(0).setPosition(drive.rightIntakeRaise);
                     drive.servos.get(1).setPosition(drive.leftIntakeRaise);
-                }
-                else if (drive.intakeCase == 3) {
-                    //drive.pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
-                    //drive.blinkinLedDriver.setPattern(drive.pattern);
                 }
                 else{ //If you are not canceling the intake, then buffer an intake
                     drive.startIntake(intake);
