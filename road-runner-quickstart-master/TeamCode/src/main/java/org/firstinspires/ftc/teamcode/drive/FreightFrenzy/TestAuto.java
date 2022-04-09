@@ -50,7 +50,7 @@ public class TestAuto extends LinearOpMode {
         drive.updateSlideLength = true;
         depositFirst(capNum, endPoint);
         int numMinerals = 0;
-        drive.intakeLiftDelay = 50;
+        drive.intakeLiftDelay = 0; //50
         while (System.currentTimeMillis() - start <= 30000 - cutoff - 500 && opModeIsActive()){
             driveIn(endPoint,numMinerals);
             if (System.currentTimeMillis() - start >= 30000 - cutoff){
@@ -100,17 +100,10 @@ public class TestAuto extends LinearOpMode {
             if (numMinerals == 0){
                 k = 2;
             }
-            intakeMineral(0.5,k * 500, false);
-            /*
-            driveToPoint(
-                    new Pose2d(x + k, y, angle),
-                    new Pose2d(72, 24 * side, angle),
-                    true, 1.5, 0.45, 800, 1.5, false, cutoff,true
-            );
-             */
+            intakeMineral(0.5,k * 150, false); //500
         }
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 150){
+        while (System.currentTimeMillis() - start < 150 && drive.intakeCase == 2){
             drive.update();
             drive.setMotorPowers(0,0,0,0);
         }

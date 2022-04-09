@@ -1174,16 +1174,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         packet.put("loop speed", loopSpeed);
 
         if (rightIntakeVal >= intakeMinValRight || leftIntakeVal >= intakeMinValLeft) {
+            if(pattern != redPattern) {
+                blinkinLedDriver.setPattern(redPattern);
+            }
             pattern = redPattern;
         }
         else {
+            if(pattern != yellowPattern) {
+                blinkinLedDriver.setPattern(yellowPattern);
+            }
             pattern = yellowPattern;
-            blinkinLedDriver.setPattern(pattern);
         }
 
-        if(pattern != yellowPattern) {
-            blinkinLedDriver.setPattern(pattern);
-        }
 
         fieldOverlay.setStroke("#3F51B5");
         DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
