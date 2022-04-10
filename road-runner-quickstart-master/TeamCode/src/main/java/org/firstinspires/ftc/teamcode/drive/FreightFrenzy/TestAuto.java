@@ -65,7 +65,7 @@ public class TestAuto extends LinearOpMode {
 
         drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         driveToPoint(new Pose2d(40, endPoint.getY(), 0),new Pose2d(72, 24, 0), false, 1, 0.85, 1000, 13, true,100);
-        drive.setMotorPowers( 0 , 0, 0, 0);
+        drive.setMotorPowers( 0.2, 0.2, 0.2, 0.2);
         drive.slides.setPower(0);
         drive.slides2.setPower(0);
         drive.turret.setPower(0);
@@ -79,7 +79,7 @@ public class TestAuto extends LinearOpMode {
     }
     public void driveIn(Pose2d endPoint, int numMinerals){
         drive.startIntake(side == -1);
-        double angle = Math.toRadians(-15) * Math.signum(endPoint.getY()) * (numMinerals % 3);//-12
+        double angle = Math.toRadians(-13.5) * Math.signum(endPoint.getY()) * (numMinerals % 3);//-12 => -15
         double x =  -2 + lastIntakeX - 12 * (1 - Math.cos(angle)); // 3
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         driveToPoint(
@@ -96,14 +96,14 @@ public class TestAuto extends LinearOpMode {
             );
         }
         else {
-            int k = 4; //5
+            int k = 6; //5 => 4
             if (numMinerals == 0){
                 k = 2;
             }
             intakeMineral(0.5,k * 150, false); //500
         }
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 150 && drive.intakeCase == 2){
+        while (System.currentTimeMillis() - start < 150 && drive.intakeCase == 2){ //250
             drive.update();
             drive.setMotorPowers(0,0,0,0);
         }
@@ -117,7 +117,7 @@ public class TestAuto extends LinearOpMode {
     public void driveOut(Pose2d endPoint){
         double i = -1;
         double offset = 0; //-2
-        drive.v4barOffset = Math.toRadians(0); drive.slidesOffset = 2; drive.turretOffset = 0; // -4
+        drive.v4barOffset = Math.toRadians(-10); drive.slidesOffset = 0; drive.turretOffset = 0; // -4
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(
@@ -138,7 +138,7 @@ public class TestAuto extends LinearOpMode {
             if (Math.abs(error.getY()) <= 0.5){
                 error = new Pose2d(error.getX(), 0, 0);
             }
-            drive.updateMotors(error, 0.30, 0.45,14, Math.toRadians(8), 0.25, 0.5, 0.2 * side); //13 //0.2 -> 0.1
+            drive.updateMotors(error, 0.215, 0.45,14, Math.toRadians(8), 0.35, 0.5, 0.15 * side); //13 //0.2 -> 0.1 //0.25
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
@@ -148,7 +148,7 @@ public class TestAuto extends LinearOpMode {
     }
     public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall, long cutoff, boolean forward){
         double maxPowerTurn = 0.65; //0.55
-        double slowTurnAngle = Math.toRadians(10);//15
+        double slowTurnAngle = Math.toRadians(7);//15 => 10
         drive.targetPose = target;
         drive.targetRadius = error;
         long start = System.currentTimeMillis();
@@ -173,11 +173,11 @@ public class TestAuto extends LinearOpMode {
             double kP = speedError * 0.02;
             kI += speedError * drive.loopSpeed * 0.0005;
             double sideKStatic = 0;
-            if (hugWall && drive.currentPose.getX() <= 40){ //36
+            if (hugWall && (drive.currentPose.getX() <= 40 || target.getX() <= 40)){ //36
                 sideKStatic = 0.4 * side;
             }
             if (x || y){
-                if (Math.abs(relError.getY()) < sideError && hugWall && drive.currentPose.getX() <= 36) {
+                if (Math.abs(relError.getY()) < sideError && hugWall && (drive.currentPose.getX() <= 40 || target.getX() <= 40)) {
                     sideKStatic = 0.25 * side;
                     double heading = relError.getHeading();
                     if (Math.abs(relError.getY()) < sideError && Math.abs(drive.relCurrentVelocity.getY()) < 4){

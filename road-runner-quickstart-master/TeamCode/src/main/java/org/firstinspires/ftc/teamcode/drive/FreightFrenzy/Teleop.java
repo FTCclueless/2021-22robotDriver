@@ -663,6 +663,9 @@ public class Teleop extends LinearOpMode {
         else{
             drive.effectiveDepositAngle = Math.toRadians(-45);
         }
+        if (endgame){
+            hub = 2;
+        }
         switch(hub) {
             case 0:
                 firstAlliance = true;
