@@ -181,7 +181,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public double slideTickToInch = 25.1372713591;
     public double turretTickToRadians = 578.3213;
     public double currentSlidesSpeed = 0;
-    double currentV4barAngle = 0;
+    static double currentV4barAngle = 0;
     double targetV4barAngle = 0;
 
     public boolean intakeDepositTransfer = false, intakeHit = false;
@@ -415,9 +415,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftIntakeDrop = 0;
         leftIntakeRaise = 0.699;
         leftIntakeMid = 0.642;
-        rightIntakeDrop = 0.775;
-        rightIntakeRaise = 0.092;
-        rightIntakeMid = 0.16; //0.149
+        rightIntakeDrop = 0.678;
+        rightIntakeRaise = 0.032;
+        rightIntakeMid = 0.073;
 
         servos.get(0).setPosition(rightIntakeRaise);
         servos.get(1).setPosition(leftIntakeRaise);
@@ -517,7 +517,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     }
 
     public void updateMotors(Pose2d relError, double power, double maxPowerTurn, double slowDownDist, double slowTurnAngle, double error, double sideError, double sideKStatic){
-        double kStatic = 0.11;
+        double kStatic = 0.06; // 0.11
         double powerAdjust = power-kStatic;
         double turnAdjust = maxPowerTurn-kStatic;
         double sideAdjust = Math.max(0.4,power)-kStatic*2; //TODO: min
@@ -1078,7 +1078,7 @@ public class SampleMecanumDrive extends MecanumDrive {
             lastLoopTime = currentTime;
         }
 
-        if ( loops % 100 == 0){
+        if (loops % 25 == 0) { // loops % 100 == 0
             //updateImuAngle();
             updateImuHeading();
         }
