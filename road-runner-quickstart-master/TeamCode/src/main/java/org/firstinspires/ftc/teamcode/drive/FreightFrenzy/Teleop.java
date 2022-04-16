@@ -482,7 +482,7 @@ public class Teleop extends LinearOpMode {
             double kStatic = 0.15;
             if (gamepad1.right_bumper){ //Normal mode (press button to sprint)
                 f *= 0.25;
-                l *= 0.5;
+                l *= 0.85;
             }
 
             double forward = Math.pow(f,7) * -(0.85 - kStatic) * speedSlowMultiplier + Math.signum(-f) * Math.max(Math.signum(Math.abs(f) - 0.1),0) * kStatic;
