@@ -124,7 +124,7 @@ public class TestAutoBlue extends LinearOpMode {
     }
     public void driveOut(Pose2d endPoint){
         double i = -1;
-        double offset = 1; //-2
+        double offset = 2.5; //1
         drive.effectiveDepositAngle = Math.toRadians(-35);//-65
         drive.v4barOffset = Math.toRadians(-6); drive.slidesOffset = 2; drive.turretOffset = Math.toRadians(2.5) * side; // -4 => -10, 0, 0
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());

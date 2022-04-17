@@ -20,7 +20,9 @@ public class TestAuto extends LinearOpMode {
     double lastIntakeX = 36; //39
 
     long start = System.currentTimeMillis();
-    long cutoff = 2000;
+    long cutoff = 1300;
+
+    int numMinerals = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -49,15 +51,13 @@ public class TestAuto extends LinearOpMode {
         drive.v4barOffset = Math.toRadians(-4);
         drive.updateSlideLength = true;
         depositFirst(capNum, endPoint);
-        int numMinerals = 0;
         drive.intakeLiftDelay = 0; //50
         while (System.currentTimeMillis() - start <= 30000 - cutoff - 500 && opModeIsActive()){
-            driveIn(endPoint,numMinerals);
+            driveIn(endPoint);
             if (System.currentTimeMillis() - start >= 30000 - cutoff){
                 break;
             }
             driveOut(endPoint);
-            numMinerals ++;
         }
         if (drive.intakeCase <= 2) {
             drive.intakeCase = 0;
@@ -77,22 +77,22 @@ public class TestAuto extends LinearOpMode {
         b.update();
         b.close();
     }
-    public void driveIn(Pose2d endPoint, int numMinerals){
+    public void driveIn(Pose2d endPoint){
         drive.startIntake(side == -1);
-        double angle = Math.toRadians(-13.5) * Math.signum(endPoint.getY()) * (numMinerals % 3);//-12 => -15
-        double x =  -2 + lastIntakeX - 12 * (1 - Math.cos(angle)); // 3
+        double angle = Math.toRadians(-10) * side * (numMinerals % 3);//-12 => -15 => -13.5
+        double x =  -2 + lastIntakeX + 12 * (1 - Math.cos(angle)); // -2, (-)
         double y = 71.25 * Math.signum(endPoint.getY()) - Math.sin(angle) * -8.0 - Math.cos(angle) * 6.0 * side;
         driveToPoint(
-                new Pose2d(x - 6, endPoint.getY(), 0), //8
+                new Pose2d(x - 6, endPoint.getY() + 0.3 * side, 0), //8
                 new Pose2d(72, 24 * side, angle),
-                true, 3, 0.95, 900, 5, true, cutoff,true //6
+                true, 3, 0.95, 2000, 5, true, cutoff,true //6
         );
         //0.35, 7
         if (angle != 0) {
             driveToPoint(
                     new Pose2d(x, y, angle),
                     new Pose2d(72, 24 * side, angle),
-                    true, 1.5, 0.35, 800, 1.5, false, cutoff
+                    true, 1.5, 0.405, 500, 1.5, false, cutoff //0.405, 800
             );
         }
         else {
@@ -102,43 +102,59 @@ public class TestAuto extends LinearOpMode {
             }
             intakeMineral(0.5,k * 150, false); //500
         }
+
+        if (Math.abs(drive.currentPose.getHeading()) >= Math.toRadians(5) || angle == 0) { //make it so that if it intakes something while coming in that it then keeps going at the same angle the next cycle through
+            numMinerals++;
+        }
+
+        /*
         long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 150 && drive.intakeCase == 2){ //250
+        while (System.currentTimeMillis() - start < 50 && drive.intakeCase == 2){ //250 => 150
             drive.update();
             drive.setMotorPowers(0,0,0,0);
         }
-        intakeMineral(0.405,2000, true);
+         */
+        intakeMineral(0.285,2000, true); //345
         if (drive.intakeCase == 2){
             drive.intakeCase ++;
         }
+
         lastIntakeX = Math.max(drive.currentPose.getX(),lastIntakeX + 2);
         lastIntakeX = Math.min(54.0, lastIntakeX);
     }
     public void driveOut(Pose2d endPoint){
         double i = -1;
-        double offset = 0; //-2
-        drive.v4barOffset = Math.toRadians(-10); drive.slidesOffset = 0; drive.turretOffset = 0; // -4
+        double offset = 1; //1.5
+        drive.effectiveDepositAngle = Math.toRadians(-35);//-35
+        drive.v4barOffset = Math.toRadians(-6); drive.slidesOffset = -0.5; drive.turretOffset = Math.toRadians(1 * side); // 1
         Pose2d newEnd = new Pose2d(endPoint.getX() + offset, endPoint.getY(), endPoint.getHeading());
         drive.startDeposit(endPoint, new Pose2d(-12.0 + i, 24.0 * Math.signum(endPoint.getY())),13.5,3);
         driveToPoint(
-                new Pose2d(38.5, newEnd.getY() + side * 0.2, 0),
-                new Pose2d(33.5, newEnd.getY() + side * 0.2, 0),
-                false,3, 0.85,500,4,true, cutoff //0.75
+                new Pose2d(36.5, newEnd.getY() + side * 0.2, 0),
+                new Pose2d(33.5, newEnd.getY() + side * -0.5, 0),
+                false,3, 0.85,750,4,true, cutoff //0.75
         );
-        drive.deposit();
+        //drive.deposit();
         driveToPoint(
-                new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.2 * side, 0),
-                false,4, 0.85,1000,10, true, cutoff //0.95, 10
+                new Pose2d(newEnd.getX() + 5,newEnd.getY() + 0.25 * side, 0),
+                false,2, 0.95,1500,10, true, cutoff //4
         );
         //long start = System.currentTimeMillis(); System.currentTimeMillis() - start < 1000
+        drive.targetPose = newEnd;
+        drive.targetRadius = 1;
         while (drive.slidesCase <= 4 && opModeIsActive()) {
             drive.update();
-            Pose2d error = drive.getRelError(endPoint);
+            Pose2d error = drive.getRelError(newEnd);
             drive.deposit();
+            double a = 0.15 * side;
             if (Math.abs(error.getY()) <= 0.5){
-                error = new Pose2d(error.getX(), 0, 0);
+                error = new Pose2d(error.getX(), 0, error.getHeading());
+                a *= 3;
             }
-            drive.updateMotors(error, 0.215, 0.45,14, Math.toRadians(8), 0.35, 0.5, 0.15 * side); //13 //0.2 -> 0.1 //0.25
+            if (drive.slidesCase == 4){
+                drive.startIntake(side == -1);
+            }
+            drive.updateMotors(error, 0.215, 0.45,10, Math.toRadians(8), 0.35, 0.5, a);//14,0.15
         }
         drive.targetPose = null;
         drive.targetRadius = 1;
@@ -147,7 +163,10 @@ public class TestAuto extends LinearOpMode {
         driveToPoint(target,target2,intake,error,power,maxTime,slowDownDist,hugWall,cutoff, false);
     }
     public void driveToPoint(Pose2d target, Pose2d target2, boolean intake, double error, double power, long maxTime, double slowDownDist, boolean hugWall, long cutoff, boolean forward){
-        double maxPowerTurn = 0.65; //0.55
+        double maxPowerTurn = 0.35; //0.55 => 0.65
+        if (hugWall){
+            maxPowerTurn = 0.65;
+        }
         double slowTurnAngle = Math.toRadians(7);//15 => 10
         drive.targetPose = target;
         drive.targetRadius = error;
@@ -161,7 +180,7 @@ public class TestAuto extends LinearOpMode {
                 opModeIsActive() && System.currentTimeMillis() - start <= 30000 - cutoff
                         && (!forward || drive.currentPose.getX() <= target.getX() - error)
                         && !(x && y &&  Math.abs(drive.currentPose.getHeading() - target.getHeading()) < Math.toRadians(error * 2))
-                        && (drive.intakeCase <= 2 || !intake) && System.currentTimeMillis() - start < maxTime
+                        && ((drive.intakeCase <= 2 || drive.intakeCase == 8) || !intake) && System.currentTimeMillis() - start < maxTime
         ) {
             drive.update();
             x = (Math.max(target.getX(),target2.getX()) + error > drive.currentPose.getX() && Math.min(target.getX(),target2.getX()) - error < drive.currentPose.getX());
@@ -173,18 +192,14 @@ public class TestAuto extends LinearOpMode {
             double kP = speedError * 0.02;
             kI += speedError * drive.loopSpeed * 0.0005;
             double sideKStatic = 0;
-            if (hugWall && (drive.currentPose.getX() <= 40 || target.getX() <= 40)){ //36
-                sideKStatic = 0.4 * side;
-            }
-            if (x || y){
-                if (Math.abs(relError.getY()) < sideError && hugWall && (drive.currentPose.getX() <= 40 || target.getX() <= 40)) {
-                    sideKStatic = 0.25 * side;
-                    double heading = relError.getHeading();
-                    if (Math.abs(relError.getY()) < sideError && Math.abs(drive.relCurrentVelocity.getY()) < 4){
-                        sideKStatic = 0.05; // 0
-                        heading = 0;
+            if (hugWall && (drive.currentPose.getX() <= 40 || Math.min(target.getX(),target2.getX()) <= 40)){ //36
+                sideKStatic = 0.5 * side;
+                if (x || y){
+                    sideKStatic = 0.35 * side; //0.3
+                    if (Math.abs(relError.getY()) < sideError){
+                        sideKStatic = 0.15 * side;
                     }
-                    relError = new Pose2d(relError.getX(), 0, heading);
+                    relError = new Pose2d(relError.getX(), 0, relError.getHeading());
                 }
             }
             drive.updateMotors(relError,power*0.75 + kP + kI,maxPowerTurn,slowDownDist,slowTurnAngle,0.5,sideError,sideKStatic);
@@ -200,23 +215,50 @@ public class TestAuto extends LinearOpMode {
         double maxPower = power;
         Pose2d lastPose = drive.currentPose;
         Long lastGoodIntake = System.currentTimeMillis();
+        Long stall = System.currentTimeMillis();
+        Long noStall = System.currentTimeMillis();
+        Long a = System.currentTimeMillis();
+        boolean b = true;
         boolean first = true;
+        boolean c = true;
         double kI = 0;
-        while(opModeIsActive() && drive.intakeCase <= 2 && System.currentTimeMillis()-startingTime <= maxTime && System.currentTimeMillis() - start <= 30000 - cutoff){
+        while(opModeIsActive() && drive.intakeCase <= 2 && a-startingTime <= maxTime && a - start <= 30000 - cutoff){
             double currentPower = maxPower;
-            drive.intake.setPower(-1);
+            //drive.intake.setPower(-1);
             double sidePower = 0;
-            if (System.currentTimeMillis() - start >= 550 && (Math.abs(drive.relCurrentVelocity.getX()) <= 3 || drive.intakeHit) && goBackIfStall){
-                if (first && System.currentTimeMillis() - lastGoodIntake >= 300) {
+            a = System.currentTimeMillis();
+            if (a - start >= 150 && Math.abs(drive.relCurrentVelocity.getX()) <= 2 && goBackIfStall){
+                if (first && a - lastGoodIntake >= 300) {
                     first = false;
                     maxTime += 500;
                     driveToPoint(new Pose2d(lastPose.getX() - 4, lastPose.getY(), lastPose.getHeading()), true, 1, 0.35, 1000, 6, false, cutoff);
                 }
             }
             else{
-                lastGoodIntake = System.currentTimeMillis();
+                lastGoodIntake = a;
                 lastPose = drive.currentPose;
             }
+
+            if (Math.abs(drive.intakeSpeed) <= 3 && a - noStall >= 200 && c){
+                drive.intake.setPower(drive.transfer1Power);
+                stall = a;
+                c = false;
+                first = false;
+                maxTime += 500;
+                while (System.currentTimeMillis() - a <= 100){
+                    drive.update();
+                }
+                drive.intake.setPower(drive.intakePower);
+                driveToPoint(new Pose2d(lastPose.getX() - 2, lastPose.getY() - 4 * side, lastPose.getHeading() - Math.toRadians(8 * side)), true, 1, 0.35, 1000, 6, false, cutoff);
+            }
+
+            if (a - stall >= 100 && !c){
+                drive.intake.setPower(drive.intakePower);
+                c = true;
+                noStall = a;
+            }
+
+
             double turn = 0;
             double targetSpeed = power * 30;
             double currentSpeed = Math.abs(drive.relCurrentVelocity.getX());
