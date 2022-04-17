@@ -83,6 +83,8 @@ public class SensorTest extends LinearOpMode {
             telemetry.addData("right Color blue",drive.rightWall.blue());
             telemetry.addData("right Color red",drive.rightWall.red());
             telemetry.addData("right Color green",drive.rightWall.green());
+            telemetry.addData("color", drive.leftWall.hashCode());
+            telemetry.addData("flex", drive.flex.getVoltage());
 
             //telemetry.addData("left Intake", drive.leftIntake.getVoltage());
             //telemetry.addData("right Intake", drive.rightIntake.getVoltage());
