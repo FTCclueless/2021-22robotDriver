@@ -12,7 +12,7 @@ import org.openftc.apriltag.AprilTagDetection;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "Auto")
+//@Autonomous(group = "Auto")
 public class TestAuto extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = -1;

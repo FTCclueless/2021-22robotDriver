@@ -19,7 +19,7 @@ import java.util.ArrayList;
 /*
  * This is an example of a more complex path to really test the tuning.
  */
-@Autonomous(group = "Auto")
+//@Autonomous(group = "Auto")
 public class WarehouseAutoBlueFaster extends LinearOpMode {
     SampleMecanumDrive drive;
     double side = 1;
