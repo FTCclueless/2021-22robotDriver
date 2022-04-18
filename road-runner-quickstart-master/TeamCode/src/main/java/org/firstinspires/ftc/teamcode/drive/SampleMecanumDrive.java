@@ -850,7 +850,7 @@ public class SampleMecanumDrive extends MecanumDrive {
                     if (slidesCase == 1 && ((Math.abs(slideExtensionLength - 4) <= 3.5 && (currentV4barAngle >= Math.min(Math.toRadians(130),t))) || targetSlideExtensionLength + slidesOffset >= 10)){slidesCase ++;}
                     else if (slidesCase == 2 && (Math.abs(turretHeading - (targetTurretHeading + turretOffset)) <= Math.toRadians(7.5)
                             && Math.abs(slideExtensionLength - (targetSlideExtensionLength + slidesOffset)) <= 6 // 3 => 5 => 7 => 9 => 6 => 8 => 6
-                            && Math.abs(t - currentV4barAngle) <= Math.toRadians(5)) //18
+                            && Math.abs(t - currentV4barAngle) <= Math.toRadians(3)) //18 => 5
                             ){slidesCase ++;} // was 5 (now 7.5) || System.currentTimeMillis() - slideTime >= 400
                     if (slidesCase == 3 && deposit){slidesCase ++; currentDepositAngle += Math.toRadians(20);setDepositAngle(Math.toRadians(180) - effectiveDepositAngle);updateDepositAngle();} //else if
                     break; //13 => 5 && Math.abs(currentSlidesSpeed) <= 8 &&
