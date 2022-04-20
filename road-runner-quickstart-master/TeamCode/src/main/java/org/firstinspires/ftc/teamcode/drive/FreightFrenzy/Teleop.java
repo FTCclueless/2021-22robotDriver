@@ -119,7 +119,6 @@ public class Teleop extends LinearOpMode {
     long startDepositCap = System.currentTimeMillis();
     boolean firstB = false;
 
-    //TODO: Make sure the duck servo is working properly & make sure the defence button works
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -148,6 +147,12 @@ public class Teleop extends LinearOpMode {
 
         runtime.reset();
 
+        drive.slidesCase = -1;
+        drive.transferMineral = true;
+
+        drive.setV4barOrientation(drive.v4barInterfaceAngle);
+        long ab = System.currentTimeMillis();
+
         while (!isStarted() && !isStopRequested()){
             if (gamepad1.dpad_up){
                 side = -1;
@@ -161,7 +166,12 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("info from file", info);
             telemetry.update();
             drive.update();
+            if (System.currentTimeMillis() - ab >= 1000){
+                drive.slidesCase = 5;
+            }
         }
+
+        drive.slidesCase = 5;
 
         if (side == -1){
             duckInPos = 1.0 - 0.0;
@@ -737,7 +747,7 @@ public class Teleop extends LinearOpMode {
                 lastCap = x;
 
                 if (cap > 0){
-                    //drive.slidesCase = 3;
+                    drive.slidesCase = -1;
                     drive.transferMineral = true;
                     double h = 0;
                     drive.setV4barOrientation(drive.targetV4barOrientation + drive.v4barOffset);
@@ -756,14 +766,12 @@ public class Teleop extends LinearOpMode {
                     switch (cap){
                         case 1:
                             drive.setDepositAngle(Math.toRadians(211)); //208
-                            drive.slidesCase = -1;
                             hubLocation = new Pose2d(-60.0, 35.25*side);
                             radius = 1;
                             height = 6; //Micheal thinks this is about 5
                             break;
                         case 2:
                             drive.setDepositAngle(Math.toRadians(90));
-                            drive.slidesCase = -1;
                             hubLocation = new Pose2d(-20.0, 65.25*side);
                             radius = 1;
                             height = 10;
@@ -771,7 +779,6 @@ public class Teleop extends LinearOpMode {
                             break;
                         case 3:
                         case 4:
-                            drive.slidesCase = -1;
                             hubLocation = new Pose2d(-12.0, 24*side);
                             radius = 5;
                             if (cap == 4){
