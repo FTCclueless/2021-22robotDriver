@@ -61,6 +61,7 @@ public class Teleop extends LinearOpMode {
     ButtonToggle barrier = new ButtonToggle();
     ButtonToggle a = new ButtonToggle();
 
+    /*
     double armInPosRight = 0.0;
     double armOutPosRight = 0.172;
     double armOutGrabPosRight = 0.514;
@@ -70,6 +71,7 @@ public class Teleop extends LinearOpMode {
     double armInPos = armInPosRight;
     double armOutPos = armOutPosRight;
     double armOutGrabPos = armOutGrabPosRight;
+     */
     boolean first = false; //true;
     boolean lastIn = false;
     boolean lastOut = false;
@@ -127,9 +129,12 @@ public class Teleop extends LinearOpMode {
         extendSlides.toggleState = true;
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        drive.servos.get(5).setPosition(armInPosRight);
+        //drive.servos.get(5).setPosition(armInPosRight);
 
         drive.v4barOffset = Math.toRadians(-10);
+
+        drive.slidesCase = -1;
+        drive.transferMineral = true;
 
         Reader r = new Reader();
         String info = r.readFile("Alliance");
@@ -147,13 +152,12 @@ public class Teleop extends LinearOpMode {
 
         runtime.reset();
 
-        drive.slidesCase = -1;
-        drive.transferMineral = true;
-
         drive.setV4barOrientation(drive.v4barInterfaceAngle);
         long ab = System.currentTimeMillis();
+        boolean q = true;
 
         while (!isStarted() && !isStopRequested()){
+            drive.setV4barOrientation(drive.v4barInterfaceAngle);
             if (gamepad1.dpad_up){
                 side = -1;
                 intake = true;
@@ -166,12 +170,17 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("info from file", info);
             telemetry.update();
             drive.update();
-            if (System.currentTimeMillis() - ab >= 1000){
+            if (System.currentTimeMillis() - ab >= 1000 && q){
                 drive.slidesCase = 5;
+                q = false;
+            }
+            else if (q){
+                drive.setSlidesLength(drive.slideExtensionLength);
+                drive.setTurretTarget(drive.turretHeading);
             }
         }
 
-        drive.slidesCase = 5;
+        //drive.slidesCase = 5;
 
         if (side == -1){
             duckInPos = 1.0 - 0.0;
@@ -179,9 +188,9 @@ public class Teleop extends LinearOpMode {
             duckIntakeReceiving = 1.0 - 0.32;
             duckIntakeReceivingOut = 1.0 - 0.52;
             duckIntakeMaxIn = 1.0 - 0.18;
-            armInPos = armInPosLeft;
-            armOutPos = armOutPosLeft;
-            armOutGrabPos = armOutGrabPosLeft;
+            //armInPos = armInPosLeft;
+            //armOutPos = armOutPosLeft;
+            //armOutGrabPos = armOutGrabPosLeft;
         }
         else {
             duckInPos = 0;
@@ -258,7 +267,12 @@ public class Teleop extends LinearOpMode {
 
             //Reset the offsets
             if (gamepad2.a) {
-                if (hub == 0){
+                if (cap == 1){
+                    drive.slidesOffset = -10;
+                    drive.turretOffset = 0;
+                    drive.v4barOffset = Math.toRadians(52); //56
+                }
+                else if (hub == 0){
                     lowShared = false;
                     drive.v4barOffset = Math.toRadians(-196); //-166
                     drive.slidesOffset = 2;
@@ -462,7 +476,7 @@ public class Teleop extends LinearOpMode {
             }
             lastRightTrigger = rightTrigger;
 
-            capstone();
+            //capstone();
             updatePoseLock();
             updateHub();
 
@@ -560,6 +574,10 @@ public class Teleop extends LinearOpMode {
             if (!firstEndgame){
                 firstEndgame = true;
                 firstUpdate = false;
+                drive.currentIntake = 0;
+                if (drive.slidesCase <= 2){
+                    drive.slidesCase = 0;
+                }
                 extendSlides.toggleState = true;
                 secondHubLevel.toggleState = false;
                 drive.v4barOffset = Math.toRadians(-10);
@@ -602,6 +620,7 @@ public class Teleop extends LinearOpMode {
             drive.transfer2Time = 350;
         }
     }
+    /*
     public void capstone(){
         boolean in = gamepad2.dpad_up;
         boolean out = gamepad2.dpad_down;
@@ -664,7 +683,7 @@ public class Teleop extends LinearOpMode {
             }
         }
     }
-
+     */
     public void updatePoseLock(){
         if (gamepad1.dpad_up) {
             firstUpdate = true;
@@ -782,15 +801,15 @@ public class Teleop extends LinearOpMode {
                             hubLocation = new Pose2d(-12.0, 24*side);
                             radius = 5;
                             if (cap == 4){
-                                if (System.currentTimeMillis() - startDepositCap >= 800){
+                                if (System.currentTimeMillis() - startDepositCap >= 900){
                                     drive.slidesOffset = 0;
                                     drive.turretOffset = 0;
                                     drive.v4barOffset = 0;
                                     drive.slidesCase = 5;
                                     cap = 0;
                                 }
-                                else if (System.currentTimeMillis() - startDepositCap >= 250){
-                                    drive.slidesOffset -= 9 * drive.loopSpeed; // 6
+                                else if (System.currentTimeMillis() - startDepositCap >= 150){
+                                    drive.slidesOffset -= 12 * drive.loopSpeed; // 6
                                     drive.v4barOffset += Math.toRadians(40) * drive.loopSpeed;
                                     drive.setDepositAngle(Math.toRadians(180 - 45 * (System.currentTimeMillis() - startDepositCap - 500) / 1250.0));
                                 }

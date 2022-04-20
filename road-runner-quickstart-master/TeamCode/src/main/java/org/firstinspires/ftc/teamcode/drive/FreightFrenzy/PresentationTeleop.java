@@ -51,29 +51,30 @@ public class PresentationTeleop extends LinearOpMode {
         drive.intakeCase = -1;
         drive.currentIntake = -1;
 
-        while(opModeIsActive() && !isStarted()){
-            drive.update();
-            drive.setV4barOrientation(drive.v4barInterfaceAngle);
-            drive.setTurretTarget(0);
-            drive.setSlidesLength(drive.returnSlideLength, 0.4);
-            drive.servos.get(0).setPosition(drive.rightIntakeMid);
-            drive.servos.get(1).setPosition(drive.leftIntakeMid);
-        }
+        drive.transferMineral = true;
+        Pose2d endPoint = new Pose2d(12, 65.25 * side, Math.toRadians(0));
+        Pose2d hubLocation = new Pose2d(-12.0, 24.0*side);
+        double height = 14;
+        double radius = 3;
 
+        while(!isStopRequested() && !isStarted()){
+            drive.update();
+        }
+        telemetry.addData("hi", "hello");
+        telemetry.update();
+
+        drive.startDeposit(endPoint, hubLocation, height, radius);
         while (!isStopRequested()) {
 
+            drive.deposit();
             drive.update();
 
             drive.servos.get(7).setPosition(0.471);
-            drive.servos.get(6).setPosition(1);
 
             drive.update();
             if (drive.intakeCase == -1) {
-                drive.setV4barOrientation(drive.v4barInterfaceAngle);
-                drive.setTurretTarget(drive.intakeTurretInterfaceHeading * drive.currentIntake);
-                drive.setSlidesLength(drive.returnSlideLength, 0.4);
                 drive.servos.get(0).setPosition(drive.rightIntakeDrop);
-                drive.servos.get(1).setPosition(drive.leftIntakeMid);
+                drive.servos.get(1).setPosition(drive.leftIntakeDrop);
             }
             if (gamepad1.a){
                 if (drive.intakeCase == -1) {
