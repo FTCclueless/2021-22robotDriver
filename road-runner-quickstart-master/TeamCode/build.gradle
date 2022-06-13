@@ -18,6 +18,7 @@ apply from: '../build.dependencies.gradle'
 dependencies {
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    //implementation 'com.google.mlkit:image-labeling-custom:17.0.0'
 
     implementation 'org.apache.commons:commons-math3:3.6.1'
 
